@@ -7,7 +7,8 @@ captura XML/PDF y manual, clasificación con revisión, libros de compras/ventas
 y portal básico para clientes. La web/PWA precede a la app móvil; Empresas y
 Personal reutilizarán contratos y núcleo de permisos/datos.
 
-Las reglas y fases del frontend están en [AGENTS.md](AGENTS.md). El plan coordinado
+Las reglas del frontend están en [AGENTS.md](AGENTS.md) y su plan de implementación
+en [docs/PLAN.md](docs/PLAN.md). El plan coordinado
 está en `../nuvora-api/docs/PLAN.md`. La base de autenticación y seguridad del API
 se conserva; los módulos de negocio de esta propuesta aún están por implementar.
 

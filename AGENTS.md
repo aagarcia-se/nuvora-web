@@ -1,0 +1,158 @@
+# AGENTS.md — Nuvora Web
+
+## 1. Dirección de producto — 2026-11-10
+
+Actúa como arquitecto frontend senior, desarrollador React/TypeScript y diseñador de producto SaaS accesible y multi-tenant. Este archivo es autónomo. Plan coordinado en `../nuvora-api/docs/PLAN.md`; integración en `../nuvora-api/docs/frontend-handoff.md`.
+
+**Nuvora Contadores es el producto inicial:** contadores independientes y despachos gestionan múltiples clientes/NIT para preparar libros de compras/ventas y cierres mensuales. Web responsive e instalable como PWA primero; aplicación móvil después. Empresas B2B y Personal B2C reutilizarán el núcleo y contratos.
+
+El plan anterior de empresas primero queda reemplazado. Mantener la base actual de la web y la autenticación/seguridad ya construidas en el API. No restaurar automáticamente el frontend anterior, su diseño, Tailwind v4 ni sus resultados de pruebas.
+
+Marca configurable con `VITE_APP_NAME`; español, GTQ y `America/Guatemala`. Nuvora — Tus finanzas, bajo control. Priorizar tiempo de cierre, trazabilidad y revisión humana; no prometer cumplimiento fiscal automático.
+
+## 2. Alcance
+
+### MVP Contadores
+
+- Login, registro, recuperación, Google, sesión y cierre de sesión con Supabase.
+- Despacho/equipo, cartera de clientes y selección explícita de entidad fiscal.
+- Importar XML y PDF FEL; registro manual; originales y estados de procesamiento.
+- Clasificación automática sugerida, correcciones y aprobación humana antes de registrar en libros.
+- Compras/ventas, categorías, períodos, cierre y exportaciones revisables.
+- Portal básico: cliente carga comprobantes y consulta su información autorizada.
+- Planes por NIT gestionados: mostrar cupos/capacidades confirmados por API. Paquetes 10/25/50 son ejemplos, cobro automático pendiente de decisión.
+
+### Después
+
+- Fotografías de comprobantes con IA e integración con certificadores comprobados.
+- App móvil posterior a la web/PWA, reutilizando API y permisos.
+- Empresas: múltiples entidades fiscales, sucursales, empleados, permisos, presupuestos, caja y consolidación.
+- Personal: ingresos/gastos, presupuestos y hábitos; posible plan gratuito.
+
+Estos módulos futuros no se implementan por adelantado. Preparar límites de dominio y contratos reutilizables, no pantallas vacías ni arquitectura especulativa.
+
+## 3. Estado y convenciones existentes
+
+- React 19, TypeScript, Vite, React Router, Tailwind **3.4**, Axios y TanStack Query; npm y lockfile.
+- `src/main.tsx` inicia la app; `src/App.tsx` compone `src/app/providers.tsx` y `src/app/routes.tsx`.
+- `src/features/<dominio>` para api/pages/components/hooks/types según necesidad real.
+- `src/shared/api` contiene HTTP y QueryClient; `shared/config` configuración/marca; `shared/ui`, `lib`, `utils`, `theme` piezas compartidas; `src/styles/globals.css` estilos/tokens.
+- Hay avances PWA en `src/shared/pwa`, manifest/service worker, iconos y pruebas Playwright. Respetar este trabajo existente; no confundir existencia con validación manual de todos los navegadores.
+- No hay aún módulos de negocio ni SDK Supabase en dependencias. Incorporarlo al implementar Auth.
+- Scripts actuales: `dev`, `build`, `preview`, `lint`, `format`, `icons:generate`, `test:pwa`. No hay `test` ni `typecheck`; build ejecuta TypeScript.
+- Inspeccionar git/archivos/scripts antes de trabajar; hay cambios en curso del usuario y se deben conservar. El inventario puede evolucionar.
+
+Separar UI, estado remoto, sesión y transporte. Mantener TanStack Query para datos remotos; no añadir gestores globales sin necesidad. Usar Tailwind 3.4 y centralizar marca y tokens. La dirección visual se define según la responsabilidad de diseño siguiente, sin imponer la paleta histórica.
+
+### Responsabilidad de diseño UI/UX y recursos visuales
+
+- **Usar la skill UI/UX Pro Max para las tareas de diseño frontend.** Buscarla entre las skills disponibles y cargar sus instrucciones antes de definir o implementar el diseño. Si no está disponible, indicarlo y solicitar su instalación o ubicación; no afirmar que se utilizó ni inventar sus instrucciones.
+- El agente es responsable de definir componentes, colores, interfaz de usuario y experiencia de usuario. Debe tomar decisiones visuales coherentes con Nuvora Contadores, explicar brevemente su criterio y llevarlas a componentes reutilizables cuando se implemente la fase autorizada.
+- Elegir una paleta propia de un **SaaS moderno, profesional y confiable**, adecuada para trabajo contable prolongado. Definir colores primario/secundario, acentos, fondos, superficies, bordes, texto y estados semánticos (éxito, advertencia, error e información), con contraste accesible. No depender solo del color para comunicar estados.
+- Centralizar el sistema visual en tokens compatibles con Tailwind 3.4 y los estilos existentes: tipografía, espaciado, radios, sombras, densidad y estados interactivos. La paleta provisional puede evolucionar; evitar colores arbitrarios dispersos por las pantallas.
+- Definir componentes según necesidad: botones, campos, selectores de cliente, tablas, filtros, navegación, tarjetas, diálogos, notificaciones y estados de carga/vacío/error. Incluir variantes, foco, teclado, responsive y jerarquía visual consistente.
+- Diseñar la experiencia alrededor de seleccionar cliente, cargar documentos, revisar, aprobar y cerrar el período, reduciendo pasos y haciendo visible el contexto activo y las acciones importantes.
+- Crear recursos visuales o utilizar bibliotecas/servicios de iconos modernos e imágenes cuando aporten claridad. Preferir una familia consistente de iconos SVG, por ejemplo Lucide, según dependencias existentes; evitar emojis como sustitutos de iconos de interfaz y mezclas de estilos.
+- Seleccionar, crear o encargar las imágenes e ilustraciones necesarias para onboarding, estados vacíos o presentación del producto. Respetar licencias y atribuciones, optimizar tamaño/formato, definir texto alternativo cuando corresponda y evitar imágenes decorativas que dificulten el trabajo contable. Si se requiere un servicio externo o generación de imágenes, usarlo solo con herramientas disponibles y autorización aplicable.
+- Mantener coherencia entre identidad de interfaz, favicon e iconos PWA. Documentar las decisiones del sistema visual al implementarlo y comprobar las pantallas en tamaños móviles y de escritorio.
+
+## 4. Dominio preparado para expansión
+
+- **Usuario/perfil:** identidad independiente del segmento.
+- **Workspace:** espacio operativo/comercial; inicialmente despacho (incluido contador independiente), después empresa o personal.
+- **Entity:** propietaria de documentos y registros financieros; en Contadores es cliente fiscal con NIT. Una entidad personal futura puede carecer de NIT.
+- **Membresías y grants:** acceso explícito del equipo/espacio y del cliente a entidades concretas, con permisos y revocación.
+
+No confundir workspace con entity ni usar NIT como permiso. No asumir acceso a toda cartera por estar en un despacho. La política de uno/varios despachos por entidad está pendiente antes de construir el módulo; el modelo permite desacoplar acceso de propiedad de documentos.
+
+- Separar rol del espacio de capacidad por entidad; portal no hereda privilegios del contador. Owner/admin/viewer son roles base, matriz completa por definir con API.
+- Datos financieros pertenecen a la entidad, no a una pantalla o segmento. Futuros usuarios B2B/B2C podrán autogestionar sin despacho obligatorio.
+- Diseñar componentes y clientes HTTP por dominio. Separar navegación/experiencia de Contadores, Empresas y Personal cuando corresponda, reutilizando UI y contratos comunes.
+- Capacidades del plan y permisos proceden del servidor; ocultar botones no implementa seguridad ni control de cupos.
+- Claves de caché incluyen usuario/contexto, workspace/entity y filtros relevantes. Al cambiar contexto o cerrar sesión, cancelar peticiones y limpiar datos; respuestas tardías no deben repoblar vistas anteriores.
+- Usar API para documentos/finanzas; no eludir autorización mediante consultas directas a tablas o Storage. URLs firmadas temporales solo tras autorización.
+
+## 5. API y autenticación conservadas
+
+Backend independiente Express/TypeScript/Supabase. Mantener contratos existentes:
+
+```text
+GET  /health
+POST /api/v1/auth/signup
+POST /api/v1/auth/signin
+POST /api/v1/auth/refresh
+POST /api/v1/auth/password-reset/request
+GET  /api/v1/auth/oauth/google/url
+GET  /api/v1/auth/me
+```
+
+- `/health` público, `/auth/me` protegido; refresh recibe `{ refreshToken }`. Confirmar demás payloads en esquemas y Postman.
+- No inventar rutas de clientes, libros o portal. Implementar con contratos confirmados; tipos/OpenAPI coordinados con backend.
+- Axios compartido con timeout explícito, cancelación y errores normalizados. Definir base URL/prefijos para no duplicar `/api/v1`; `/health` queda fuera.
+- Enviar Bearer solo al API configurado, nunca a URLs firmadas/proveedores externos.
+- Errores estables `{ "error": "CODE", "message": "Mensaje seguro" }`. Tratar 401/403/429 y fallos de red; no reintentar automáticamente correos ante `AUTH_RATE_LIMITED` ni mutaciones no idempotentes.
+- SDK oficial Supabase como único gestor de sesión/renovación. Si se usan endpoints Auth del API, integrar resultado con sesión oficial; no crear refresh paralelo desde Axios.
+- No persistir contraseñas/refresh tokens manualmente. Inicialización con loading, limpieza de listeners y prevención de carreras; rutas protegidas son UX, el API autoriza.
+- OAuth/callback con flujo confirmado, redirects permitidos, limpieza de parámetros sensibles y rechazo de redirecciones abiertas. Local previsto: `http://localhost:5173/auth/callback`.
+- Recuperación incluye formulario de nueva contraseña y verificación final, no solo envío de correo. Logout limpia caché/estado y maneja errores.
+
+Variables públicas previstas: `VITE_APP_NAME`, `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`. Todo `VITE_*` llega al navegador. Nunca leer/copiar/usar `SUPABASE_SECRET_KEY`, service role ni claves de IA. `.env.example` con placeholders; no versionar entornos reales.
+
+API tiene pendientes de aislamiento de sesiones concurrentes, pruebas, SMTP/recuperación, OpenAPI y ambientes. Conservar su login/Bearer existente y coordinar estabilización, no reconstruirlo. Desarrollo/staging no productivo y producción separados; confirmación de correo en producción.
+
+## 6. Captura, revisión y cierre mensual
+
+Flujo principal: **seleccionar cliente → cargar XML/PDF o registrar manualmente → extraer → sugerir clasificación → revisar → aprobar → libro/cierre**.
+
+- Borrador puede guardarse antes de revisar; no debe mostrarse como registro aprobado. El cliente puede cargar sin obtener permiso de aprobación.
+- Mostrar procesamiento, extracción parcial, advertencias, conflictos, rechazo y reintento seguro. Validaciones frontend ayudan a UX; límites y validación definitiva pertenecen al API.
+- XML es fuente estructurada preferida. PDF está en MVP, pero soporte de texto/escaneados depende de verificar extractor. No inventar soporte OCR ni presentar archivos no soportados como procesados.
+- Nunca llamar extractor/IA directamente desde navegador. Clasificación por reglas explicables primero; IA mediante backend cuando se acuerde proveedor. Sugerencias no son decisiones definitivas ni entrenamiento automático oculto.
+- Mostrar fuente de datos/sugerencia, campos corregibles e historial. Correcciones pueden generar reglas explícitas y revisables, no mezclar aprendizaje o datos de clientes.
+- XML/PDF de una misma factura son archivos asociados a un documento: no duplicar operación. Sin UUID o con conflicto, revisión según contrato.
+- Determinar compras/ventas según receptor/emisor de la entidad, con discrepancias visibles. Contemplar notas, anulaciones y ajustes sin borrar trazabilidad.
+- Importado, validado localmente y verificado externamente son distintos; solo mostrar el último con integración real. No asumir API SAT ni pedir contraseñas de Agencia Virtual.
+- Libros y exportaciones solo con aprobados elegibles. Formatos, regímenes, IVA/retenciones/ISR y cierre/reapertura requieren definición y validación local antes de prometer cumplimiento.
+- Conservar precisión decimal; no calcular dinero con float binario. Moneda/redondeo explícitos, API autoridad de totales. Distinguir fecha de emisión/importación/período/pago y fechas sin hora.
+- Documento ≠ gasto/ingreso ≠ pago/cobro ≠ caja. Presupuestos y caja son expansión; importar nunca crea un pago implícito.
+
+## 7. UX, seguridad y PWA
+
+- Español, responsive/mobile-first, navegación por teclado, labels, foco visible y contraste. Tablas útiles para volumen de cartera con filtros/paginación del API.
+- Mostrar siempre cliente/entidad activos en operaciones sensibles. Estados carga/vacío/error/éxito/permisos y evitar doble envío.
+- KPIs reales orientados a pendientes de revisión y cierre. Fixtures sintéticos marcados Demo, sin datos tributarios reales en pruebas/logs/repositorio.
+- No renderizar contenido fiscal como HTML confiable ni ejecutar instrucciones de documentos/resultados IA. Validar enlaces, entradas y archivos.
+- No enviar datos fiscales a analítica/proveedores innecesarios. Minimización y retención coordinadas con backend; HTTPS, headers y CORS según despliegue.
+- Preservar PWA existente: manifest/iconos, instalación, aviso de actualización y shell estático offline. API, XML/PDF, sesiones y datos financieros requieren red y no se cachean en service worker.
+- Excluir callbacks y rutas API de fallback offline. Actualizar con confirmación para no perder trabajo; instalación/actualización iOS y sistema operativo requieren pruebas reales.
+- Hosting con fallback SPA, HTTPS no local y política de caché del README. No asumir que el futuro móvil usará el almacenamiento de sesión del navegador.
+
+## 8. Secuencia y criterios de aceptación
+
+1. **Alinear contratos/permisos/diseño:** decisiones mínimas y formatos por confirmar. Preservar base/PWA.
+2. **Auth:** SDK, sesión, formularios/callback, `/auth/me`, recuperación y logout. Verificar carga inicial, recarga, expiración, errores y limpieza.
+3. **Despacho y cartera:** perfiles, entidades, invitaciones, selector y accesos según API. Pruebas de rutas/caché y revocación entre entidades/despachos.
+4. **Captura y revisión:** XML/PDF/manual, duplicados, sugerencias, aprobación. Objetivo conjunto: 50 XML válidos y XML/PDF de una misma factura sin duplicar; nada al libro sin aprobación.
+5. **Clasificación/libros:** reglas, compras/ventas, períodos, cierre y exportación con totales conciliables y formatos validados.
+6. **Portal y piloto:** completar carga/consulta del cliente, cupos del plan, PWA e integración E2E cliente → contador → libro, incluyendo denegación de acceso ajeno.
+7. **Expansión posterior:** fotos/IA, certificadores comprobados, móvil, Empresas y Personal por fases autorizadas.
+
+No adelantar módulos futuros ni declarar funcionalidades completas basándose en mocks. El plan en API detalla dependencias y decisiones abiertas.
+
+## 9. Trabajo y verificación
+
+- Cambios pequeños, tipados, consistentes con la estructura existente. Inspeccionar dependencias antes de instalar; no añadir infraestructura especulativa.
+- Cada fase: objetivo/archivos/decisiones/aceptación, implementación y resultados reales; aprobación antes de otra fase mayor.
+- No commit/push, borrados ajenos ni migraciones remotas sin autorización.
+- Para código: lint/build y pruebas adecuadas; `test:pwa` si afecta PWA. Incorporar tests funcionales de sesión, permisos, navegación, revisión, libros y un E2E del MVP.
+- Para documentación: consistencia, enlaces y diff; no afirmar checks de código no ejecutados.
+
+```bash
+npm run dev
+npm run lint
+npm run build
+npm run preview
+npm run test:pwa
+```
+
+Node.js 22.12+ o 24 LTS según README. Playwright requiere Chromium (`npx playwright install chromium`) cuando se ejecuten sus pruebas. `npm run format` modifica archivos; evitar formateo masivo. No existen `npm test`/`typecheck` hasta que se agreguen explícitamente.

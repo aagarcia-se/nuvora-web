@@ -4,6 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
+    "icons:generate": "node scripts/generate-icons.mjs",
+    "test:pwa": "npm run build && playwright test",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
     "@types/node": "^24.19.2",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
@@ -31,9 +34,11 @@
     "globals": "^17.14.0",
     "postcss": "^8.5.32",
     "prettier": "^3.9.10",
+    "sharp": "^0.35.5",
     "tailwindcss": "~3.4.17",
     "typescript": "5.9",
     "typescript-eslint": "^8.72.2",
-    "vite": "^8.3.7"
+    "vite": "^8.3.7",
+    "vite-plugin-pwa": "^2.0.0"
   }
 }

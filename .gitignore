@@ -8,3 +8,5 @@ dev-dist/
 *.tsbuildinfo
 *.log
 .DS_Store
+test-results/
+playwright-report/

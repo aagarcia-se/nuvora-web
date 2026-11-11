@@ -24,7 +24,7 @@ export function InstallApp() {
         </button>
       ) : (
         <details className="rounded-xl border border-line p-3 text-sm text-muted">
-          <summary className="cursor-pointer py-2 text-ink">
+          <summary className="min-h-12 cursor-pointer py-3 text-ink">
             Cómo instalar la aplicación
           </summary>
           <p className="mt-3">
@@ -38,7 +38,7 @@ export function InstallApp() {
         </details>
       )}
       {error && (
-        <p role="alert" className="text-sm text-danger-700">
+        <p role="alert" className="field-error">
           No se pudo abrir la instalación. Intenta desde el menú del navegador.
         </p>
       )}

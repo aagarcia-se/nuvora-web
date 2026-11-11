@@ -26,7 +26,7 @@ export function PwaStatus() {
   return (
     <aside
       aria-label="Estado de la aplicación"
-      className="fixed inset-x-4 bottom-4 z-50 mx-auto max-w-md rounded-2xl border border-line bg-surface p-4 shadow-lg"
+      className="pwa-status mx-auto max-w-md rounded-2xl border border-line bg-surface p-4 shadow-lg"
     >
       <p role="status" className="text-sm text-ink">
         {error

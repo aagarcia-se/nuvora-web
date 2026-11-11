@@ -21,28 +21,45 @@ npm install
 npm run dev
 ```
 
-Abrir http://localhost:5173. Opcionalmente copiar `.env.example` a `.env.local`
-y definir `VITE_APP_NAME` y `VITE_API_BASE_URL`. Las variables `VITE_*` son públicas:
-no deben contener secretos. El cliente HTTP tiene un timeout de 15 segundos;
-configurar la URL antes de conectar endpoints. La pantalla inicial no hace peticiones.
+Abrir http://localhost:5173. Copiar `.env.example` a `.env.local` y configurar
+`VITE_APP_NAME`, `VITE_API_BASE_URL` (origen, sin `/api/v1`),
+`VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (`sb_publishable_...`).
+API y SDK deben apuntar al mismo proyecto. Las variables `VITE_*` son públicas;
+nunca usar claves secret/service role. Sin configuración válida se muestra el
+login deshabilitado. El cliente HTTP tiene un timeout de 15 segundos.
+
+Esta entrega incluye solo correo/contraseña, sesión, bienvenida y logout.
+Signin usa el API; `setSession` del SDK oficial adopta sus tokens y gestiona
+persistencia/renovación. `/auth/me` verifica la identidad antes de permitir `/`.
+Un fallo recuperable permite reintentar sin borrar sesión; 401 exige acceso
+nuevo. Logout usa alcance local (esta sesión), cancela solicitudes y limpia
+Query. Si falla, se muestra error y reintento sin declarar cierre exitoso.
 
 ## Estructura
 
 - `src/main.tsx`: punto de entrada con StrictMode y estilos globales.
 - `src/App.tsx`: composición de providers y rutas.
 - `src/app/providers.tsx`: QueryClientProvider, BrowserRouter y Devtools en desarrollo.
-- `src/app/routes.tsx`: rutas, inicialmente inicio y página no encontrada, sin layout.
-- `src/features`: futuras funcionalidades, organizadas por `api`, `pages`, `components` y `types` según necesidad.
+- `src/app/routes.tsx`: login público, bienvenida protegida y página no encontrada.
+- `src/features/auth/api/authApi.ts`: transporte y errores de autenticación.
+- `src/features/auth/api/useLogin.ts`: envío del formulario sin almacenar credenciales en Query.
+- `src/features/auth/components`: `ProtectedRoute` y `AuthLayout`.
+- `src/features/auth/pages`: `LoginPage` y `WelcomePage` (plural como la referencia San Gabriel).
+- `src/features/auth/store`: contexto y `AuthProvider`; SDK Supabase mantiene la sesión.
+- `src/features/auth/types/auth.types.ts`: interfaces del dominio.
 - `src/shared/api`: instancias compartidas de Axios y QueryClient.
 - `src/shared/config`: configuración pública y nombre de marca.
-- `src/shared/{lib,ui,utils,theme}`: código reutilizable; carpetas vacías con `.gitkeep`.
+- `src/shared/{lib,ui,theme}`: SDK Supabase, componentes y selector de tema.
 - `src/styles/globals.css`: tokens claros/oscuros y estilos reutilizables.
 
-Se conserva el patrón de arquitectura de San Gabriel y su `tailwind.config.ts`.
-El color de ejemplo es `brand-600` (`#e11d48`). Las clases `bg-bg`, `bg-surface`,
-`text-ink` y `text-muted` usan los tokens de `globals.css`. Para el tema oscuro,
-agregar la clase `dark` al elemento `html`. La fuente Inter usa fuentes de sistema
-como respaldo; no se descarga ninguna fuente externa.
+La identidad lima `#D5F454` usa texto oscuro y superficies neutras cálidas.
+Tokens semánticos en `globals.css` y Tailwind 3.4; Inter/sistema sin descargas.
+Selector Claro/Oscuro/Sistema, con sistema por defecto y preferencia local;
+`public/theme.js` aplica el tema antes del render. Guía UI/UX Pro Max consultada
+con Python: labels visibles, feedback de envío, foco y contraste; la dirección
+lima aprobada prevalece sobre recomendaciones genéricas de landing.
+Layout fluido con safe areas, `100dvh`, controles de 48px, texto de input 16px,
+scroll de documento y avisos PWA en flujo para no ocultar foco/teclado móvil.
 
 ## Verificación y compilación
 
@@ -50,6 +67,7 @@ como respaldo; no se descarga ninguna fuente externa.
 npm run lint
 npm run build
 npm run preview
+npm run test:auth
 ```
 
 `npm run format` aplica Prettier. El build genera `dist/`.
@@ -58,8 +76,8 @@ Al desplegar, configurar el hosting para redirigir rutas de la SPA a `index.html
 ## PWA
 
 El build incluye manifest, service worker y registro desde `PwaStatus`.
-El nombre del manifest usa `VITE_APP_NAME` al compilar. La identidad provisional
-de instalación es una N blanca sobre verde esmeralda `#047857`.
+El nombre del manifest usa `VITE_APP_NAME` al compilar. La identidad
+de instalación es una N oscura sobre lima `#D5F454`.
 Los iconos PNG (192, 512, maskable 512 y Apple 180) se versionan en `public/icons`.
 Para regenerarlos después de editar `public/favicon.svg`:
 
@@ -101,3 +119,28 @@ Cubren manifest/iconos, criterios de instalación de Chromium, recarga offline,
 exclusión de API del caché y controles de instalación con eventos sintéticos.
 La instalación en el sistema operativo, Safari/iOS y el ciclo de actualización
 entre dos despliegues requieren la validación manual anterior.
+
+`test:auth` usa API/Supabase simulados con datos Demo y el SDK real, en un
+servidor Vite aislado (5174). Cubre login, recarga, logout, errores, temas,
+teclado y viewports móviles/tablet/escritorio, incluyendo standalone simulado.
+No certifica login real ni teclado virtual, notch o instalación de un dispositivo.
+Para integración real se requieren variables públicas y usuario autorizado del
+proyecto no productivo; revisar también CORS del API para el origen web.
+
+### Verificación de integración pendiente
+
+La estructura de Auth sigue las responsabilidades de `san-gabriel-app`, leído
+como referencia: `api`, `components`, `pages`, `store`, `types`. Se conserva
+Supabase en lugar de copiar JWT propio, Zustand, permisos o persistencia manual.
+
+En la revisión local las tres variables públicas estaban presentes, pero la URL
+del API no cumplía el formato de origen previsto y no se pudo alcanzar `/health`
+ni `/api/v1/auth/me`. No se modificaron archivos `.env`. El propietario debe
+confirmar un origen operativo y CORS para `http://localhost:5173`.
+No se probó login real por falta de cuenta autorizada y conectividad; las pruebas
+automatizadas usan exclusivamente servicios Demo simulados.
+
+Limitación del contrato actual: `/auth/me` responde 401 tanto ante rechazo de
+token como ante indisponibilidad del proveedor. El cliente trata ese 401 como
+rechazo y solicita reautenticación; no puede identificar su causa real. Los
+errores de red/5xx distinguibles conservan sesión y ofrecen reintento.

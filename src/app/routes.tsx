@@ -1,30 +1,40 @@
-import { Route, Routes } from 'react-router-dom';
-import { env } from '@/shared/config/env';
-import { InstallApp } from '@/shared/pwa/InstallApp';
-
+import { Link, Route, Routes } from 'react-router-dom';
+import { AuthLayout } from '@/features/auth/components/AuthLayout';
+import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
+import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { WelcomePage } from '@/features/auth/pages/WelcomePage';
 export function AppRoutes() {
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <main className="flex min-h-screen flex-col items-center justify-center gap-6 p-6">
-            <img
-              src="/icons/icon-192.png"
-              width="80"
-              height="80"
-              alt=""
-              className="rounded-2xl"
-            />
-            <h1 className="text-3xl font-semibold text-ink">{env.appName}</h1>
-            <InstallApp />
-          </main>
-        }
-      />
-      <Route
-        path="*"
-        element={<main className="p-6">Página no encontrada.</main>}
-      />
-    </Routes>
+    <AuthLayout>
+      <Routes>
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute publicOnly>
+              <LoginPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <WelcomePage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <>
+              <h1 className="text-2xl font-semibold">Página no encontrada</h1>
+              <Link className="btn-secondary mt-6" to="/">
+                Volver al inicio
+              </Link>
+            </>
+          }
+        />
+      </Routes>
+    </AuthLayout>
   );
 }

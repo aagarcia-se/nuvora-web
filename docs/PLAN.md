@@ -87,7 +87,9 @@ Content-Type: application/json
 
 No guardar tokens manualmente o en Query ni implementar refresh paralelo usando `/auth/refresh`. Bearer solo al API configurado, nunca a archivos o servicios externos. No incorporar secret keys. Supabase web y API deben apuntar al mismo proyecto no productivo en pruebas.
 
-La revisión de sesiones concurrentes del cliente Supabase del backend sigue pendiente. Si bloquea integración, reportar y coordinar; conservar su login y seguridad.
+El orquestador reporta Auth backend aislado por operación y 27 pruebas aprobadas.
+Persiste una limitación: `/me` responde 401 también ante indisponibilidad del
+proveedor; el frontend no puede distinguirla de un rechazo de sesión.
 
 ## 7. Navegación y archivos
 
@@ -129,4 +131,17 @@ No crear carpetas vacías para funcionalidades futuras. Ajustar nombres tras ins
 4. Completar errores, identidad PWA y pruebas.
 5. Entregar cambios, checks reales, configuración local y pendientes. Detenerse tras esta entrega y esperar la siguiente indicación.
 
-Sin commit/push, despliegue ni cambios remotos sin autorización. Este plan no afirma que el login ya esté implementado.
+Sin commit/push, despliegue ni cambios remotos sin autorización.
+
+## 10. Revisión de integración y estructura
+
+Auth implementado y reorganizado siguiendo la referencia San Gabriel:
+`api/authApi.ts`, `api/useLogin.ts`, `components`, `pages` (nombre real plural),
+`store` y `types/auth.types.ts`. Supabase permanece como único gestor de sesión;
+no se copia el JWT propio ni la persistencia manual de la referencia.
+
+Lint/build y 10 pruebas Auth simuladas aprobadas. La integración real sigue
+bloqueada: variables públicas presentes, URL API incompatible con el formato
+de origen y endpoints no alcanzables en la revisión; cuenta de prueba autorizada
+pendiente. No se modificaron `.env`, backend ni referencia. Confirmar URL/CORS
+y ejecutar login → recarga → logout en navegador con usuario autorizado.

@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'prompt',
         injectRegister: false,
-        includeAssets: ['favicon.svg', 'icons/*.png'],
+        includeAssets: ['favicon.svg', 'theme.js', 'icons/*.png'],
         manifest: {
           id: '/',
           name: appName,
@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
           scope: '/',
           display: 'standalone',
           theme_color: pwaThemeColor,
-          background_color: '#ffffff',
+          background_color: '#F7F8F2',
           icons: [
             {
               src: '/icons/icon-192.png',

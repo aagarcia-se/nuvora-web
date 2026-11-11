@@ -1,2 +1,2 @@
-// Verde provisional para la identidad de instalación y los iconos de la PWA.
-export const pwaThemeColor = '#047857';
+// Identidad compartida con favicon y manifest.
+export const pwaThemeColor = '#D5F454';

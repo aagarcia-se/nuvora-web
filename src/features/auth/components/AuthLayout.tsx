@@ -8,9 +8,8 @@ export function AuthLayout({ children }: PropsWithChildren) {
       <a href="#main" className="skip-link">
         Ir al contenido
       </a>
-      <InstallApp />
-      <header className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 py-4">
-        <div className="flex items-center gap-3">
+      <header className="auth-header mx-auto grid w-full max-w-6xl items-center gap-4 py-4">
+        <div className="auth-brand flex min-w-0 items-center gap-3">
           <img
             src="/favicon.svg"
             width="40"
@@ -18,15 +17,16 @@ export function AuthLayout({ children }: PropsWithChildren) {
             alt=""
             className="rounded-xl"
           />
-          <span className="text-xl font-bold tracking-tight">
+          <span className="truncate text-xl font-bold tracking-tight">
             {env.appName}
           </span>
         </div>
-        <ThemeSelector />
+        <InstallApp />
+        <div className="auth-theme"><ThemeSelector /></div>
       </header>
       <main
         id="main"
-        className="mx-auto grid w-full max-w-6xl flex-1 items-center gap-10 py-8 lg:grid-cols-2 lg:gap-24 lg:py-16"
+        className="auth-main mx-auto grid min-w-0 w-full max-w-6xl flex-1 items-start gap-10 lg:grid-cols-2 lg:gap-24"
       >
         <aside className="hidden lg:block">
           <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-muted">

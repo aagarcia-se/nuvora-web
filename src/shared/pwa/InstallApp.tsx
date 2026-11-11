@@ -29,8 +29,8 @@ export function InstallApp() {
     try { localStorage.setItem(dismissKey, String(Date.now())); } catch { /* Dismiss for this visit when storage is blocked. */ }
     setDismissed(true);
   }
-  return <aside aria-label="Instalar aplicación" className="install-banner rounded-2xl border p-3 text-left shadow-lg">
-    <div className="grid grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-3 sm:grid-cols-[3rem_minmax(0,1fr)_auto_3rem]">
+  return <aside aria-label="Instalar aplicación" className="install-banner rounded-2xl border p-2 text-left shadow-lg">
+    <div className="flex min-w-0 items-center gap-2">
       <span className="install-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"><Icon name="download" /></span>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">Instala {env.appName}</p>
@@ -38,8 +38,8 @@ export function InstallApp() {
         {!canInstall && !installing && <p role="status" className="install-description mt-1 text-xs leading-relaxed">{availability}</p>}
         {error && <p role="alert" className="field-error">No se pudo abrir la instalación. Podrás reintentar cuando el navegador vuelva a ofrecerla.</p>}
       </div>
-      <button type="button" aria-label={`Instalar ${env.appName}`} className="btn-primary col-start-2 row-start-2 justify-self-start sm:col-start-3 sm:row-start-1" disabled={!canInstall || installing} onClick={() => void install()}>{installing ? 'Abriendo…' : 'Instalar'}</button>
-      <button type="button" aria-label="Cerrar aviso de instalación" title="No mostrar durante 14 días" onClick={dismiss} className="install-close col-start-3 row-start-1 flex min-h-12 min-w-12 items-center justify-center rounded-xl sm:col-start-4"><Icon name="close" /></button>
+      {canInstall && <button type="button" aria-label={`Instalar ${env.appName}`} className="btn-primary shrink-0" disabled={installing} onClick={() => void install()}>{installing ? 'Abriendo…' : 'Instalar'}</button>}
+      <button type="button" aria-label="Cerrar aviso de instalación" title="No mostrar durante 14 días" onClick={dismiss} className="install-close flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl"><Icon name="close" /></button>
     </div>
   </aside>;
 }

@@ -64,13 +64,10 @@
 }
 @layer components {
   .install-banner {
-    position: fixed;
-    z-index: 50;
-    top: max(0.75rem, env(safe-area-inset-top));
-    left: max(0.75rem, env(safe-area-inset-left));
-    right: max(0.75rem, env(safe-area-inset-right));
-    width: min(42rem, calc(100% - max(1.5rem, env(safe-area-inset-left) + env(safe-area-inset-right))));
-    margin-inline: auto;
+    width: 100%;
+    min-width: 0;
+    max-width: 42rem;
+    margin: 0;
     background: #23291b;
     color: #f5f7ef;
     border-color: #3c4630;
@@ -89,6 +86,61 @@
       max(1rem, env(safe-area-inset-right))
       max(1rem, env(safe-area-inset-bottom))
       max(1rem, env(safe-area-inset-left));
+  }
+  /* Desktop keeps brand, promotion and theme control on one row. At tablet
+     widths the promotion intentionally occupies a second row so controls
+     keep their touch target and the header never overflows horizontally. */
+  .auth-header {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 42rem) minmax(max-content, 1fr);
+  }
+  .auth-brand {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+  .auth-header > .install-banner {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: center;
+  }
+  .auth-theme {
+    grid-column: 3;
+    grid-row: 1;
+    min-width: 0;
+    justify-self: end;
+  }
+  @media (max-width: 1023px) {
+    .auth-header {
+      grid-template-columns: minmax(0, 1fr) minmax(max-content, auto);
+    }
+    .auth-header > .install-banner {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      justify-self: stretch;
+      max-width: none;
+    }
+    .auth-theme {
+      grid-column: 2;
+      grid-row: 1;
+    }
+  }
+  @media (max-width: 479px) {
+    .auth-header { gap: 0.75rem; }
+    .install-banner .install-description { line-height: 1.35; }
+    .install-banner .btn-primary { padding-inline: 0.75rem; }
+  }
+  .auth-main {
+    padding-block: clamp(1.5rem, 5vh, 3.5rem);
+  }
+  @media (min-width: 1024px) {
+    .auth-main {
+      padding-block: clamp(2rem, 6vh, 4rem);
+    }
+  }
+  @media (min-width: 1024px) and (max-height: 700px) {
+    .auth-main {
+      padding-block: 1.5rem;
+    }
   }
   .card {
     @apply rounded-3xl border border-line bg-surface shadow-sm;

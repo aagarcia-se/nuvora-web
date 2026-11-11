@@ -7,8 +7,19 @@ export interface GoogleOAuthUrlResponse {
   url: string;
 }
 
+export interface SignUpResponse {
+  user?: Identity;
+  session?: { access_token?: string; refresh_token?: string } | null;
+  message?: string;
+}
+
 export function authMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
+    const code = error.response?.data?.error;
+    if (code === 'AUTH_RATE_LIMITED' || error.response?.status === 429)
+      return 'Se alcanzó el límite temporal de correos. Espera unos minutos antes de intentarlo de nuevo.';
+    if (code === 'AUTH_SIGNUP_FAILED')
+      return 'No fue posible crear la cuenta. Si ya tienes una cuenta, inicia sesión.';
     const status = error.response?.status;
     if (status === 401)
       return 'Correo o contraseña inválidos, o sesión vencida. Inicia sesión de nuevo.';
@@ -103,6 +114,28 @@ export async function signIn(
   return {
     access_token: data.session.access_token as string,
     refresh_token: data.session.refresh_token as string,
+  };
+}
+
+export async function signUp(
+  email: string,
+  password: string,
+  signal: AbortSignal,
+): Promise<{ access_token: string; refresh_token: string } | null> {
+  const { data } = await httpClient.post<SignUpResponse>(
+    'auth/signup',
+    { email, password },
+    { signal },
+  );
+  if (!data?.session) return null;
+  if (
+    typeof data.session.access_token !== 'string' ||
+    typeof data.session.refresh_token !== 'string'
+  )
+    throw new Error('Invalid session response');
+  return {
+    access_token: data.session.access_token,
+    refresh_token: data.session.refresh_token,
   };
 }
 export async function currentUser(

@@ -20,7 +20,7 @@ Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
 implementados. El usuario confirmó login real funcional después de corregir el
 origen del API y posteriormente aceptó las pruebas del banner/interfaz. No se
 registraron navegador/dispositivo ni una lista detallada de casos manuales.
-Registro sigue pendiente. Google OAuth está disponible mediante `/auth/callback`; recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`.
+Registro por correo/contraseña está disponible en `/auth/register`, con confirmación de correo cuando el API no devuelve sesión. Google OAuth está disponible mediante `/auth/callback`; recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`.
 
 La interfaz usa lima `#D5F454`, control sol/luna y banner compacto superior de
 instalación. El banner puede mostrarse antes de que el navegador permita instalar;
@@ -57,8 +57,8 @@ HTTPS del ambiente correspondiente). El frontend obtiene la URL desde
 `GET /api/v1/auth/oauth/google/url`; no hace un segundo intercambio ni guarda
 tokens manualmente. La prueba real requiere proveedor y cuenta autorizados.
 
-Esta entrega incluye correo/contraseña, sesión, recuperación, bienvenida y logout.
-Signin usa el API; `setSession` del SDK oficial adopta sus tokens y gestiona
+Esta entrega incluye registro e inicio por correo/contraseña, Google, sesión, recuperación, bienvenida y logout.
+Signup/signin usan el API; `setSession` del SDK oficial adopta sus tokens y gestiona
 persistencia/renovación. `/auth/me` verifica la identidad antes de permitir `/`.
 Un fallo recuperable permite reintentar sin borrar sesión; 401 exige acceso
 nuevo. Logout usa alcance local (esta sesión), cancela solicitudes y limpia

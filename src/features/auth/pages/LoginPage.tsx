@@ -182,6 +182,9 @@ export function LoginPage() {
         <p className="text-center text-sm">
           <Link className="underline" to="/auth/forgot-password">¿Olvidaste tu contraseña?</Link>
         </p>
+        <p className="text-center text-sm">
+          ¿Aún no tienes cuenta? <Link className="font-semibold underline" to="/auth/register">Crear cuenta</Link>
+        </p>
         <p className="text-center text-xs leading-relaxed text-muted">
           Necesitas conexión a internet para acceder.
         </p>
@@ -190,7 +193,7 @@ export function LoginPage() {
   );
 }
 
-function GoogleMark() {
+export function GoogleMark() {
   return (
     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24">
       <path fill="#4285F4" d="M21.35 12.27c0-.71-.06-1.39-.18-2.05H12v3.88h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.22Z" />

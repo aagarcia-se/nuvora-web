@@ -9,7 +9,7 @@ import axios from 'axios';
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/shared/lib/supabase';
 import { queryClient } from '@/shared/api/queryClient';
-import { authMessage, currentUser, signIn } from '../api/authApi';
+import { authMessage, currentUser, signIn, signUp } from '../api/authApi';
 import { AuthContext } from './authStore';
 import type { AuthState } from '../types/auth.types';
 const anonymous: AuthState = { status: 'anonymous', user: null, error: null };
@@ -112,6 +112,24 @@ export function AuthProvider({ children }: PropsWithChildren) {
       busy.current = false;
     }
   }
+  async function register(email: string, password: string) {
+    if (!supabase || busy.current) return false;
+    busy.current = true;
+    clear();
+    const version = generation.current;
+    const controller = new AbortController();
+    request.current = controller;
+    try {
+      const tokens = await signUp(email, password, controller.signal);
+      if (version !== generation.current) return false;
+      if (!tokens) return false;
+      const { error } = await supabase.auth.setSession(tokens);
+      if (error) throw error;
+      return true;
+    } finally {
+      busy.current = false;
+    }
+  }
   async function logout() {
     if (!supabase || signingOut.current) return;
     signingOut.current = true;
@@ -145,7 +163,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
   }
   return (
-    <AuthContext.Provider value={{ ...state, login, logout, retry }}>
+      <AuthContext.Provider value={{ ...state, login, register, logout, retry }}>
       {children}
     </AuthContext.Provider>
   );

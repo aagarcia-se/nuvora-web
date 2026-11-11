@@ -2,13 +2,15 @@
 
 **Estado de cierre:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
 
-Registro sigue fuera de esta entrega. Google OAuth está implementado con URL emitida por el API, callback PKCE/hash y adopción de sesión Supabase. La recuperación web está implementada con solicitud genérica, adopción PKCE/hash y actualización final de contraseña.
+Registro por correo/contraseña está implementado en `/auth/register`, junto con el enlace desde login. Google OAuth se reutiliza para registro/inicio con URL emitida por el API, callback PKCE/hash y adopción de sesión Supabase. La recuperación web está implementada con solicitud genérica, adopción PKCE/hash y actualización final de contraseña.
+
+El frontend exige para el registro 8–128 caracteres, mayúscula, minúscula, número, carácter especial y confirmación coincidente. La revisión del esquema backend actual (`credentialsSchema`) confirma 8–128, pero todavía no confirma las cuatro clases de caracteres; queda coordinación backend pendiente antes de declarar ambas políticas alineadas.
 
 ## 1. Objetivo y prioridad
 
-Implementar únicamente login por correo/contraseña consumiendo el API existente, gestión de sesión, bienvenida protegida y logout. Diseño responsive con verde lima **#D5F454**, tema claro, oscuro y sistema.
+Implementar los flujos Auth web coordinados: login y registro por correo/contraseña consumiendo el API existente, Google, gestión de sesión, bienvenida protegida y logout. Diseño responsive con verde lima **#D5F454**, tema claro, oscuro y sistema.
 
-Este es el punto de entrada vigente del plan frontend. Reemplaza la propuesta anterior de esmeralda y la entrega conjunta de todos los flujos Auth. El usuario indicará qué trabajar después. Registro, recuperación, Google, cartera, libros y portal siguen en el roadmap, pero no se implementan en esta entrega ni se muestran enlaces a flujos inexistentes.
+Este es el punto de entrada vigente del plan frontend. Reemplaza la propuesta anterior de esmeralda y la entrega conjunta de todos los flujos Auth. Recuperación y Google están implementados; cartera, libros y portal siguen en el roadmap y no se muestran enlaces a flujos inexistentes.
 
 Referencias:
 - [AGENTS.md](../AGENTS.md): reglas permanentes.

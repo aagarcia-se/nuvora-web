@@ -3,6 +3,7 @@ import type { AuthState } from '../types/auth.types';
 export const AuthContext = createContext<
   | (AuthState & {
       login: (email: string, password: string) => Promise<void>;
+      register: (email: string, password: string) => Promise<boolean>;
       logout: () => Promise<void>;
       retry: () => void;
     })

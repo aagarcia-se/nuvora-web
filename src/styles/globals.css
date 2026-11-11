@@ -181,6 +181,7 @@
     @apply mt-2 text-sm;
     color: var(--danger);
   }
+  .password-rule-valid { color: var(--success); }
   .alert {
     @apply rounded-xl border p-3 text-sm leading-relaxed;
     color: var(--danger);

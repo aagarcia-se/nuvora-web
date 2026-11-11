@@ -38,7 +38,7 @@ Estos módulos futuros no se implementan por adelantado. Preparar límites de do
 - `src/features/<dominio>` para api/pages/components/hooks/types según necesidad real.
 - `src/shared/api` contiene HTTP y QueryClient; `shared/config` configuración/marca; `shared/ui`, `lib`, `utils`, `theme` piezas compartidas; `src/styles/globals.css` estilos/tokens.
 - Hay avances PWA en `src/shared/pwa`, manifest/service worker, iconos y pruebas Playwright. Respetar este trabajo existente; no confundir existencia con validación manual de todos los navegadores.
-- Login correo/contraseña, sesión SDK Supabase, rutas protegidas, bienvenida y logout implementados; usuario confirmó login real tras corregir el origen del API. Registro, Google y recuperación en web aún pendientes. No hay módulos de negocio.
+- Login correo/contraseña, registro, Google OAuth, recuperación, sesión SDK Supabase, rutas protegidas, bienvenida y logout implementados; usuario confirmó login real y Google funcional tras corregir el origen del API/callback. No hay módulos de negocio.
 - Auth sigue la referencia San Gabriel: `api`, `components`, `pages` (plural), `store`, `types`. Interfaces en `types/auth.types.ts`, transporte en `api/authApi.ts`, formulario mediante `api/useLogin.ts`; SDK como gestor único de sesión, sin persistencia manual ni credenciales en Query.
 - Scripts actuales: `dev`, `build`, `preview`, `lint`, `format`, `icons:generate`, `test:auth`, `test:pwa`. No hay `test` ni `typecheck`; build ejecuta TypeScript.
 - Revisar archivos/scripts y preservar cambios del usuario. Por instrucción vigente, el control de versiones lo ejecuta el usuario: no ejecutar comandos Git ni commit/push. Tests, lint y build sí están autorizados. No modificar `.env` ni claves existentes sin autorización expresa.
@@ -89,11 +89,12 @@ POST /api/v1/auth/signup
 POST /api/v1/auth/signin
 POST /api/v1/auth/refresh
 POST /api/v1/auth/password-reset/request
+POST /api/v1/auth/password-reset/update
 GET  /api/v1/auth/oauth/google/url
 GET  /api/v1/auth/me
 ```
 
-- `/health` público, `/auth/me` protegido; refresh recibe `{ refreshToken }`. Confirmar demás payloads en esquemas y Postman.
+- `/health` público, `/auth/me` protegido; refresh recibe `{ refreshToken }`. Signup recibe `{ email, password }`; password update recibe `{ password }` con Bearer. Contraseñas nuevas: 8–128, mayúscula, minúscula, número y carácter especial. Signin conserva compatibilidad con contraseñas antiguas de 8–128.
 - No inventar rutas de clientes, libros o portal. Implementar con contratos confirmados; tipos/OpenAPI coordinados con backend.
 - Axios compartido con timeout explícito, cancelación y errores normalizados. Definir base URL/prefijos para no duplicar `/api/v1`; `/health` queda fuera.
 - Enviar Bearer solo al API configurado, nunca a URLs firmadas/proveedores externos.
@@ -101,7 +102,7 @@ GET  /api/v1/auth/me
 - SDK oficial Supabase como único gestor de sesión/renovación. Si se usan endpoints Auth del API, integrar resultado con sesión oficial; no crear refresh paralelo desde Axios.
 - No persistir contraseñas/refresh tokens manualmente. Inicialización con loading, limpieza de listeners y prevención de carreras; rutas protegidas son UX, el API autoriza.
 - OAuth/callback con flujo confirmado, redirects permitidos, limpieza de parámetros sensibles y rechazo de redirecciones abiertas. Local previsto: `http://localhost:5173/auth/callback`.
-- Recuperación incluye formulario de nueva contraseña y verificación final, no solo envío de correo. Logout limpia caché/estado y maneja errores.
+- Registro, Google y recuperación incluyen formularios/callbacks y estados de error; confirmación de correo, proveedor Google, SMTP y ambientes reales deben verificarse por configuración. Logout limpia caché/estado y maneja errores.
 
 Variables públicas previstas: `VITE_APP_NAME`, `VITE_API_BASE_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`. Todo `VITE_*` llega al navegador. Nunca leer/copiar/usar `SUPABASE_SECRET_KEY`, service role ni claves de IA. `.env.example` con placeholders; no versionar entornos reales.
 

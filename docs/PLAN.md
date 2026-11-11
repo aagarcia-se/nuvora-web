@@ -4,13 +4,13 @@
 
 Registro por correo/contraseña está implementado en `/auth/register`, junto con el enlace desde login. Google OAuth se reutiliza para registro/inicio con URL emitida por el API, callback PKCE/hash y adopción de sesión Supabase. La recuperación web está implementada con solicitud genérica, adopción PKCE/hash y actualización final de contraseña.
 
-El frontend exige para el registro 8–128 caracteres, mayúscula, minúscula, número, carácter especial y confirmación coincidente. La revisión del esquema backend actual (`credentialsSchema`) confirma 8–128, pero todavía no confirma las cuatro clases de caracteres; queda coordinación backend pendiente antes de declarar ambas políticas alineadas.
+El frontend y backend están alineados para contraseñas nuevas: 8–128 caracteres, mayúscula, minúscula, número, carácter especial y confirmación coincidente en web. Se permiten letras Unicode; los espacios no cuentan como carácter especial. Signin conserva compatibilidad con cuentas antiguas de 8–128.
 
 ## 1. Objetivo y prioridad
 
 Implementar los flujos Auth web coordinados: login y registro por correo/contraseña consumiendo el API existente, Google, gestión de sesión, bienvenida protegida y logout. Diseño responsive con verde lima **#D5F454**, tema claro, oscuro y sistema.
 
-Este es el punto de entrada vigente del plan frontend. Reemplaza la propuesta anterior de esmeralda y la entrega conjunta de todos los flujos Auth. Recuperación y Google están implementados; cartera, libros y portal siguen en el roadmap y no se muestran enlaces a flujos inexistentes.
+Este es el punto de entrada vigente del plan frontend. Reemplaza la propuesta anterior de esmeralda y la entrega conjunta de todos los flujos Auth. Registro, recuperación y Google están implementados; cartera, libros y portal siguen en el roadmap y no se muestran enlaces a flujos inexistentes.
 
 Referencias:
 - [AGENTS.md](../AGENTS.md): reglas permanentes.
@@ -159,7 +159,16 @@ demostraba caída del API. Los agentes no modificaron `.env` ni sus claves.
 - Estados de validación, carga, éxito, enlace vencido/cancelado, errores de red/429 y validación de contraseña tienen feedback accesible. El marcador de recuperación en `sessionStorage` no contiene tokens y solo permite recuperar el estado de la pantalla después de limpiar la URL.
 - Verificación automatizada actual: 14 pruebas Auth simuladas, incluyendo solicitud/429 sin reintento, hash, limpieza de URL, Bearer al API, enlace inválido y regresiones de login/guards/logout. No certifica envío real de correo ni recuperación con una cuenta autorizada.
 
-## 12. Cierre visual y PWA
+## 12. Registro de usuarios
+
+- `/auth/register` consume `POST /api/v1/auth/signup` y adopta la sesión Supabase cuando el API la devuelve.
+- Si Supabase exige confirmación de correo y no devuelve sesión, muestra un mensaje genérico y permite volver al login sin revelar información sensible.
+- El formulario incluye correo, contraseña, confirmación, checklist accesible y estados de carga/error/rate limit/doble envío.
+- La política coordinada para contraseñas nuevas es 8–128 caracteres, mayúscula, minúscula, número y carácter especial. Las letras Unicode se permiten; los espacios no cuentan como carácter especial. Signin mantiene compatibilidad con cuentas antiguas de 8–128.
+- Google reutiliza el flujo OAuth existente: una cuenta Google nueva puede registrarse mediante el proveedor y una existente iniciar sesión. No se implementan Microsoft ni LinkedIn.
+- Validación frontend/backend completada; falta probar registro real con confirmación de correo y SMTP del proyecto Supabase de cada ambiente.
+
+## 13. Cierre visual y PWA
 
 - Identidad lima `#D5F454`, claro/oscuro con control sol/luna; sistema por defecto hasta elección manual persistida.
 - Banner compacto superior fijo, con icono, título, subtítulo, acción Instalar y cierre. Se muestra como promoción antes de recibir `beforeinstallprompt`; solo habilita instalación cuando puede abrir la confirmación nativa y no reserva espacio para el formulario.
@@ -170,7 +179,7 @@ demostraba caída del API. Los agentes no modificaron `.env` ni sus claves.
 
 Esta actualización documental no volvió a ejecutar pruebas ni implica publicación, commits o despliegues.
 
-## 13. Google OAuth — configuración y estado
+## 14. Google OAuth — configuración y estado
 
 - `GET /api/v1/auth/oauth/google/url` se consume mediante el cliente versionado como `auth/oauth/google/url`; el cliente no duplica `/api/v1`.
 - El botón «Continuar con Google» usa el logotipo oficial multicolor en SVG, estados de carga/error recuperable y foco visible. La URL solo se abre si proviene del origen del API configurado o de un host Google HTTPS permitido.

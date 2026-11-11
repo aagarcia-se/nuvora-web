@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 test('promoción en desarrollo sin CTA operativo antes del evento', async ({ page }) => {
   await page.goto('/login');
   await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toContainText('Modo desarrollo');
-  await expect(page.getByRole('button', { name: 'Instalar Nuvora' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Instalar Nuvora' })).toHaveCount(0);
 });
 const user = {
   id: 'demo-user',
@@ -274,6 +274,37 @@ test('Demo: red caída permite reenvío sin duplicación', async ({ page }) => {
   await expect(page.getByText(user.email, { exact: true })).toBeVisible();
 });
 
+for (const [name, oauthUrl] of [
+  ['URL Supabase de autorización', 'https://auth.demo.test/auth/v1/authorize?provider=google'],
+  ['URL del API permitido', 'http://api.demo.test/oauth/google'],
+  ['URL del proveedor Google permitido', 'https://accounts.google.com/o/oauth2/v2/auth?client_id=demo'],
+] as const) {
+  test(`Demo: acepta ${name}`, async ({ page }) => {
+    await page.route('http://api.demo.test/**', (route) => route.abort());
+    await page.route('https://auth.demo.test/**', (route) => route.abort());
+    await page.route('https://accounts.google.com/**', (route) => route.abort());
+    await page.route('**/api/v1/auth/oauth/google/url', (route) =>
+      route.fulfill({ json: { url: oauthUrl } }),
+    );
+    await page.goto('/login');
+    const oauthRequest = page.waitForRequest((request) =>
+      request.url().startsWith(oauthUrl.split('?')[0]),
+    );
+    await page.getByRole('button', { name: 'Continuar con Google' }).click();
+    await oauthRequest;
+  });
+}
+
+test('Demo: rechaza URL OAuth externa no permitida', async ({ page }) => {
+  await page.route('**/api/v1/auth/oauth/google/url', (route) =>
+    route.fulfill({ json: { url: 'https://evil.example/redirect?next=https://auth.demo.test' } }),
+  );
+  await page.goto('/login');
+  await page.getByRole('button', { name: 'Continuar con Google' }).click();
+  await expect(page.getByRole('alert')).toContainText('No pudimos iniciar sesión con Google');
+  await expect(page).toHaveURL(/\/login$/);
+});
+
 test('Demo: logout en otra pestaña cancela /me pendiente', async ({
   page,
   context,
@@ -304,6 +335,27 @@ test('Demo: logout en otra pestaña cancela /me pendiente', async ({
     page.getByRole('heading', { name: 'Iniciar sesión' }),
   ).toBeVisible();
   await expect(page.getByText(user.email, { exact: true })).toHaveCount(0);
+});
+
+test('Demo: callback sin datos redirige si ya existe sesión válida', async ({
+  page,
+}) => {
+  await mocks(page);
+  await login(page);
+  await expect(page.getByText(user.email, { exact: true })).toBeVisible();
+  await page.goto('/auth/callback');
+  await expect(page).toHaveURL(/\/$/);
+  await expect(page.getByRole('heading', { name: 'Te damos la bienvenida' })).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('Demo: callback con error OAuth explícito muestra mensaje y limpia URL', async ({
+  page,
+}) => {
+  await page.goto('/auth/callback?error=access_denied');
+  await expect(page).toHaveURL(/auth\/callback$/);
+  await expect(page.getByRole('alert')).toContainText('Cancelaste el acceso');
+  await expect(page.getByRole('link', { name: 'Volver a iniciar sesión' })).toBeVisible();
 });
 
 test('Demo: token vencido se renueva solo mediante SDK Supabase', async ({ page }) => {

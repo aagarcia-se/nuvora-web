@@ -5,6 +5,7 @@ import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { WelcomePage } from '@/features/auth/pages/WelcomePage';
+import { AuthCallbackPage } from '@/features/auth/pages/AuthCallbackPage';
 export function AppRoutes() {
   return (
     <AuthLayout>
@@ -19,6 +20,7 @@ export function AppRoutes() {
         />
         <Route path="/auth/forgot-password" element={<ProtectedRoute publicOnly><ForgotPasswordPage /></ProtectedRoute>} />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route
           path="/"
           element={

@@ -20,7 +20,7 @@ Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
 implementados. El usuario confirmó login real funcional después de corregir el
 origen del API y posteriormente aceptó las pruebas del banner/interfaz. No se
 registraron navegador/dispositivo ni una lista detallada de casos manuales.
-Registro y Google siguen pendientes. Recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`.
+Registro sigue pendiente. Google OAuth está disponible mediante `/auth/callback`; recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`.
 
 La interfaz usa lima `#D5F454`, control sol/luna y banner compacto superior de
 instalación. El banner puede mostrarse antes de que el navegador permita instalar;
@@ -46,6 +46,16 @@ Abrir http://localhost:5173. Copiar `.env.example` a `.env.local` y configurar
 API y SDK deben apuntar al mismo proyecto. Las variables `VITE_*` son públicas;
 nunca usar claves secret/service role. Sin configuración válida se muestra el
 login deshabilitado. El cliente HTTP tiene un timeout de 15 segundos.
+
+### Google OAuth
+
+Activa Google en Supabase (**Authentication → Providers → Google**) y configura
+allí el Client ID y Client Secret autorizados. Registra
+`http://localhost:5173/auth/callback` en los redirects permitidos de Supabase y
+usa el mismo valor en `AUTH_REDIRECT_URL` del backend (cambia el origen por el
+HTTPS del ambiente correspondiente). El frontend obtiene la URL desde
+`GET /api/v1/auth/oauth/google/url`; no hace un segundo intercambio ni guarda
+tokens manualmente. La prueba real requiere proveedor y cuenta autorizados.
 
 Esta entrega incluye correo/contraseña, sesión, recuperación, bienvenida y logout.
 Signin usa el API; `setSession` del SDK oficial adopta sus tokens y gestiona

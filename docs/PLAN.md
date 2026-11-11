@@ -2,7 +2,7 @@
 
 **Estado de cierre:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
 
-Registro y Google siguen fuera de esta entrega. La recuperación web está implementada con solicitud genérica, adopción PKCE/hash y actualización final de contraseña.
+Registro sigue fuera de esta entrega. Google OAuth está implementado con URL emitida por el API, callback PKCE/hash y adopción de sesión Supabase. La recuperación web está implementada con solicitud genérica, adopción PKCE/hash y actualización final de contraseña.
 
 ## 1. Objetivo y prioridad
 
@@ -167,3 +167,11 @@ demostraba caída del API. Los agentes no modificaron `.env` ni sus claves.
 - Persisten el aviso de bundle superior a 500 kB y la verificación por plataforma de instalación, teclado virtual y safe areas. No bloquean el cierre del alcance visual aceptado.
 
 Esta actualización documental no volvió a ejecutar pruebas ni implica publicación, commits o despliegues.
+
+## 13. Google OAuth — configuración y estado
+
+- `GET /api/v1/auth/oauth/google/url` se consume mediante el cliente versionado como `auth/oauth/google/url`; el cliente no duplica `/api/v1`.
+- El botón «Continuar con Google» usa el logotipo oficial multicolor en SVG, estados de carga/error recuperable y foco visible. La URL solo se abre si proviene del origen del API configurado o de un host Google HTTPS permitido.
+- `/auth/callback` elimina `code`, errores y tokens hash de la barra de direcciones antes del trabajo asíncrono. Adopta `?code=` con `exchangeCodeForSession` o `access_token`/`refresh_token` con `setSession`; no guarda tokens manualmente. Después deja que el provider valide `/auth/me` y redirige a `/`.
+- Para habilitarlo: activar Google en Supabase Authentication → Providers → Google; registrar el Client ID y Client Secret de Google en Supabase; agregar `http://localhost:5173/auth/callback` a los redirects permitidos de Supabase y configurar `AUTH_REDIRECT_URL` del backend con esa misma URL. En cada ambiente, usar su origen HTTPS correspondiente.
+- La integración real requiere un proveedor configurado y una cuenta autorizada. No se considera validada por una respuesta simulada del endpoint ni por la compilación.

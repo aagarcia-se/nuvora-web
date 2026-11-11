@@ -20,6 +20,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   });
   const request = useRef<AbortController | null>(null);
   const generation = useRef(0);
+  const sessionRef = useRef<Session | null>(null);
   const busy = useRef(false);
   const signingOut = useRef(false);
   const clear = useCallback(() => {
@@ -33,9 +34,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
       clear();
       const version = generation.current;
       if (!session) {
+        sessionRef.current = null;
         setState(anonymous);
         return;
       }
+      sessionRef.current = session;
       const controller = new AbortController();
       request.current = controller;
       setState({ ...anonymous, status: 'loading' });
@@ -45,6 +48,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
           setState({ status: 'authenticated', user, error: null });
       } catch (error) {
         if (version !== generation.current || controller.signal.aborted) return;
+        // A stale /me (or provider) failure must not replace a newer, valid
+        // session delivered by the SDK.
+        if (sessionRef.current?.access_token !== session.access_token) return;
         if (axios.isAxiosError(error) && error.response?.status === 401) {
           const result = await supabase!.auth.signOut({ scope: 'local' });
           if (result.error)
@@ -79,7 +85,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       if (!signingOut.current) void resolve(session);
     });
     void supabase.auth.getSession().then(({ error }) => {
-      if (active && error)
+      // getSession can finish after SIGNED_IN. In that case its error is no
+      // longer authoritative and must not paint an error over a valid session.
+      if (active && error && !sessionRef.current)
         setState({ ...anonymous, status: 'error', error: authMessage(error) });
     });
     return () => {

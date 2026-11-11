@@ -2,7 +2,7 @@
 
 **Estado de cierre:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
 
-Registro, Google y recuperación en web siguen pendientes de autorización. No reiniciar esta entrega ni ampliar automáticamente su alcance.
+Registro y Google siguen fuera de esta entrega. La recuperación web está implementada con solicitud genérica, adopción PKCE/hash y actualización final de contraseña.
 
 ## 1. Objetivo y prioridad
 
@@ -149,10 +149,18 @@ El bloqueo de configuración se resolvió: el usuario corrigió `VITE_API_BASE_U
 y confirmó login real funcional. La URL inválida se rechazaba localmente; no
 demostraba caída del API. Los agentes no modificaron `.env` ni sus claves.
 
-## 11. Cierre visual y PWA
+## 11. Recuperación de contraseña
+
+- `/auth/forgot-password` llama `POST /api/v1/auth/password-reset/request` con `{ email }` y mantiene una respuesta genérica, incluso cuando el correo no existe o el API responde `AUTH_RATE_LIMITED`.
+- `/auth/reset-password` adopta enlaces PKCE (`code`) o recovery hash (`access_token`/`refresh_token`) mediante el SDK oficial Supabase. Limpia query/hash antes de continuar y nunca muestra ni persiste tokens o contraseñas.
+- La actualización obtiene la sesión vigente desde Supabase en el momento del envío y llama `POST /api/v1/auth/password-reset/update` con Bearer únicamente al API. Tras `204`, cierra la sesión local y ofrece volver a iniciar sesión.
+- Estados de validación, carga, éxito, enlace vencido/cancelado, errores de red/429 y validación de contraseña tienen feedback accesible. El marcador de recuperación en `sessionStorage` no contiene tokens y solo permite recuperar el estado de la pantalla después de limpiar la URL.
+- Verificación automatizada actual: 14 pruebas Auth simuladas, incluyendo solicitud/429 sin reintento, hash, limpieza de URL, Bearer al API, enlace inválido y regresiones de login/guards/logout. No certifica envío real de correo ni recuperación con una cuenta autorizada.
+
+## 12. Cierre visual y PWA
 
 - Identidad lima `#D5F454`, claro/oscuro con control sol/luna; sistema por defecto hasta elección manual persistida.
-- Banner compacto superior con icono, título, subtítulo, acción Instalar y cierre. Se muestra como promoción antes de recibir `beforeinstallprompt`; solo habilita instalación cuando puede abrir la confirmación nativa.
+- Banner compacto superior fijo, con icono, título, subtítulo, acción Instalar y cierre. Se muestra como promoción antes de recibir `beforeinstallprompt`; solo habilita instalación cuando puede abrir la confirmación nativa y no reserva espacio para el formulario.
 - Sin evento, informa brevemente disponibilidad/desarrollo/HTTPS/plataforma; no simula instalación ni ofrece instrucciones manuales extensas. Oculto en standalone o instalación confirmada; respeta nuevos cierres persistidos.
 - Última revisión visual reportada: lint/build correctos, 6 pruebas PWA y 2 de promoción/temas aprobadas. Estos resultados corresponden a ejecuciones distintas de las 10 pruebas Auth, no a una única suite conjunta.
 - Manifest/service worker comprobados en preview. El diálogo se verificó mediante eventos sintéticos; el navegador automatizado no emitió el evento nativo. El usuario después confirmó sus pruebas satisfactorias sin detallar dispositivos ni instalación nativa.

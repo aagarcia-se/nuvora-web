@@ -15,6 +15,11 @@ function origin(value: string | undefined) {
     return undefined;
   }
 }
+
+// Versioned API routes share this prefix. Change it here when the API version changes;
+// VITE_API_BASE_URL remains the API origin (without a path).
+export const API_PREFIX = '/api/v1';
+
 export const env = {
   appName: import.meta.env.VITE_APP_NAME?.trim() || 'Nuvora',
   apiBaseUrl: origin(import.meta.env.VITE_API_BASE_URL),

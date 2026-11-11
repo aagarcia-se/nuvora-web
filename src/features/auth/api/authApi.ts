@@ -1,6 +1,5 @@
 import axios from 'axios';
 import { httpClient } from '@/shared/api/httpClient';
-import { env } from '@/shared/config/env';
 import type { Identity } from '../types/auth.types';
 export function authMessage(error: unknown): string {
   if (axios.isAxiosError(error)) {
@@ -18,13 +17,27 @@ export function authMessage(error: unknown): string {
   }
   return 'No pudimos completar la solicitud. Intenta de nuevo en un momento.';
 }
+export function passwordResetMessage(error: unknown): string {
+  if (axios.isAxiosError(error)) {
+    const code = error.response?.data?.error;
+    if (code === 'AUTH_RATE_LIMITED' || error.response?.status === 429)
+      return 'Hemos recibido tu solicitud. Si necesitas intentarlo de nuevo, espera unos minutos.';
+    if (code === 'VALIDATION_ERROR' || error.response?.status === 400)
+      return 'La solicitud no es válida. Revisa los datos e intenta de nuevo.';
+    if (code === 'PASSWORD_UPDATE_FAILED' || error.response?.status === 401)
+      return 'El enlace no es válido o ya venció. Solicita un enlace nuevo.';
+    if (!error.response)
+      return 'No pudimos conectar. Comprueba tu conexión e intenta de nuevo.';
+  }
+  return 'No pudimos completar la solicitud. Intenta de nuevo en un momento.';
+}
 export async function signIn(
   email: string,
   password: string,
   signal: AbortSignal,
 ) {
   const { data } = await httpClient.post(
-    '/api/v1/auth/signin',
+    'auth/signin',
     { email, password },
     { signal },
   );
@@ -43,7 +56,7 @@ export async function currentUser(
   signal: AbortSignal,
 ): Promise<Identity> {
   // Fixed API destination: never attach a bearer to arbitrary URLs.
-  const { data } = await httpClient.get(`${env.apiBaseUrl}/api/v1/auth/me`, {
+  const { data } = await httpClient.get('auth/me', {
     signal,
     headers: { Authorization: `Bearer ${token}`, 'Cache-Control': 'no-store' },
   });
@@ -53,4 +66,27 @@ export async function currentUser(
   )
     throw new Error('Invalid identity response');
   return { id: data.user.id, email: data.user.email };
+}
+
+export async function requestPasswordReset(email: string, signal: AbortSignal) {
+  await httpClient.post(
+    'auth/password-reset/request',
+    { email },
+    { signal },
+  );
+}
+
+export async function updatePassword(
+  token: string,
+  password: string,
+  signal: AbortSignal,
+) {
+  await httpClient.post(
+    'auth/password-reset/update',
+    { password },
+    {
+      signal,
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
 }

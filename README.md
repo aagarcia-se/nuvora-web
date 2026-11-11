@@ -20,7 +20,7 @@ Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
 implementados. El usuario confirmó login real funcional después de corregir el
 origen del API y posteriormente aceptó las pruebas del banner/interfaz. No se
 registraron navegador/dispositivo ni una lista detallada de casos manuales.
-Registro, Google y recuperación en web siguen pendientes.
+Registro y Google siguen pendientes. Recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`.
 
 La interfaz usa lima `#D5F454`, control sol/luna y banner compacto superior de
 instalación. El banner puede mostrarse antes de que el navegador permita instalar;
@@ -47,7 +47,7 @@ API y SDK deben apuntar al mismo proyecto. Las variables `VITE_*` son públicas;
 nunca usar claves secret/service role. Sin configuración válida se muestra el
 login deshabilitado. El cliente HTTP tiene un timeout de 15 segundos.
 
-Esta entrega incluye solo correo/contraseña, sesión, bienvenida y logout.
+Esta entrega incluye correo/contraseña, sesión, recuperación, bienvenida y logout.
 Signin usa el API; `setSession` del SDK oficial adopta sus tokens y gestiona
 persistencia/renovación. `/auth/me` verifica la identidad antes de permitir `/`.
 Un fallo recuperable permite reintentar sin borrar sesión; 401 exige acceso
@@ -63,7 +63,7 @@ Query. Si falla, se muestra error y reintento sin declarar cierre exitoso.
 - `src/features/auth/api/authApi.ts`: transporte y errores de autenticación.
 - `src/features/auth/api/useLogin.ts`: envío del formulario sin almacenar credenciales en Query.
 - `src/features/auth/components`: `ProtectedRoute` y `AuthLayout`.
-- `src/features/auth/pages`: `LoginPage` y `WelcomePage` (plural como la referencia San Gabriel).
+- `src/features/auth/pages`: login, recuperación, reset y bienvenida (plural como la referencia San Gabriel).
 - `src/features/auth/store`: contexto y `AuthProvider`; SDK Supabase mantiene la sesión.
 - `src/features/auth/types/auth.types.ts`: interfaces del dominio.
 - `src/shared/api`: instancias compartidas de Axios y QueryClient.
@@ -74,11 +74,17 @@ Query. Si falla, se muestra error y reintento sin declarar cierre exitoso.
 La identidad lima `#D5F454` usa texto oscuro y superficies neutras cálidas.
 Tokens semánticos en `globals.css` y Tailwind 3.4; Inter/sistema sin descargas.
 Control sol/luna accesible, sistema por defecto hasta elección manual persistida;
-`public/theme.js` aplica el tema antes del render. Guía UI/UX Pro Max consultada
-con Python: labels visibles, feedback de envío, foco y contraste; la dirección
-lima aprobada prevalece sobre recomendaciones genéricas de landing.
-Layout fluido con safe areas, `100dvh`, controles de 48px, texto de input 16px,
-scroll de documento y avisos PWA en flujo para no ocultar foco/teclado móvil.
+`public/theme.js` aplica el tema antes del render. La dirección lima aprobada
+prevalece sobre recomendaciones genéricas de landing.
+Layout fluido con safe areas, `100dvh`, controles de 48px y texto de input 16px.
+La promoción PWA es fija y superpuesta: no reserva espacio ni cambia la posición
+vertical del formulario al aparecer o cerrarse.
+
+El origen configurado en `VITE_API_BASE_URL` se normaliza sin slash final y no debe
+incluir `/api/v1`. `src/shared/config/env.ts` define `API_PREFIX` y
+`src/shared/api/httpClient.ts` construye el `baseURL` versionado; para cambiar la
+versión, actualiza esa constante sin modificar cada endpoint Auth. `/health` queda
+fuera de este cliente versionado si se necesita consultar ese endpoint público.
 
 ## Verificación y compilación
 
@@ -94,7 +100,7 @@ Al desplegar, configurar el hosting para redirigir rutas de la SPA a `index.html
 
 ## PWA
 
-El banner superior compacto se muestra como promoción incluso antes de que el
+El banner superior compacto y fijo se muestra como promoción incluso antes de que el
 navegador ofrezca instalación. El botón solo se habilita al recibir
 `beforeinstallprompt`; conserva la confirmación del navegador. Sin evento indica
 desarrollo, conexión no segura, iOS/no soporte o disponibilidad pendiente, sin

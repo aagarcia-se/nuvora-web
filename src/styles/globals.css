@@ -63,7 +63,18 @@
   }
 }
 @layer components {
-  .install-banner { background: #23291b; color: #f5f7ef; border-color: #3c4630; }
+  .install-banner {
+    position: fixed;
+    z-index: 50;
+    top: max(0.75rem, env(safe-area-inset-top));
+    left: max(0.75rem, env(safe-area-inset-left));
+    right: max(0.75rem, env(safe-area-inset-right));
+    width: min(42rem, calc(100% - max(1.5rem, env(safe-area-inset-left) + env(safe-area-inset-right))));
+    margin-inline: auto;
+    background: #23291b;
+    color: #f5f7ef;
+    border-color: #3c4630;
+  }
   .dark .install-banner { background: #191d14; border-color: #596549; }
   .install-description { color: #c6cfb8; }
   .install-banner :focus-visible { outline-color: #d5f454; }
@@ -123,6 +134,12 @@
     color: var(--danger);
     background: var(--danger-bg);
     border-color: var(--danger);
+  }
+  .success-alert {
+    @apply rounded-xl border p-3 text-sm leading-relaxed;
+    color: var(--success);
+    background: color-mix(in srgb, var(--success) 10%, transparent);
+    border-color: var(--success);
   }
   .password-toggle {
     @apply absolute right-1 top-1/2 min-h-12 -translate-y-1/2 rounded-lg px-3 text-sm font-medium text-muted;

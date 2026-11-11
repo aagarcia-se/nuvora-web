@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useRef, useState, type FormEvent } from 'react';
 import { authConfigured } from '@/shared/config/env';
 import { Button } from '@/shared/ui/components/Button';
@@ -146,6 +147,9 @@ export function LoginPage() {
         >
           {pending ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </Button>
+        <p className="text-center text-sm">
+          <Link className="underline" to="/auth/forgot-password">¿Olvidaste tu contraseña?</Link>
+        </p>
         <p className="text-center text-xs leading-relaxed text-muted">
           Necesitas conexión a internet para acceder.
         </p>

@@ -13,7 +13,7 @@ const user = {
   user_metadata: {},
   created_at: '2026-01-01T00:00:00Z',
 };
-const token = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: user.id, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url')}.demo-signature`;
+const token = `${Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url')}.${Buffer.from(JSON.stringify({ sub: user.id, aud: 'authenticated', role: 'authenticated', session_id: 'demo-session', exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url')}.demo-signature`;
 async function mocks(page: Page) {
   await page.route('https://auth.demo.test/auth/v1/**', async (route) => {
     if (route.request().url().includes('/logout'))
@@ -94,6 +94,48 @@ test('Demo: validación, mostrar contraseña, 401 y reenvío', async ({
   await expect(
     page.getByRole('heading', { name: 'Te damos la bienvenida' }),
   ).toBeVisible();
+});
+test('Demo: recuperación solicita correo sin enumerar cuentas y no reintenta 429', async ({ page }) => {
+  await page.goto('/login');
+  await page.getByRole('link', { name: '¿Olvidaste tu contraseña?' }).click();
+  await expect(page).toHaveURL(/auth\/forgot-password$/);
+  await page.getByLabel('Correo electrónico').fill('contador@example.com');
+  let calls = 0;
+  await page.route('**/api/v1/auth/password-reset/request', (route) => {
+    calls++;
+    expect(route.request().postDataJSON()).toEqual({ email: 'contador@example.com' });
+    return route.fulfill({ status: 429, json: { error: 'AUTH_RATE_LIMITED' } });
+  });
+  await page.getByRole('button', { name: 'Enviar enlace' }).click();
+  await expect(page.getByRole('alert')).toContainText('minutos');
+  expect(calls).toBe(1);
+});
+test('Demo: recuperación hash limpia URL y actualiza con sesión SDK', async ({ page }) => {
+  await mocks(page);
+  await login(page);
+  let updateCalls = 0;
+  await page.route('http://api.demo.test/api/v1/auth/password-reset/update', (route) => {
+    updateCalls++;
+    expect(route.request().headers().authorization).toBe(`Bearer ${token}`);
+    expect(route.request().url()).not.toContain('access_token');
+    expect(route.request().postDataJSON()).toEqual({ password: 'New-demo-password' });
+    return route.fulfill({ status: 204 });
+  });
+  await page.goto(`/auth/reset-password#access_token=${encodeURIComponent(token)}&refresh_token=demo-refresh-fixture&type=recovery`);
+  await expect(page).toHaveURL(/auth\/reset-password$/);
+  await expect(page).not.toHaveURL(/access_token|refresh_token|type=recovery/);
+  await expect(page.getByRole('heading', { name: 'Crea una contraseña nueva' })).toBeVisible();
+  await page.getByLabel('Contraseña nueva').fill('New-demo-password');
+  await page.getByLabel('Repite la contraseña').fill('New-demo-password');
+  await page.getByRole('button', { name: 'Actualizar contraseña' }).click();
+  await expect(page.getByRole('heading', { name: 'Contraseña actualizada' })).toBeVisible();
+  expect(updateCalls).toBe(1);
+});
+test('Demo: recuperación sin enlace muestra estado inválido y no expone secretos', async ({ page }) => {
+  await page.goto('/auth/reset-password?access_token=not-a-token');
+  await expect(page.getByRole('heading', { name: 'No pudimos actualizarla' })).toBeVisible();
+  await expect(page).toHaveURL(/auth\/reset-password$/);
+  await expect(page.locator('body')).not.toContainText('not-a-token');
 });
 test('Demo: error /me recuperable conserva sesión; 401 exige reautenticación', async ({
   page,
@@ -252,7 +294,7 @@ test('Demo: logout en otra pestaña cancela /me pendiente', async ({
     await route.fulfill({ json: { user } }).catch(() => {});
   });
   await page.reload();
-  await expect(page.getByRole('status')).toContainText('Comprobando');
+  await expect(page.getByText('Comprobando tu sesión…')).toBeVisible();
   await other
     .getByRole('button', { name: 'Cerrar sesión', exact: true })
     .click();

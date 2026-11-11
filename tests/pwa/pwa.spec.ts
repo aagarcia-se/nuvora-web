@@ -99,7 +99,7 @@ test('ofrece instalación y oculta el control al confirmar appinstalled', async 
   await expect(page.getByRole('button', { name: /^Instalar / })).toHaveCount(0);
 });
 
-test('promoción superior responsive, migración de cierre y nuevo cierre persistente', async ({ page }) => {
+test('promoción fija no reserva espacio, es responsive y conserva el cierre persistente', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'userAgent', { value: 'iPhone Safari' });
@@ -116,16 +116,22 @@ test('promoción superior responsive, migración de cierre y nuevo cierre persis
   await expect(banner).toBeVisible();
   const box = await banner.boundingBox();
   const header = await page.getByRole('banner').boundingBox();
-  expect(box!.y + box!.height).toBeLessThanOrEqual(header!.y);
+  const form = page.locator('main section');
+  const formBefore = await form.boundingBox();
+  expect(await banner.evaluate(element => getComputedStyle(element).position)).toBe('fixed');
+  expect(box!.y).toBeLessThanOrEqual(header!.y + header!.height);
+  expect(formBefore).not.toBeNull();
+  await page.getByRole('button', { name: 'Cerrar aviso de instalación' }).click();
+  await expect(banner).toHaveCount(0);
+  const formAfter = await form.boundingBox();
+  expect(formAfter!.y).toBe(formBefore!.y);
+  await page.reload();
+  await expect(banner).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   for (const width of [320, 768, 1440]) {
     await page.setViewportSize({ width, height: 800 });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
-  await page.getByRole('button', { name: 'Cerrar aviso de instalación' }).click();
-  await expect(banner).toHaveCount(0);
-  await page.reload();
-  await expect(banner).toHaveCount(0);
 });
 
 test('prompt único y cancelación sin instalación ficticia', async ({ page }) => {

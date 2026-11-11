@@ -29,7 +29,7 @@ export function InstallApp() {
     try { localStorage.setItem(dismissKey, String(Date.now())); } catch { /* Dismiss for this visit when storage is blocked. */ }
     setDismissed(true);
   }
-  return <aside aria-label="Instalar aplicación" className="install-banner mx-auto w-full max-w-3xl rounded-2xl border p-3 text-left shadow-sm">
+  return <aside aria-label="Instalar aplicación" className="install-banner rounded-2xl border p-3 text-left shadow-lg">
     <div className="grid grid-cols-[3rem_minmax(0,1fr)_3rem] items-center gap-3 sm:grid-cols-[3rem_minmax(0,1fr)_auto_3rem]">
       <span className="install-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"><Icon name="download" /></span>
       <div className="min-w-0 flex-1">

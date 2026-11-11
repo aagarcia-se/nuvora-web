@@ -1,8 +1,8 @@
 import axios from 'axios';
-import { env } from '@/shared/config/env';
+import { API_PREFIX, env } from '@/shared/config/env';
 
 export const httpClient = axios.create({
-  baseURL: env.apiBaseUrl,
+  baseURL: env.apiBaseUrl ? `${env.apiBaseUrl}${API_PREFIX}/` : undefined,
   timeout: 15_000,
   headers: { Accept: 'application/json' },
 });

@@ -38,9 +38,10 @@ Estos módulos futuros no se implementan por adelantado. Preparar límites de do
 - `src/features/<dominio>` para api/pages/components/hooks/types según necesidad real.
 - `src/shared/api` contiene HTTP y QueryClient; `shared/config` configuración/marca; `shared/ui`, `lib`, `utils`, `theme` piezas compartidas; `src/styles/globals.css` estilos/tokens.
 - Hay avances PWA en `src/shared/pwa`, manifest/service worker, iconos y pruebas Playwright. Respetar este trabajo existente; no confundir existencia con validación manual de todos los navegadores.
-- No hay aún módulos de negocio ni SDK Supabase en dependencias. Incorporarlo al implementar Auth.
-- Scripts actuales: `dev`, `build`, `preview`, `lint`, `format`, `icons:generate`, `test:pwa`. No hay `test` ni `typecheck`; build ejecuta TypeScript.
-- Inspeccionar git/archivos/scripts antes de trabajar; hay cambios en curso del usuario y se deben conservar. El inventario puede evolucionar.
+- Login correo/contraseña, sesión SDK Supabase, rutas protegidas, bienvenida y logout implementados; usuario confirmó login real tras corregir el origen del API. Registro, Google y recuperación en web aún pendientes. No hay módulos de negocio.
+- Auth sigue la referencia San Gabriel: `api`, `components`, `pages` (plural), `store`, `types`. Interfaces en `types/auth.types.ts`, transporte en `api/authApi.ts`, formulario mediante `api/useLogin.ts`; SDK como gestor único de sesión, sin persistencia manual ni credenciales en Query.
+- Scripts actuales: `dev`, `build`, `preview`, `lint`, `format`, `icons:generate`, `test:auth`, `test:pwa`. No hay `test` ni `typecheck`; build ejecuta TypeScript.
+- Revisar archivos/scripts y preservar cambios del usuario. Por instrucción vigente, el control de versiones lo ejecuta el usuario: no ejecutar comandos Git ni commit/push. Tests, lint y build sí están autorizados. No modificar `.env` ni claves existentes sin autorización expresa.
 
 Separar UI, estado remoto, sesión y transporte. Mantener TanStack Query para datos remotos; no añadir gestores globales sin necesidad. Usar Tailwind 3.4 y centralizar marca y tokens. La dirección visual se define según la responsabilidad de diseño siguiente, sin imponer la paleta histórica.
 
@@ -48,13 +49,19 @@ Separar UI, estado remoto, sesión y transporte. Mantener TanStack Query para da
 
 - **Usar la skill UI/UX Pro Max para las tareas de diseño frontend.** Buscarla entre las skills disponibles y cargar sus instrucciones antes de definir o implementar el diseño. Si no está disponible, indicarlo y solicitar su instalación o ubicación; no afirmar que se utilizó ni inventar sus instrucciones.
 - El agente es responsable de definir componentes, colores, interfaz de usuario y experiencia de usuario. Debe tomar decisiones visuales coherentes con Nuvora Contadores, explicar brevemente su criterio y llevarlas a componentes reutilizables cuando se implemente la fase autorizada.
-- Elegir una paleta propia de un **SaaS moderno, profesional y confiable**, adecuada para trabajo contable prolongado. Definir colores primario/secundario, acentos, fondos, superficies, bordes, texto y estados semánticos (éxito, advertencia, error e información), con contraste accesible. No depender solo del color para comunicar estados.
+- Paleta aprobada: lima **#D5F454** con texto oscuro y superficies neutras, variantes claras/oscuras y tokens semánticos accesibles. Mantener control sol/luna sin etiqueta visible «Tema», sistema por defecto hasta elección manual persistida. No depender solo del color para comunicar estados.
 - Centralizar el sistema visual en tokens compatibles con Tailwind 3.4 y los estilos existentes: tipografía, espaciado, radios, sombras, densidad y estados interactivos. La paleta provisional puede evolucionar; evitar colores arbitrarios dispersos por las pantallas.
 - Definir componentes según necesidad: botones, campos, selectores de cliente, tablas, filtros, navegación, tarjetas, diálogos, notificaciones y estados de carga/vacío/error. Incluir variantes, foco, teclado, responsive y jerarquía visual consistente.
 - Diseñar la experiencia alrededor de seleccionar cliente, cargar documentos, revisar, aprobar y cerrar el período, reduciendo pasos y haciendo visible el contexto activo y las acciones importantes.
 - Crear recursos visuales o utilizar bibliotecas/servicios de iconos modernos e imágenes cuando aporten claridad. Preferir una familia consistente de iconos SVG, por ejemplo Lucide, según dependencias existentes; evitar emojis como sustitutos de iconos de interfaz y mezclas de estilos.
 - Seleccionar, crear o encargar las imágenes e ilustraciones necesarias para onboarding, estados vacíos o presentación del producto. Respetar licencias y atribuciones, optimizar tamaño/formato, definir texto alternativo cuando corresponda y evitar imágenes decorativas que dificulten el trabajo contable. Si se requiere un servicio externo o generación de imágenes, usarlo solo con herramientas disponibles y autorización aplicable.
 - Mantener coherencia entre identidad de interfaz, favicon e iconos PWA. Documentar las decisiones del sistema visual al implementarlo y comprobar las pantallas en tamaños móviles y de escritorio.
+
+### Banner y estado de validación
+
+- Conservar banner PWA compacto superior, en flujo y respetando safe areas. Puede mostrarse como promoción antes de disponer del prompt; habilitar «Instalar» únicamente cuando exista `beforeinstallprompt`. Informar disponibilidad sin prometer instalación universal ni mostrar un CTA activo inoperante.
+- Ocultar en standalone/instalación confirmada y respetar cierre persistido. No restaurar el desplegable de instrucciones ni el banner inferior.
+- Login real y últimos ajustes visuales cuentan con confirmación del usuario. Resultados automatizados y límites están en `docs/PLAN.md`; no atribuir a esta confirmación pruebas específicas de dispositivos o todos los casos de sesión. Las funcionalidades futuras requieren nueva indicación.
 
 ## 4. Dominio preparado para expansión
 

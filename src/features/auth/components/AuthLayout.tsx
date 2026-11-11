@@ -8,6 +8,7 @@ export function AuthLayout({ children }: PropsWithChildren) {
       <a href="#main" className="skip-link">
         Ir al contenido
       </a>
+      <InstallApp />
       <header className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-4 py-4">
         <div className="flex items-center gap-3">
           <img
@@ -52,7 +53,6 @@ export function AuthLayout({ children }: PropsWithChildren) {
       </main>
       <footer className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-6 py-4 text-sm text-muted sm:flex-row">
         <p>{env.appName} · Contadores</p>
-        <InstallApp />
       </footer>
     </div>
   );

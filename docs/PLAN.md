@@ -1,5 +1,9 @@
 # Plan vigente — Login Nuvora Web
 
+**Estado de cierre:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
+
+Registro, Google y recuperación en web siguen pendientes de autorización. No reiniciar esta entrega ni ampliar automáticamente su alcance.
+
 ## 1. Objetivo y prioridad
 
 Implementar únicamente login por correo/contraseña consumiendo el API existente, gestión de sesión, bienvenida protegida y logout. Diseño responsive con verde lima **#D5F454**, tema claro, oscuro y sistema.
@@ -26,7 +30,7 @@ El borrador detallado de esta entrega se creó en `C:/Users/agarcia/.opencode/pl
 
 Leer y aplicar `.opencode/skills/ui-ux-pro-max/SKILL.md` para sistema visual, componentes, experiencia, accesibilidad y React/Tailwind.
 
-La skill está instalada; su buscador no pudo ejecutarse durante la planificación porque `python` no estaba disponible. Revalidar disponibilidad. El plan frontend anterior registra autorización para continuar sin búsquedas Python: se puede usar su guía sin inventar resultados del buscador. No instalar Python automáticamente ni bloquear el login solo por esa herramienta auxiliar.
+La skill está instalada. Aunque Python no estaba disponible en la primera planificación, el agente reportó haber consultado su buscador durante la implementación. Revalidar disponibilidad en futuras tareas; no instalar Python automáticamente ni atribuir resultados a búsquedas no ejecutadas.
 
 El agente define componentes, colores complementarios, tipografía y recursos visuales. La elección explícita del usuario de lima y ambos temas prevalece sobre recomendaciones automáticas.
 
@@ -55,7 +59,7 @@ Inspiración: imagen compartida de Dapta por su lima, contraste y tipografía ma
 - Permitir pegado, gestores de contraseñas y autocomplete `username`/`current-password`. No aplicar trim a contraseña.
 - Iconos SVG consistentes, preferiblemente Lucide tras revisar dependencias; nombre accesible en botones y decorativos ocultos al lector.
 - Si se necesita decoración, composición ligera SVG/CSS propia; no se requiere fotografía. Recursos externos con licencia, optimización y autorización aplicable.
-- Selector accesible Claro/Oscuro/Sistema, sistema por defecto. Persistir solo preferencia visual, aplicar antes del primer render y escuchar cambios del sistema cuando corresponda. Respetar reduced motion.
+- Control accesible de iconos sol/luna: sistema por defecto hasta elección manual claro/oscuro, persistida y aplicada antes del primer render. Respetar reduced motion.
 - Unificar favicon/iconos PWA/metadatos con lima usando scripts existentes, sin reemplazar el mecanismo PWA. Verificar legibilidad y tamaños; no afirmar soporte de integración del sistema operativo sin probar.
 
 ## 5. Contratos verificados
@@ -140,8 +144,18 @@ Auth implementado y reorganizado siguiendo la referencia San Gabriel:
 `store` y `types/auth.types.ts`. Supabase permanece como único gestor de sesión;
 no se copia el JWT propio ni la persistencia manual de la referencia.
 
-Lint/build y 10 pruebas Auth simuladas aprobadas. La integración real sigue
-bloqueada: variables públicas presentes, URL API incompatible con el formato
-de origen y endpoints no alcanzables en la revisión; cuenta de prueba autorizada
-pendiente. No se modificaron `.env`, backend ni referencia. Confirmar URL/CORS
-y ejecutar login → recarga → logout en navegador con usuario autorizado.
+Lint/build y 10 pruebas Auth simuladas aprobadas en la entrega de integración.
+El bloqueo de configuración se resolvió: el usuario corrigió `VITE_API_BASE_URL`
+y confirmó login real funcional. La URL inválida se rechazaba localmente; no
+demostraba caída del API. Los agentes no modificaron `.env` ni sus claves.
+
+## 11. Cierre visual y PWA
+
+- Identidad lima `#D5F454`, claro/oscuro con control sol/luna; sistema por defecto hasta elección manual persistida.
+- Banner compacto superior con icono, título, subtítulo, acción Instalar y cierre. Se muestra como promoción antes de recibir `beforeinstallprompt`; solo habilita instalación cuando puede abrir la confirmación nativa.
+- Sin evento, informa brevemente disponibilidad/desarrollo/HTTPS/plataforma; no simula instalación ni ofrece instrucciones manuales extensas. Oculto en standalone o instalación confirmada; respeta nuevos cierres persistidos.
+- Última revisión visual reportada: lint/build correctos, 6 pruebas PWA y 2 de promoción/temas aprobadas. Estos resultados corresponden a ejecuciones distintas de las 10 pruebas Auth, no a una única suite conjunta.
+- Manifest/service worker comprobados en preview. El diálogo se verificó mediante eventos sintéticos; el navegador automatizado no emitió el evento nativo. El usuario después confirmó sus pruebas satisfactorias sin detallar dispositivos ni instalación nativa.
+- Persisten el aviso de bundle superior a 500 kB y la verificación por plataforma de instalación, teclado virtual y safe areas. No bloquean el cierre del alcance visual aceptado.
+
+Esta actualización documental no volvió a ejecutar pruebas ni implica publicación, commits o despliegues.

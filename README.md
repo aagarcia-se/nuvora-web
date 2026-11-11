@@ -14,6 +14,25 @@ se conserva; los módulos de negocio de esta propuesta aún están por implement
 
 ## Desarrollo
 
+### Estado de la entrega
+
+Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
+implementados. El usuario confirmó login real funcional después de corregir el
+origen del API y posteriormente aceptó las pruebas del banner/interfaz. No se
+registraron navegador/dispositivo ni una lista detallada de casos manuales.
+Registro, Google y recuperación en web siguen pendientes.
+
+La interfaz usa lima `#D5F454`, control sol/luna y banner compacto superior de
+instalación. El banner puede mostrarse antes de que el navegador permita instalar;
+el botón solo se habilita al disponer del prompt nativo. Se respetan cierre e
+instalación detectada. Limpiar caché no necesariamente borra preferencias en
+localStorage. Para evaluar instalación usar build/preview o HTTPS, no asumir que
+el servidor de desarrollo ofrecerá instalación.
+
+Los resultados y límites de verificación están en [docs/PLAN.md](docs/PLAN.md).
+No sobrescribir el `.env` ya configurado al seguir las instrucciones para un
+entorno nuevo que aparecen a continuación.
+
 Requiere Node.js 22.12+ o 24 LTS y npm.
 
 ```sh
@@ -54,7 +73,7 @@ Query. Si falla, se muestra error y reintento sin declarar cierre exitoso.
 
 La identidad lima `#D5F454` usa texto oscuro y superficies neutras cálidas.
 Tokens semánticos en `globals.css` y Tailwind 3.4; Inter/sistema sin descargas.
-Selector Claro/Oscuro/Sistema, con sistema por defecto y preferencia local;
+Control sol/luna accesible, sistema por defecto hasta elección manual persistida;
 `public/theme.js` aplica el tema antes del render. Guía UI/UX Pro Max consultada
 con Python: labels visibles, feedback de envío, foco y contraste; la dirección
 lima aprobada prevalece sobre recomendaciones genéricas de landing.
@@ -74,6 +93,20 @@ npm run test:auth
 Al desplegar, configurar el hosting para redirigir rutas de la SPA a `index.html`.
 
 ## PWA
+
+El banner superior compacto se muestra como promoción incluso antes de que el
+navegador ofrezca instalación. El botón solo se habilita al recibir
+`beforeinstallprompt`; conserva la confirmación del navegador. Sin evento indica
+desarrollo, conexión no segura, iOS/no soporte o disponibilidad pendiente, sin
+instrucciones manuales. En `npm run dev` la PWA está deshabilitada: para probarla
+usa `npm run build` y `npm run preview` en `http://localhost:4173` con Chrome/Edge.
+En un móvil remoto se necesita HTTPS; una IP LAN con HTTP no equivale a localhost.
+
+Cerrar oculta la promoción 14 días con `nuvora-install-promotion-v2-dismissed-at`.
+La clave anterior no oculta este nuevo diseño; los nuevos cierres sí se respetan.
+Limpiar únicamente la caché no suele borrar localStorage. Standalone e instalación
+confirmada durante la sesión ocultan el banner. No existe detección universal de
+una PWA previamente instalada desde cualquier pestaña/navegador.
 
 El build incluye manifest, service worker y registro desde `PwaStatus`.
 El nombre del manifest usa `VITE_APP_NAME` al compilar. La identidad

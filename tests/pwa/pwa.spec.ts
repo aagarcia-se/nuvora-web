@@ -95,8 +95,70 @@ test('ofrece instalación y oculta el control al confirmar appinstalled', async 
   });
   await page.getByRole('button', { name: /^Instalar / }).click();
   await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
-  await expect(
-    page.getByText('Estás usando la aplicación instalada.'),
-  ).toBeVisible();
+  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Instalar / })).toHaveCount(0);
+});
+
+test('promoción superior responsive, migración de cierre y nuevo cierre persistente', async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'userAgent', { value: 'iPhone Safari' });
+    localStorage.setItem('nuvora-install-dismissed-at', String(Date.now()));
+  });
+  await page.goto('/login');
+  const banner = page.getByRole('complementary', { name: 'Instalar aplicación' });
+  await expect(banner).toBeVisible();
+  await page.evaluate(() => {
+    const event = new Event('beforeinstallprompt', { cancelable: true });
+    Object.assign(event, { prompt: async () => undefined, userChoice: Promise.resolve({ outcome: 'dismissed' }) });
+    window.dispatchEvent(event);
+  });
+  await expect(banner).toBeVisible();
+  const box = await banner.boundingBox();
+  const header = await page.getByRole('banner').boundingBox();
+  expect(box!.y + box!.height).toBeLessThanOrEqual(header!.y);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  for (const width of [320, 768, 1440]) {
+    await page.setViewportSize({ width, height: 800 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  await page.getByRole('button', { name: 'Cerrar aviso de instalación' }).click();
+  await expect(banner).toHaveCount(0);
+  await page.reload();
+  await expect(banner).toHaveCount(0);
+});
+
+test('prompt único y cancelación sin instalación ficticia', async ({ page }) => {
+  await page.goto('/login');
+  await page.evaluate(() => {
+    const event = new Event('beforeinstallprompt', { cancelable: true });
+    Object.assign(event, {
+      prompt: async () => { document.documentElement.dataset.promptCalls = String(Number(document.documentElement.dataset.promptCalls || 0) + 1); },
+      userChoice: new Promise(resolve => window.addEventListener('demo-dismiss', () => resolve({ outcome: 'dismissed' }), { once: true })),
+    });
+    window.dispatchEvent(event);
+  });
+  await page.getByRole('button', { name: /^Instalar / }).click();
+  await expect(page.getByRole('button', { name: /^Instalar / })).toBeDisabled();
+  await expect(page.locator('html')).toHaveAttribute('data-prompt-calls', '1');
+  await page.evaluate(() => window.dispatchEvent(new Event('demo-dismiss')));
+  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Instalar / })).toBeDisabled();
+});
+
+test('preview real: captura evento nativo sin dispatch sintético', async ({ page }) => {
+  await page.addInitScript(() => {
+    window.addEventListener('beforeinstallprompt', event => {
+      document.documentElement.dataset.nativeInstall = String(event.isTrusted);
+    });
+  });
+  await openApp(page);
+  let native = false;
+  try {
+    await expect(page.locator('html')).toHaveAttribute('data-native-install', 'true', { timeout: 10000 });
+    native = true;
+  } catch { /* Some headless browsers do not offer an installation prompt. */ }
+  console.log(`Preview native beforeinstallprompt observed: ${native}`);
+  if (native) await expect(page.getByRole('button', { name: /^Instalar / })).toBeEnabled();
+  else await expect(page.getByRole('button', { name: /^Instalar / })).toBeDisabled();
 });

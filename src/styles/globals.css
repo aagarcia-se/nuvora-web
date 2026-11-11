@@ -63,6 +63,13 @@
   }
 }
 @layer components {
+  .install-banner { background: #23291b; color: #f5f7ef; border-color: #3c4630; }
+  .dark .install-banner { background: #191d14; border-color: #596549; }
+  .install-description { color: #c6cfb8; }
+  .install-banner :focus-visible { outline-color: #d5f454; }
+  .install-close:active { background: #3c4630; }
+  .theme-option[aria-pressed='true'], .install-icon { background: #d5f454; color: #17200a; }
+  .theme-option:active { background: rgb(var(--color-surface-2)); }
   .app-shell {
     @apply flex flex-col;
     min-height: 100vh;

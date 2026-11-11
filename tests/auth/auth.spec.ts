@@ -1,4 +1,9 @@
 import { test, expect, type Page } from '@playwright/test';
+test('promoción en desarrollo sin CTA operativo antes del evento', async ({ page }) => {
+  await page.goto('/login');
+  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toContainText('Modo desarrollo');
+  await expect(page.getByRole('button', { name: 'Instalar Nuvora' })).toBeDisabled();
+});
 const user = {
   id: 'demo-user',
   email: 'contador@example.com',
@@ -133,18 +138,22 @@ test('temas, teclado, tamaños responsive y standalone simulado', async ({
   });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
   await page.goto('/login');
-  await expect(
-    page.getByText('Estás usando la aplicación instalada.'),
-  ).toBeVisible();
+  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toHaveCount(0);
   await expect(page.locator('html')).toHaveClass('dark');
-  await page.getByLabel('Tema').selectOption('light');
-  await page.reload();
-  await expect(page.locator('html')).not.toHaveClass('dark');
-  await page.getByLabel('Tema').selectOption('system');
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(page.locator('html')).not.toHaveClass('dark');
   await page.emulateMedia({ colorScheme: 'dark' });
   await expect(page.locator('html')).toHaveClass('dark');
+  await page.getByRole('button', { name: 'Modo claro' }).focus();
+  await page.keyboard.press('Enter');
+  await page.reload();
+  await expect(page.locator('html')).not.toHaveClass('dark');
+  await page.emulateMedia({ colorScheme: 'light' });
+  await expect(page.locator('html')).not.toHaveClass('dark');
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await expect(page.locator('html')).not.toHaveClass('dark');
+  await page.getByRole('button', { name: 'Modo oscuro' }).click();
+  await expect(page.getByRole('button', { name: 'Modo oscuro' })).toHaveAttribute('aria-pressed', 'true');
   for (const [width, height] of [
     [320, 568],
     [375, 667],
@@ -181,7 +190,7 @@ test('temas, teclado, tamaños responsive y standalone simulado', async ({
     page.getByRole('button', { name: 'Iniciar sesión', exact: true }),
   ).toHaveCSS('background-color', 'rgb(213, 244, 84)');
   await page.setViewportSize({ width: 1440, height: 900 });
-  await page.getByLabel('Tema').selectOption('light');
+  await page.getByRole('button', { name: 'Modo claro' }).click();
   await page.screenshot({
     path: 'test-results/login-desktop-light.png',
     fullPage: true,

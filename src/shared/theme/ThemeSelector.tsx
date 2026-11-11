@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Icon } from '@/shared/ui/components/Icon';
 type Theme = 'light' | 'dark' | 'system';
 export function ThemeSelector() {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -9,16 +10,19 @@ export function ThemeSelector() {
       return 'system';
     }
   });
+  const [systemDark, setSystemDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
   useEffect(() => {
     const media = matchMedia('(prefers-color-scheme: dark)');
-    const apply = () =>
+    const apply = () => {
+      setSystemDark(media.matches);
       document.documentElement.classList.toggle(
         'dark',
         theme === 'dark' || (theme === 'system' && media.matches),
       );
+    };
     apply();
     try {
-      localStorage.setItem('nuvora-theme', theme);
+      if (theme !== 'system') localStorage.setItem('nuvora-theme', theme);
     } catch {
       /* Session-only preference. */
     }
@@ -26,17 +30,13 @@ export function ThemeSelector() {
     return () => media.removeEventListener('change', apply);
   }, [theme]);
   return (
-    <label className="flex items-center gap-2 text-sm text-muted">
-      Tema
-      <select
-        className="input w-auto"
-        value={theme}
-        onChange={(event) => setTheme(event.target.value as Theme)}
-      >
-        <option value="system">Sistema</option>
-        <option value="light">Claro</option>
-        <option value="dark">Oscuro</option>
-      </select>
-    </label>
+    <div role="group" aria-label="Apariencia" className="flex gap-1 rounded-2xl border border-line bg-surface p-1">
+      {(['light', 'dark'] as const).map(value => <button key={value} type="button"
+        aria-label={value === 'light' ? 'Modo claro' : 'Modo oscuro'}
+        aria-pressed={(theme === 'system' ? (systemDark ? 'dark' : 'light') : theme) === value}
+        onClick={() => setTheme(value)} className="theme-option flex min-h-12 min-w-12 items-center justify-center rounded-xl text-muted">
+        <Icon name={value === 'light' ? 'sun' : 'moon'} />
+      </button>)}
+    </div>
   );
 }

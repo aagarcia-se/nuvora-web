@@ -1,16 +1,36 @@
-import { Link, Route, Routes } from 'react-router-dom';
+import { Link, Outlet, Route, Routes } from 'react-router-dom';
 import { AuthLayout } from '@/features/auth/components/AuthLayout';
 import { ProtectedRoute } from '@/features/auth/components/ProtectedRoute';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
 import { RegisterPage } from '@/features/auth/pages/RegisterPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
-import { WelcomePage } from '@/features/auth/pages/WelcomePage';
+import { WorkspacePage } from '@/features/workspace/pages/WorkspacePage';
+import { useAuth } from '@/features/auth/store/authStore';
 import { AuthCallbackPage } from '@/features/auth/pages/AuthCallbackPage';
-export function AppRoutes() {
+function WorkspaceEntry() {
+  const { status, user } = useAuth();
+  if (status === 'authenticated' && user)
+    return <WorkspacePage key={user.id} />;
   return (
     <AuthLayout>
-      <Routes>
+      <ProtectedRoute>
+        <span />
+      </ProtectedRoute>
+    </AuthLayout>
+  );
+}
+
+export function AppRoutes() {
+  return (
+    <Routes>
+      <Route
+        element={
+          <AuthLayout>
+            <Outlet />
+          </AuthLayout>
+        }
+      >
         <Route
           path="/login"
           element={
@@ -21,19 +41,22 @@ export function AppRoutes() {
         />
         <Route
           path="/auth/register"
-          element={<ProtectedRoute publicOnly><RegisterPage /></ProtectedRoute>}
-        />
-        <Route path="/auth/forgot-password" element={<ProtectedRoute publicOnly><ForgotPasswordPage /></ProtectedRoute>} />
-        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/auth/callback" element={<AuthCallbackPage />} />
-        <Route
-          path="/"
           element={
-            <ProtectedRoute>
-              <WelcomePage />
+            <ProtectedRoute publicOnly>
+              <RegisterPage />
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/auth/forgot-password"
+          element={
+            <ProtectedRoute publicOnly>
+              <ForgotPasswordPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route
           path="*"
           element={
@@ -45,7 +68,8 @@ export function AppRoutes() {
             </>
           }
         />
-      </Routes>
-    </AuthLayout>
+      </Route>
+      <Route path="/" element={<WorkspaceEntry />} />
+    </Routes>
   );
 }

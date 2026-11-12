@@ -1,6 +1,6 @@
 # Plan y continuidad — Nuvora Web
 
-**Lectura prioritaria:** la sección 16 contiene el estado operativo y pendientes actuales. Las secciones de resultados anteriores son históricas; los refinamientos visuales posteriores no se han validado. Por indicación del usuario, no ejecutar pruebas, lint ni build hasta nueva autorización.
+**Lectura prioritaria:** la fase vigente está en la sección 17 y en [WORKSPACES.md](./WORKSPACES.md), basada en [codex.md](../codex.md). Las secciones anteriores son historia y no autorizan restaurar el intento de workspaces eliminado por el propietario. Lint/build solicitados para esta fase; Playwright pendiente de autorización expresa.
 
 **Estado de autenticación:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
 
@@ -197,7 +197,7 @@ Decisiones, contraste AA de las parejas comprobadas y límites: [UI-ACCESSIBILIT
 
 <a id="continuidad-agentes"></a>
 
-## 16. Continuidad para el próximo agente — estado vigente 2026-11-12
+## 16. Continuidad previa al reinicio de workspaces — histórico
 
 ### Implementación que se debe conservar
 
@@ -230,3 +230,21 @@ Decisiones, contraste AA de las parejas comprobadas y límites: [UI-ACCESSIBILIT
 5. Instalación/splash reales, Safari/iOS, lectores de pantalla, teclado virtual/safe areas y actualización entre despliegues siguen pendientes. Una PWA instalada puede conservar iconos antiguos hasta una actualización o reinstalación tras publicar.
 6. La skill está en `.opencode/skills/ui-ux-pro-max/SKILL.md`. Python se encontró en `C:/Users/agarcia/AppData/Local/Python/pythoncore-3.15-64/python.exe`; es una ruta local orientativa, comprobar disponibilidad sin instalar herramientas automáticamente. Node/npm funcionaron fuera del sandbox; no confundir restricciones de acceso con dependencias ausentes ni eludir aprobaciones.
 7. No hay aprobación visual final del usuario sobre el último refinamiento. Recibir su feedback antes de considerarlo cerrado. No añadir por iniciativa propia módulos de cartera, captura, libros o portal; requieren nueva fase y contratos API confirmados.
+
+
+<a id="workspaces-vigente"></a>
+
+## 17. Perfil y workspaces — fase vigente codex.md
+
+Objetivo: integrar el perfil autenticado, lista, creación y detalle de espacios accesibles con contratos actuales del API, conservando identidad/Auth/PWA. Se revisaron codex.md, handoff, foundation y schemas/controladores del backend. No se modificó el API ni se añadieron módulos financieros.
+
+Decisión visual: zona de trabajo independiente del layout de acceso, lista principal y perfil lateral, composición de una columna en móvil, menú de cuenta con logout/apariencia y diálogo nativo para crear. Estilos locales con paleta/tokens existentes; sin gradientes, dependencias ni cambios de splash/service worker. Una selección solo se presenta como confirmada tras consultar su detalle y rol en el servidor.
+
+Archivos: `src/features/workspace/{api,types,components,pages,utils}`, `workspace.module.css`, `src/app/routes.tsx`, ampliación de iconos SVG y pruebas mockeadas en `tests/auth`. Documentación completa de decisiones, cancelación, estados, límites y resultados: [WORKSPACES.md](./WORKSPACES.md).
+
+Aceptación implementada en código: perfil con nulos/avatar alternativo; lista/vacío; validación 2–160 y slug; creación sin IDs de identidad, doble envío/reintento automático; confirmación y selección; errores seguros; cache keys por usuario/espacio y respuestas tardías descartadas. Esto no equivale a aprobación funcional en navegador.
+
+Playwright no ejecutado: codex.md lo condiciona a autorización expresa. Se dejaron 16 casos nuevos Demo y se adaptaron casos Auth. Pendientes: ejecutar suites cuando se autorice, revisión visual móvil/escritorio y claro/oscuro, integración con API real, SQL/membresías y aislamiento RLS con dos usuarios. No declarar estos puntos completos por pasar lint/build.
+
+
+Verificación final de esta fase: lint y build aprobados. Bundle principal 632,90 kB / 185,52 kB gzip, con advertencia de tamaño; CSS 29,80 kB / 6,87 kB gzip. Playwright no ejecutado. Sin validación visual, integración real ni RLS certificadas; sin cambios de configuración, dependencias, backend o Git.

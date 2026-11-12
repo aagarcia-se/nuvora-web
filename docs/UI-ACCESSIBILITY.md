@@ -2,9 +2,9 @@
 
 **Estado vigente:** acceso centrado y minimalista, sin panel lateral ni tarjeta/sombra; monograma geométrico N, cabecera temática sin placa, splash e iconos lavanda sobre fondo uniforme #0F172A. Formulario máximo 416px, recuperación junto a contraseña, registro separado, promoción PWA y selector sol/luna discretos. El último apartado de refinamiento describe la composición actual.
 
-**Validación pendiente:** no ejecutar pruebas, lint ni build hasta nueva autorización del usuario. Los checks y capturas de la primera revisión que se enumeran abajo son históricos; no validan los cambios posteriores. El PNG del monograma sí se inspeccionó como imagen, pero no se verificaron después su render en navegador ni el splash de una instalación real. No hay aceptación visual final confirmada del último refinamiento.
+**Verificación de fase vigente codex.md:** lint/build aprobados; Playwright no ejecutado por su restricción específica. Los checks y capturas de la primera revisión son históricos y no validan los cambios actuales. Quedan pendientes inspección en navegador y validación funcional/visual de perfil/workspaces, así como la aceptación del usuario.
 
-Continuidad y archivos: [PLAN.md, sección 16](./PLAN.md#continuidad-agentes). Instrucciones de trabajo: [AGENTS.md](../AGENTS.md).
+Continuidad y archivos: [PLAN.md, sección 17](./PLAN.md#workspaces-vigente). Instrucciones de trabajo: [AGENTS.md](../AGENTS.md).
 
 Solicitud inicial: sustituir lima por una identidad SaaS moderna. Se aplicó UI/UX Pro Max desde `.opencode/skills/ui-ux-pro-max/SKILL.md`, con búsquedas locales de sistema SaaS contable, contraste y formularios React. Se verificó que los resultados pertenecían a los dominios solicitados. La recomendación azul/slate se adaptó a índigo: la composición es de acceso, no una landing con CTA repetidos. Se evitan transparencias sobre texto y dependencias de fuentes externas.
 
@@ -78,3 +78,12 @@ Se conserva el acceso centrado y sin panel lateral. Formulario de hasta 416px ú
 Promoción PWA secundaria con icono neutro y acción de instalación de menor peso visual. Conserva ubicación superior en flujo, disponibilidad, cierre y comportamiento de instalación. El selector sol/luna utiliza selección tonal y objetivos de 44px, sin etiqueta visible. La tipografía y los controles compartidos propagan la coherencia a las otras pantallas de autenticación. Se aplicaron búsquedas locales de UI/UX Pro Max para formularios y estilo minimalista, con resultados compatibles con web SaaS; no se añaden fuentes externas ni dependencias.
 
 No se ejecutaron pruebas, lint, build ni validación visual en navegador por la indicación vigente del usuario. La lectura del código no sustituye esas verificaciones; los resultados automatizados de apartados anteriores corresponden a la revisión previa.
+
+
+## Perfil y espacios según codex.md — fase vigente
+
+La vista privada ya no usa el formulario de acceso como contenedor: tiene cabecera contextual, lista de espacios, perfil lateral, contexto seleccionado y creación en diálogo nativo. Se conservan estilos, paleta, splash y controles compartidos existentes. La nueva composición vive en un CSS Module, sin alterar globals.css ni añadir gradientes o dependencias.
+
+Skill UI/UX Pro Max aplicada con resultado minimalista verificado; se conserva la jerarquía de acciones, foco nativo del diálogo, resumen de errores, labels/hints, objetivos táctiles, alternativas de avatar, ocultación correcta del menú y de errores, selección con texto/check y estados de red/permisos. No se asume contraste/teclado/dispositivos verificados por la mera existencia de estos atributos.
+
+Guía operativa, estados, archivos y verificaciones en [WORKSPACES.md](./WORKSPACES.md). Lint/build solicitados por codex.md; suites Playwright preparadas y sin ejecutar por su restricción expresa. Pendientes revisión visual y validación funcional real de esta composición. El intento anterior de workspaces fue eliminado por el propietario y no se restauró.

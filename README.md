@@ -8,19 +8,21 @@ y portal básico para clientes. La web/PWA precede a la app móvil; Empresas y
 Personal reutilizarán contratos y núcleo de permisos/datos.
 
 Las reglas del frontend están en [AGENTS.md](AGENTS.md) y su plan de implementación
-en [docs/PLAN.md](docs/PLAN.md). El plan coordinado
+en [docs/PLAN.md](docs/PLAN.md). La fase actual de perfil/espacios está definida en [codex.md](codex.md) y documentada en [docs/WORKSPACES.md](docs/WORKSPACES.md). El plan coordinado
 está en `../nuvora-api/docs/PLAN.md`. La base de autenticación y seguridad del API
 se conserva; los módulos de negocio de esta propuesta aún están por implementar.
 
 ## Continuidad para agentes
 
-Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md#continuidad-agentes) antes de cambiar código. El estado visual vigente y sus límites están en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
+Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md#workspaces-vigente) antes de cambiar código. El estado visual vigente y sus límites están en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
 
-**Instrucción vigente:** no ejecutar pruebas, lint ni build hasta nueva autorización del usuario; no ejecutar comandos Git ni modificar entornos/claves sin autorización. Los comandos siguientes son referencia de desarrollo, no autorización de ejecución automática. Los últimos ajustes visuales y de logo todavía no se han validado en navegador ni tienen aceptación visual final confirmada.
+**Verificación de la fase actual:** codex.md solicita lint/build y mantiene Playwright condicionado a autorización expresa. No ejecutar test:auth/test:pwa automáticamente. No ejecutar comandos Git ni modificar entornos/claves. Los resultados y pendientes actuales se registran en docs/WORKSPACES.md; los resultados de versiones anteriores no prueban esta entrega.
 
 ## Desarrollo
 
 ### Estado de la entrega
+
+Perfil y workspaces implementados según codex.md: perfil de lectura, lista accesible, creación en diálogo y detalle/rol del espacio seleccionado. No hay clientes fiscales ni módulos financieros. Las selecciones no se convierten en permisos locales. La nueva pantalla usa layout propio de ancho completo; el login y su identidad permanecen. Datos vía API con Bearer obtenido del SDK; nada se consulta directamente a tablas Supabase. Detalles y límites en [docs/WORKSPACES.md](docs/WORKSPACES.md).
 
 Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
 implementados. El usuario confirmó login real funcional después de corregir el
@@ -75,13 +77,14 @@ Query. Si falla, se muestra error y reintento sin declarar cierre exitoso.
 - `src/main.tsx`: punto de entrada con StrictMode y estilos globales.
 - `src/App.tsx`: composición de providers y rutas.
 - `src/app/providers.tsx`: QueryClientProvider, BrowserRouter y Devtools en desarrollo.
-- `src/app/routes.tsx`: login público, bienvenida protegida y página no encontrada.
+- `src/app/routes.tsx`: rutas Auth con layout de acceso y entrada protegida a espacios en layout independiente.
 - `src/features/auth/api/authApi.ts`: transporte y errores de autenticación.
 - `src/features/auth/api/useLogin.ts`: envío del formulario sin almacenar credenciales en Query.
 - `src/features/auth/components`: `ProtectedRoute` y `AuthLayout`.
 - `src/features/auth/pages`: login, recuperación, reset y bienvenida (plural como la referencia San Gabriel).
 - `src/features/auth/store`: contexto y `AuthProvider`; SDK Supabase mantiene la sesión.
 - `src/features/auth/types/auth.types.ts`: interfaces del dominio.
+- `src/features/workspace`: perfil, lista, creación, detalle/selección y estilos locales; contratos y transporte en `types`/`api`.
 - `src/shared/api`: instancias compartidas de Axios y QueryClient.
 - `src/shared/config`: configuración pública y nombre de marca.
 - `src/shared/{lib,ui,theme}`: SDK Supabase, componentes y selector de tema.
@@ -101,7 +104,7 @@ fuera de este cliente versionado si se necesita consultar ese endpoint público.
 
 ## Verificación y compilación
 
-Comandos disponibles para cuando el usuario autorice reanudar la validación; actualmente suspendida.
+Lint/build se solicitan en codex.md para esta fase. Los comandos de Playwright (`test:auth`/`test:pwa`) requieren autorización expresa; se han preparado casos mockeados sin ejecutarlos.
 
 ```sh
 npm run lint

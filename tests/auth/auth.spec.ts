@@ -34,12 +34,37 @@ async function mocks(page: Page) {
       },
     }),
   );
+  await page.route('http://api.demo.test/api/v1/profile', (route) =>
+    route.fulfill({
+      json: {
+        profile: {
+          id: user.id,
+          display_name: null,
+          avatar_url: null,
+          locale: 'es-GT',
+          timezone: 'America/Guatemala',
+          created_at: user.created_at,
+          updated_at: user.created_at,
+        },
+      },
+    }),
+  );
+  await page.route('http://api.demo.test/api/v1/workspaces', (route) =>
+    route.fulfill({ json: { workspaces: [] } }),
+  );
   await page.route('http://api.demo.test/api/v1/auth/me', (route) => {
     expect(route.request().headers().authorization).toBe(`Bearer ${token}`);
     return route.fulfill({
       json: { user: { id: user.id, email: user.email } },
     });
   });
+}
+async function clickLogout(page: Page) {
+  const account = page.getByRole('button', { name: 'Opciones de cuenta' });
+  if (await account.isVisible()) await account.click();
+  await page
+    .getByRole('button', { name: 'Cerrar sesión', exact: true })
+    .click();
 }
 async function login(page: Page) {
   await page.goto('/');
@@ -55,7 +80,7 @@ test('Demo: login SDK, identidad API, recarga y logout', async ({ page }) => {
   await mocks(page);
   await login(page);
   await expect(
-    page.getByRole('heading', { name: 'Te damos la bienvenida' }),
+    page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
   ).toBeVisible();
   await expect(page.getByText(user.email, { exact: true })).toBeVisible();
   await page.goto('/login');
@@ -63,11 +88,9 @@ test('Demo: login SDK, identidad API, recarga y logout', async ({ page }) => {
   await expect(page.getByText(user.email, { exact: true })).toBeVisible();
   await page.reload();
   await expect(
-    page.getByRole('heading', { name: 'Te damos la bienvenida' }),
+    page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
   ).toBeVisible();
-  await page
-    .getByRole('button', { name: 'Cerrar sesión', exact: true })
-    .click();
+  await clickLogout(page);
   await expect(page).toHaveURL(/\/login$/);
   await page.goto('/');
   await expect(page).toHaveURL(/\/login$/);
@@ -98,7 +121,7 @@ test('Demo: validación, mostrar contraseña, 401 y reenvío', async ({
     .getByRole('button', { name: 'Iniciar sesión', exact: true })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Te damos la bienvenida' }),
+    page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
   ).toBeVisible();
 });
 test('Demo: recuperación solicita correo sin enumerar cuentas y no reintenta 429', async ({
@@ -179,7 +202,7 @@ test('Demo: error /me recuperable conserva sesión; 401 exige reautenticación',
   ).toBeVisible();
   await page.getByRole('button', { name: 'Reintentar' }).click();
   await expect(
-    page.getByRole('heading', { name: 'Te damos la bienvenida' }),
+    page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
   ).toBeVisible();
   await page.route('**/api/v1/auth/me', (route) =>
     route.fulfill({ status: 401 }),
@@ -282,13 +305,9 @@ test('Demo: fallo logout no declara éxito y permite repetir', async ({
       route.fulfill({ status: 500, json: { message: 'Demo unavailable' } }),
     { times: 1 },
   );
-  await page
-    .getByRole('button', { name: 'Cerrar sesión', exact: true })
-    .click();
+  await clickLogout(page);
   await expect(page.getByRole('alert')).toContainText('No se pudo cerrar');
-  await page
-    .getByRole('button', { name: 'Cerrar sesión', exact: true })
-    .click();
+  await clickLogout(page);
   await expect(page).toHaveURL(/\/login$/);
 });
 
@@ -371,9 +390,7 @@ test('Demo: logout en otra pestaña cancela /me pendiente', async ({
   });
   await page.reload();
   await expect(page.getByText('Comprobando tu sesión…')).toBeVisible();
-  await other
-    .getByRole('button', { name: 'Cerrar sesión', exact: true })
-    .click();
+  await clickLogout(other);
   await expect(page).toHaveURL(/\/login$/);
   release();
   await expect(
@@ -391,7 +408,7 @@ test('Demo: callback sin datos redirige si ya existe sesión válida', async ({
   await page.goto('/auth/callback');
   await expect(page).toHaveURL(/\/$/);
   await expect(
-    page.getByRole('heading', { name: 'Te damos la bienvenida' }),
+    page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
   ).toBeVisible();
   await expect(page.getByRole('alert')).toHaveCount(0);
 });

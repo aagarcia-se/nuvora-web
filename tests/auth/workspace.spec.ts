@@ -110,6 +110,8 @@ async function setup(
         : route.fulfill({
             json: { workspace: items[0] ?? workspace, role: 'owner' },
           });
+    if (path.endsWith('/entities'))
+      return route.fulfill({ json: { entities: [] } });
     return route.fulfill({ status: 404, json: { error: 'DEMO_NOT_FOUND' } });
   });
   await page.goto('/login');

@@ -1,3 +1,6 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { EntityPanel } from '@/features/entities/components/EntityPanel';
+import { entityKeys } from '@/features/entities/api/useEntityQueries';
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/store/authStore';
 import { Button } from '@/shared/ui/components/Button';
@@ -17,6 +20,7 @@ import styles from '../workspace.module.css';
 
 export function WorkspacePage() {
   const { user } = useAuth();
+  const client = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState('');
@@ -34,8 +38,15 @@ export function WorkspacePage() {
       )
     : items;
   const selected = accessibleId && detail.isSuccess ? detail.data : null;
+  function selectWorkspace(id: string) {
+    if (id !== selectedId && user?.id) {
+      void client.cancelQueries({ queryKey: entityKeys.user(user.id) });
+      client.removeQueries({ queryKey: entityKeys.user(user.id) });
+    }
+    setSelectedId(id);
+  }
   function created(workspace: Workspace) {
-    setSelectedId(workspace.id);
+    selectWorkspace(workspace.id);
     setSearch('');
     setSuccess(`Se creó «${workspace.name}» correctamente.`);
   }
@@ -167,7 +178,7 @@ export function WorkspacePage() {
                           className={`${styles.spaceOption} ${active ? styles.spaceOptionActive : ''}`}
                           aria-pressed={active}
                           aria-label={`Seleccionar ${workspace.name}`}
-                          onClick={() => setSelectedId(workspace.id)}
+                          onClick={() => selectWorkspace(workspace.id)}
                         >
                           <span
                             className={styles.spaceInitials}
@@ -247,6 +258,12 @@ export function WorkspacePage() {
                     <p className={styles.selectionHint}>
                       Espacio seleccionado para esta sesión.
                     </p>
+                    <a
+                      href="#workspace-clients"
+                      className="auth-link mt-3 gap-2"
+                    >
+                      Ver clientes <Icon name="arrow-right" />
+                    </a>
                     <dl className={styles.selectionDetails}>
                       <div>
                         <dt>Identificador</dt>
@@ -282,6 +299,13 @@ export function WorkspacePage() {
           onRetry={() => void profile.refetch()}
         />
       </div>
+      {selected && (
+        <EntityPanel
+          key={`${user?.id}:${selected.workspace.id}`}
+          workspace={selected.workspace}
+          role={selected.role}
+        />
+      )}
       <CreateWorkspaceDialog
         open={creating}
         onClose={() => setCreating(false)}

@@ -51,3 +51,8 @@ Resultados finales de esta fase:
 - `npm run build`: aprobado; TypeScript y compilación Vite/PWA completados. JavaScript principal 632,90 kB (185,52 kB gzip), CSS 29,80 kB (6,87 kB gzip). Permanece la advertencia de chunk superior a 500 kB; no se alteró el esquema de chunks ni el service worker para ocultarla.
 - `npm run test:auth`, `npm run test:pwa` y cualquier ejecución Playwright: no ejecutados por la restricción de codex.md. No hay confirmación funcional/visual de los 16 casos nuevos.
 - Fuente y documentación revisadas; sin cambios de `.env`, dependencias, backend, Git ni despliegue.
+
+
+## Continuidad: entidades/clientes
+
+La fase posterior está en [ENTITIES.md](./ENTITIES.md). El panel se agrega únicamente al confirmar selección de workspace. El transporte de sesión ahora vive en `src/shared/api/authenticatedRequest.ts`; `workspaceApi.ts` conserva aliases/contratos existentes. Seleccionar otro espacio cancela y elimina sus consultas de entidades. Esto amplía la vista de workspaces sin rehacer su fase ni añadir módulos financieros.

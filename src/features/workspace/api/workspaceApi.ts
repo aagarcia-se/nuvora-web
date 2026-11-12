@@ -1,7 +1,11 @@
-import axios, { CanceledError } from 'axios';
+import {
+  ApiRequestError as WorkspaceApiError,
+  authenticatedRequest as authenticated,
+  bearerHeaders as headers,
+  errorStatus as workspaceStatus,
+} from '@/shared/api/authenticatedRequest';
+import { isUuid } from '@/shared/utils/identifiers';
 import { httpClient } from '@/shared/api/httpClient';
-import { env } from '@/shared/config/env';
-import { supabase } from '@/shared/lib/supabase';
 import type {
   CreateWorkspaceInput,
   Profile,
@@ -10,26 +14,17 @@ import type {
   WorkspaceRole,
 } from '../types/workspace.types';
 
-export class WorkspaceApiError extends Error {
-  constructor(
-    public readonly status: number,
-    public readonly code: string,
-  ) {
-    super(code);
-    this.name = 'WorkspaceApiError';
-  }
-}
-
-export const isWorkspaceCanceled = (error: unknown) => axios.isCancel(error);
-export const workspaceStatus = (error: unknown) =>
-  error instanceof WorkspaceApiError ? error.status : 0;
+export {
+  ApiRequestError as WorkspaceApiError,
+  isRequestCanceled as isWorkspaceCanceled,
+  errorStatus as workspaceStatus,
+} from '@/shared/api/authenticatedRequest';
 const invalidResponse = () => new WorkspaceApiError(502, 'INVALID_RESPONSE');
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null;
 const isRole = (value: unknown): value is WorkspaceRole =>
   value === 'owner' || value === 'admin' || value === 'viewer';
-export const isWorkspaceId = (value: string) =>
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+export const isWorkspaceId = isUuid;
 
 function parseWorkspace(value: unknown): Workspace {
   if (
@@ -46,43 +41,6 @@ function parseWorkspace(value: unknown): Workspace {
     throw invalidResponse();
   return value as unknown as Workspace;
 }
-
-async function authenticated<T>(
-  userId: string,
-  signal: AbortSignal,
-  request: (token: string) => Promise<T>,
-): Promise<T> {
-  if (!env.apiBaseUrl || !supabase)
-    throw new WorkspaceApiError(0, 'NOT_CONFIGURED');
-  try {
-    signal.throwIfAborted();
-    const { data, error } = await supabase.auth.getSession();
-    if (signal.aborted) throw new CanceledError();
-    if (error || !data.session)
-      throw new WorkspaceApiError(401, 'UNAUTHORIZED');
-    if (data.session.user.id !== userId) throw new CanceledError();
-    const result = await request(data.session.access_token);
-    if (signal.aborted) throw new CanceledError();
-    return result;
-  } catch (error) {
-    if (signal.aborted || axios.isCancel(error)) throw new CanceledError();
-    if (error instanceof WorkspaceApiError) throw error;
-    if (axios.isAxiosError(error)) {
-      const code =
-        typeof error.response?.data?.error === 'string'
-          ? error.response.data.error
-          : 'REQUEST_FAILED';
-      throw new WorkspaceApiError(error.response?.status ?? 0, code);
-    }
-    throw new WorkspaceApiError(0, 'NETWORK_ERROR');
-  }
-}
-
-// Authorization exists only on these relative requests to the configured API.
-const headers = (token: string) => ({
-  Authorization: `Bearer ${token}`,
-  'Cache-Control': 'no-store',
-});
 
 export function getProfile(userId: string, signal: AbortSignal) {
   return authenticated(userId, signal, async (token) => {

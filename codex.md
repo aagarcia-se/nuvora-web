@@ -1,6 +1,46 @@
-# Perfil y Workspaces — implementación frontend finalizada
+# Frontend — Perfil, Workspaces y Clientes
 
-## Estado de cierre — 2026-11-12
+## Estado actual — clientes/entidades implementados, 2026-11-12
+
+**Implementación frontend finalizada para la fase autorizada de clientes/entidades.** Trabajo realizado exclusivamente en `nuvora-web`; no se modificó `nuvora-api`, SQL, backend, `.env`, secretos, dependencias, Git ni despliegues. No volver a implementar los endpoints ni reconstruir las fases ya cerradas.
+
+### Cambios realizados
+
+- Cartera del workspace confirmado: listado, carga, vacío, errores, reintento y búsqueda local por nombre. No se consultan clientes sin confirmar primero el workspace seleccionado.
+- Alta de cliente con nombre legal y NIT opcional; body exacto `{ legalName, taxId? }`, validación y prevención de doble envío.
+- Detalle mediante el endpoint existente y edición solo con canManage. Crear se ofrece según rol owner/admin del detalle confirmado de workspace; el API mantiene la autoridad de autorización.
+- NIT completo únicamente si el API lo devuelve autorizado; máscara conservada para consulta. Los valores enmascarados no se reconstruyen ni se prefijan en formularios de sustitución.
+- Acciones explícitas para mantener, cambiar o quitar NIT. PATCH omite campos no cambiados; cambiar solo nombre no toca NIT y quitar NIT envía null. Normalización de espacios/mayúsculas y formato existente, sin dígito verificador ni verificación fiscal externa.
+- Contexto de workspace visible en cartera y diálogos, foco/labels/resumen de errores, estados de guardado y confirmaciones. Diseño con UI/UX Pro Max, reutilizando layout, tarjetas, diálogos, paleta/tokens y controles anteriores. Sin cambios de splash, PWA o estilos globales.
+- Transporte SDK/Axios extraído a `src/shared/api/authenticatedRequest.ts` para compartirlo con workspaces y entities, conservando los aliases existentes. Sin almacenamiento manual de tokens ni refresh paralelo.
+- Queries por usuario/workspace/entity, cancelación y eliminación al cambiar espacio; escrituras pendientes descartadas si cambió la identidad de la Query de lista tras limpiar caché. Sin reintentos automáticos de creación/edición.
+
+### Archivos principales de esta fase
+
+| Responsabilidad | Ubicación |
+| --- | --- |
+| Contratos, transporte y queries de clientes | `src/features/entities/types/`, `api/` |
+| Cartera, detalle y formularios | `src/features/entities/components/` |
+| Validación y NIT de presentación | `src/features/entities/utils/entityPresentation.ts` |
+| Estilos locales | `src/features/entities/entities.module.css` |
+| Integración con el espacio activo | `src/features/workspace/pages/WorkspacePage.tsx` |
+| Transporte compartido y UUID | `src/shared/api/authenticatedRequest.ts`, `src/shared/utils/identifiers.ts` |
+| Compatibilidad de workspace | `src/features/workspace/api/workspaceApi.ts` |
+| Pruebas nuevas y fixture adaptada | `tests/auth/entities.spec.ts`, `tests/auth/workspace.spec.ts` |
+
+### Verificación final y estatus
+
+- **Lint aprobado:** `npm run lint`, sin errores en la revisión final.
+- **Build aprobado:** `npm run build`, con TypeScript y compilación Vite/PWA completados.
+- Bundle principal 650,95 kB / 189,88 kB gzip; CSS 33,17 kB / 7,38 kB gzip. Permanece el aviso de chunk superior a 500 kB, sin ocultarlo cambiando el umbral.
+- **24 casos Demo escritos, no ejecutados**, para lista/vacío, creación/NIT opcional, detalle/edición, validación, errores, máscaras/permisos, cambio de contexto, foco/responsive, doble envío y respuesta tardía.
+- **Playwright no ejecutado**, conforme a la restricción explícita de esta guía. No declarar aprobados esos casos ni revisión visual, integración real, RLS o dispositivos por pasar lint/build.
+- Pendientes: revisión en navegador, ejecución autorizada de suites, integración real y SQL/RLS manuales del API (003 después de 001/002, a cargo del propietario). Ninguno se ejecutó remotamente.
+- No hay otra fase de implementación autorizada por este cierre. No adelantar grants, invitaciones, entity_memberships, portal, FEL, libros ni módulos financieros.
+
+Informe y continuidad: [docs/ENTITIES.md](docs/ENTITIES.md), [AGENTS.md](AGENTS.md) y [fase de clientes del plan](docs/PLAN.md#entities-vigente).
+
+## Cierre anterior — perfil/workspaces, 2026-11-12
 
 **Implementación frontend finalizada para el alcance de esta guía.** No volver a construir esta fase desde cero ni restaurar el intento anterior eliminado por el propietario. Conservar los cambios actuales y atender únicamente correcciones o una nueva fase indicada por el usuario.
 
@@ -286,5 +326,60 @@ Ambas aprobaron. `npm run test:auth` y `npm run test:pwa` usan Playwright y no s
   usuarios todavía debe realizarse en Supabase.
 - El SQL de foundation multi-tenant y metadata de proveedor se ejecuta
   manualmente en Supabase; no asumir que una instalación nueva ya lo contiene.
-- `entity_memberships`, invitaciones, entidades/clientes y documentos todavía
-  no tienen contrato implementado.
+- `entity_memberships`, invitaciones y documentos todavía no tienen contrato implementado. Entidades/clientes sí tienen los cuatro contratos de la fase siguiente, ya integrados en el frontend.
+
+## Especificación de la fase entidades/clientes — implementada
+
+Esta fase tiene contratos backend implementados y su frontend ya está entregado, según el estado actual de este archivo. Para correcciones, Codex debe trabajar
+únicamente en este repositorio (`nuvora-web`). No modificar `nuvora-api`, SQL,
+backend, `.env`, secretos, Git, commits, pushes ni despliegues.
+
+Antes de editar, leer este archivo, `AGENTS.md`, la documentación relevante de
+`docs/` y aplicar obligatoriamente:
+
+```text
+.opencode/skills/ui-ux-pro-max/SKILL.md
+```
+
+Integrar estos endpoints usando Axios, TanStack Query y la sesión Supabase ya
+existentes:
+
+```text
+GET   /api/v1/workspaces/:workspaceId/entities
+POST  /api/v1/workspaces/:workspaceId/entities
+GET   /api/v1/workspaces/:workspaceId/entities/:entityId
+PATCH /api/v1/workspaces/:workspaceId/entities/:entityId
+```
+
+### Funcionalidad frontend
+
+- Lista de clientes/entities del workspace activo.
+- Estado vacío, carga, error y reintento.
+- Crear cliente con `{ legalName, taxId? }`.
+- Ver detalle y editar `legalName` y `taxId`.
+- Validar campos antes de enviar y evitar doble envío.
+- Manejar `401`, `403`, `404`, `409` y `503` con mensajes seguros.
+- No consultar entities hasta confirmar un workspace activo.
+- Reutilizar la selección y el contexto de workspace existentes.
+- Mostrar el NIT completo solo si el API lo devuelve autorizado; respetar el
+  valor enmascarado y no reconstruirlo.
+
+### Reglas de dominio
+
+- Una entity puede estar asociada a varios workspaces.
+- El NIT no es permiso, selector de autorización ni identificador global único.
+- No implementar grants, invitaciones, `entity_memberships`, portal,
+  documentos FEL, libros ni módulos financieros en esta fase.
+- No inventar endpoints ni modificar contratos del API.
+
+### Diseño y pruebas
+
+- Mantener sin cambios la paleta, tokens, dark mode, splash, PWA y layout
+  existentes.
+- Reutilizar componentes y patrones de la fase workspaces; no crear otra
+  identidad visual ni estilos globales innecesarios.
+- Mantener foco, teclado, responsive y estados accesibles.
+- Agregar pruebas mockeadas para lista, lista vacía, creación, edición, detalle,
+  validación, `401`, `403`, `404`, `409` y `503`.
+- No ejecutar Playwright sin autorización explícita.
+- Ejecutar `npm run lint` y `npm run build`.

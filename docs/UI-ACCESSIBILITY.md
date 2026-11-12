@@ -87,3 +87,10 @@ La vista privada ya no usa el formulario de acceso como contenedor: tiene cabece
 Skill UI/UX Pro Max aplicada con resultado minimalista verificado; se conserva la jerarquía de acciones, foco nativo del diálogo, resumen de errores, labels/hints, objetivos táctiles, alternativas de avatar, ocultación correcta del menú y de errores, selección con texto/check y estados de red/permisos. No se asume contraste/teclado/dispositivos verificados por la mera existencia de estos atributos.
 
 Guía operativa, estados, archivos y verificaciones en [WORKSPACES.md](./WORKSPACES.md). Lint/build solicitados por codex.md; suites Playwright preparadas y sin ejecutar por su restricción expresa. Pendientes revisión visual y validación funcional real de esta composición. El intento anterior de workspaces fue eliminado por el propietario y no se restauró.
+
+
+## Cartera de clientes/entidades — fase actual
+
+Se reutiliza la composición de workspaces y la skill UI/UX Pro Max (minimalismo y resumen de errores enfocable), sin cambiar identidad, tokens o estilos globales. La cartera requiere espacio confirmado; nombre del espacio visible en sección y diálogos. Creación con nombre/NIT opcional; edición con acciones mantener/cambiar/quitar NIT y PATCH parcial. Formularios con labels, hints, resumen enlazado, estado de guardado y bloqueo de doble envío. Permisos del API controlan las acciones disponibles; el servidor conserva autorización. Máscaras no se reconstruyen.
+
+Estilos locales y patrón de diálogo nativo existente, con listas adaptables, carga/vacío/error y confirmación. Los estados descritos están implementados, no certificados por inspección visual o suites. Casos mockeados preparados sin ejecutar Playwright. Informe vigente: [ENTITIES.md](./ENTITIES.md).

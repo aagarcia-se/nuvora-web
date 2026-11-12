@@ -8,13 +8,13 @@ y portal básico para clientes. La web/PWA precede a la app móvil; Empresas y
 Personal reutilizarán contratos y núcleo de permisos/datos.
 
 Las reglas del frontend están en [AGENTS.md](AGENTS.md) y su plan de implementación
-en [docs/PLAN.md](docs/PLAN.md). La fase actual de perfil/espacios está definida en [codex.md](codex.md) y documentada en [docs/WORKSPACES.md](docs/WORKSPACES.md). El plan coordinado
+en [docs/PLAN.md](docs/PLAN.md). Perfil/espacios y la fase actual de clientes/entidades están definidos en [codex.md](codex.md), [docs/WORKSPACES.md](docs/WORKSPACES.md) y [docs/ENTITIES.md](docs/ENTITIES.md). El plan coordinado
 está en `../nuvora-api/docs/PLAN.md`. La base de autenticación y seguridad del API
-se conserva; los módulos de negocio de esta propuesta aún están por implementar.
+se conserva; captura, revisión, documentos y módulos financieros siguen pendientes.
 
 ## Continuidad para agentes
 
-Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md#workspaces-vigente) antes de cambiar código. El estado visual vigente y sus límites están en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
+Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md#entities-vigente) antes de cambiar código. El estado visual vigente y sus límites están en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
 
 **Verificación de la fase actual:** codex.md solicita lint/build y mantiene Playwright condicionado a autorización expresa. No ejecutar test:auth/test:pwa automáticamente. No ejecutar comandos Git ni modificar entornos/claves. Los resultados y pendientes actuales se registran en docs/WORKSPACES.md; los resultados de versiones anteriores no prueban esta entrega.
 
@@ -22,7 +22,9 @@ Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md
 
 ### Estado de la entrega
 
-Perfil y workspaces implementados según codex.md: perfil de lectura, lista accesible, creación en diálogo y detalle/rol del espacio seleccionado. No hay clientes fiscales ni módulos financieros. Las selecciones no se convierten en permisos locales. La nueva pantalla usa layout propio de ancho completo; el login y su identidad permanecen. Datos vía API con Bearer obtenido del SDK; nada se consulta directamente a tablas Supabase. Detalles y límites en [docs/WORKSPACES.md](docs/WORKSPACES.md).
+Clientes/entidades integrados bajo el espacio confirmado: listado, alta, detalle y edición según permisos. Los NIT enmascarados se respetan y modificar/eliminar el NIT es explícito; solo se envían los campos editados. El API es la autoridad y no fue modificado. La cartera conserva el layout, temas, paleta y PWA. Transporte compartido, caché por contexto y cancelación al cambiar espacio/sesión. Detalles y límites en [docs/ENTITIES.md](docs/ENTITIES.md).
+
+Perfil y workspaces implementados según codex.md: perfil de lectura, lista accesible, creación en diálogo y detalle/rol del espacio seleccionado. La fase siguiente integra clientes/entidades por espacio; no hay documentos, libros ni módulos financieros. Las selecciones no se convierten en permisos locales. La nueva pantalla usa layout propio de ancho completo; el login y su identidad permanecen. Datos vía API con Bearer obtenido del SDK; nada se consulta directamente a tablas Supabase. Detalles y límites en [docs/WORKSPACES.md](docs/WORKSPACES.md).
 
 Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
 implementados. El usuario confirmó login real funcional después de corregir el
@@ -85,7 +87,8 @@ Query. Si falla, se muestra error y reintento sin declarar cierre exitoso.
 - `src/features/auth/store`: contexto y `AuthProvider`; SDK Supabase mantiene la sesión.
 - `src/features/auth/types/auth.types.ts`: interfaces del dominio.
 - `src/features/workspace`: perfil, lista, creación, detalle/selección y estilos locales; contratos y transporte en `types`/`api`.
-- `src/shared/api`: instancias compartidas de Axios y QueryClient.
+- `src/features/entities`: clientes por espacio, formularios/detalle y permisos con estilos locales.
+- `src/shared/api`: Axios, QueryClient y transporte autenticado compartido con SDK/AbortSignal.
 - `src/shared/config`: configuración pública y nombre de marca.
 - `src/shared/{lib,ui,theme}`: SDK Supabase, componentes y selector de tema.
 - `src/styles/globals.css`: tokens claros/oscuros y estilos reutilizables.

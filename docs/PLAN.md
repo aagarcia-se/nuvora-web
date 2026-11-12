@@ -1,6 +1,6 @@
 # Plan y continuidad — Nuvora Web
 
-**Lectura prioritaria:** la fase vigente está en la sección 17 y en [WORKSPACES.md](./WORKSPACES.md), basada en [codex.md](../codex.md). Las secciones anteriores son historia y no autorizan restaurar el intento de workspaces eliminado por el propietario. Lint/build solicitados para esta fase; Playwright pendiente de autorización expresa.
+**Lectura prioritaria:** la fase vigente de clientes/entidades está en la sección 18 y en [ENTITIES.md](./ENTITIES.md); perfil/workspaces de la sección 17 se conservan, basada en [codex.md](../codex.md). Las secciones anteriores son historia y no autorizan restaurar el intento de workspaces eliminado por el propietario. Lint/build solicitados para esta fase; Playwright pendiente de autorización expresa.
 
 **Estado de autenticación:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
 
@@ -248,3 +248,19 @@ Playwright no ejecutado: codex.md lo condiciona a autorización expresa. Se deja
 
 
 Verificación final de esta fase: lint y build aprobados. Bundle principal 632,90 kB / 185,52 kB gzip, con advertencia de tamaño; CSS 29,80 kB / 6,87 kB gzip. Playwright no ejecutado. Sin validación visual, integración real ni RLS certificadas; sin cambios de configuración, dependencias, backend o Git.
+
+
+<a id="entities-vigente"></a>
+
+## 18. Clientes/entidades — frontend autorizado por codex.md
+
+Implementados listado por espacio confirmado, carga/vacío/error/reintento, creación con legalName/taxId opcional, detalle y edición con canManage. Se consumen GET/POST de la colección y GET/PATCH de detalle ya existentes, sin cambiar ni repetir endpoints del API. No se tocaron backend, SQL, entornos, secretos o Git.
+
+Dirección visual: cartera integrada en el layout actual, tabla/lista adaptable y diálogos nativos con espacio activo visible. Se reutilizan paleta/tokens, tarjetas, estados y controles; no se cambia splash/PWA ni hay estilos globales nuevos. Skill UI/UX Pro Max aplicada para estilo y formularios accesibles.
+
+Contrato NIT: respetar permisos/máscara, mantener/cambiar/quitar explícitos; no enviar un NIT enmascarado o null por un cambio solo de nombre. No usar NIT como autorización/descubrimiento ni validar dígito verificador. El API sigue siendo autoridad.
+
+Detalles de archivos, cancelación, pruebas y límites: [ENTITIES.md](./ENTITIES.md). Se prepararon 24 casos mockeados sin ejecutar Playwright. Pendientes revisión visual, ejecución autorizada de pruebas, integración real y requisitos manuales SQL/RLS del backend. Grants/portal/documentos/libros no forman parte de esta fase.
+
+
+Cierre de la fase 18: implementación frontend finalizada; lint/build aprobados en revisión final. JS 650,95 kB / 189,88 kB gzip, CSS 33,17 kB / 7,38 kB gzip; aviso de tamaño conservado. 24 casos Demo preparados sin ejecutar Playwright. Sin revisión visual ni validación real del API/RLS certificadas. codex.md actualizado con el cierre y los pendientes; no se autoriza una fase posterior automáticamente.

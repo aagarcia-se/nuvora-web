@@ -3,27 +3,25 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta id="theme-color" name="theme-color" content="#F7F8F6" />
+    <meta id="theme-color" name="theme-color" content="#111715" />
     <meta name="color-scheme" content="light dark" />
     <script src="/theme.js"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta id="apple-status-bar-style" name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta id="apple-status-bar-style" name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
     <style>
-      html, body { margin: 0; min-height: 100%; background: #F7F8F6; }
-      #initial-splash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #F7F8F6; }
+      html, body { margin: 0; min-height: 100%; background: #111715; }
+      #initial-splash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #111715; }
       #initial-splash img { width: 4.5rem; height: 4.5rem; }
-      html.dark, html.dark body { background: #111715; }
-      html.dark #initial-splash { background: #111715; }
       #initial-splash[hidden] { display: none; }
     </style>
     <title>Nuvora</title>
   </head>
   <body>
     <div id="initial-splash" role="status" aria-label="Cargando Nuvora">
-      <img src="/favicon.svg" width="72" height="72" alt="" />
+      <img src="/splash-logo.svg" width="72" height="72" alt="" />
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

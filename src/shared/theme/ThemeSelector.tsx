@@ -1,13 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@/shared/ui/components/Icon';
-import { darkThemeColor, lightThemeColor } from '@/shared/config/brand';
+import { applyThemeColor } from './themeMeta';
 type Theme = 'light' | 'dark' | 'system';
-
-function applyThemeColor(dark: boolean) {
-  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-  document.querySelector('#theme-color')?.setAttribute('content', dark ? darkThemeColor : lightThemeColor);
-  document.querySelector('#apple-status-bar-style')?.setAttribute('content', dark ? 'black-translucent' : 'default');
-}
 
 export function ThemeSelector() {
   const [theme, setTheme] = useState<Theme>(() => {
@@ -25,7 +19,10 @@ export function ThemeSelector() {
       setSystemDark(media.matches);
       const dark = theme === 'dark' || (theme === 'system' && media.matches);
       document.documentElement.classList.toggle('dark', dark);
-      applyThemeColor(dark);
+      // Keep status/navigation chrome dark until the auth bootstrap has
+      // resolved and the initial splash has been removed.
+      const splash = document.querySelector<HTMLElement>('#initial-splash');
+      if (!splash || splash.hidden) applyThemeColor(dark);
     };
     apply();
     try {

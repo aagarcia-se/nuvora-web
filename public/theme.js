@@ -12,9 +12,9 @@
     (preference !== 'light' &&
       matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.classList.toggle('dark', dark);
-  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
-  const themeColor = document.querySelector('#theme-color');
-  if (themeColor) themeColor.setAttribute('content', dark ? '#111715' : '#F7F8F6');
-  const appleStatusBar = document.querySelector('#apple-status-bar-style');
-  if (appleStatusBar) appleStatusBar.setAttribute('content', dark ? 'black-translucent' : 'default');
+  // The initial document and browser chrome are dark regardless of the app
+  // preference. The selected scheme is applied when React removes the splash.
+  document.documentElement.style.colorScheme = 'dark';
+  // Browser chrome stays dark while the initial splash is visible. React
+  // applies the selected status-bar color after initialization.
 })();

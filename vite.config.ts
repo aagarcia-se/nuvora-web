@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'prompt',
         injectRegister: false,
-        includeAssets: ['favicon.svg', 'theme.js', 'icons/*.png'],
+        includeAssets: ['favicon.svg', 'splash-logo.svg', 'theme.js', 'icons/*.png'],
         manifest: {
           id: '/',
           name: appName,

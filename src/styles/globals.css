@@ -4,17 +4,22 @@
 
 :root {
   color-scheme: light;
-  /* Nuvora palette: neutral SaaS surfaces; lima is identity and action only. */
-  --color-brand: 213 244 84;
-  --color-bg: 247 248 246;
+  /* Indigo identity with independently tuned light and dark semantic tokens. */
+  --color-brand: 79 70 229;
+  --on-brand: #ffffff;
+  --story-bg: #1e1b4b;
+  --story-ink: #ffffff;
+  --story-muted: #c7d2fe;
+  --story-accent: #a5b4fc;
+  --color-bg: 248 250 252;
   --color-surface: 255 255 255;
-  --color-surface-2: 238 241 238;
-  --color-line: 203 213 209;
-  --color-ink: 23 33 29;
-  --color-muted: 82 96 90;
-  --control-border: #68766f;
-  --focus: #42620d;
-  --primary-hover: #b9df35;
+  --color-surface-2: 238 242 255;
+  --color-line: 203 213 225;
+  --color-ink: 15 23 42;
+  --color-muted: 71 85 105;
+  --control-border: #64748b;
+  --focus: #4f46e5;
+  --primary-hover: #4338ca;
   --danger: #b42318;
   --danger-bg: #fff1ef;
   --success: #166534;
@@ -22,16 +27,18 @@
   --info: #075985;
 }
 .dark {
+  --color-brand: 165 180 252;
+  --on-brand: #1e1b4b;
   color-scheme: dark;
-  --color-bg: 17 23 21;
-  --color-surface: 27 36 32;
-  --color-surface-2: 38 51 45;
-  --color-line: 68 83 76;
-  --color-ink: 243 247 244;
-  --color-muted: 181 194 187;
-  --control-border: #93a39a;
-  --focus: #d5f454;
-  --primary-hover: #e1fa83;
+  --color-bg: 15 23 42;
+  --color-surface: 30 41 59;
+  --color-surface-2: 39 52 73;
+  --color-line: 71 85 105;
+  --color-ink: 248 250 252;
+  --color-muted: 203 213 225;
+  --control-border: #94a3b8;
+  --focus: #a5b4fc;
+  --primary-hover: #c7d2fe;
   --danger: #ffb4ab;
   --danger-bg: #391c19;
   --success: #99deb0;
@@ -49,7 +56,9 @@
     min-height: 100%;
     background-color: rgb(var(--color-bg));
   }
-  html { background-color: rgb(var(--color-bg)); }
+  html {
+    background-color: rgb(var(--color-bg));
+  }
   body,
   #root {
     min-height: 100vh;
@@ -82,11 +91,23 @@
     color: rgb(var(--color-ink));
     border-color: rgb(var(--color-line));
   }
-  .install-description { color: rgb(var(--color-muted)); }
-  .install-banner :focus-visible { outline-color: var(--focus); }
-  .install-close:active { background: rgb(var(--color-line)); }
-  .theme-option[aria-pressed='true'], .install-icon { background: rgb(var(--color-brand)); color: #17200a; }
-  .theme-option:active { background: rgb(var(--color-surface-2)); }
+  .install-description {
+    color: rgb(var(--color-muted));
+  }
+  .install-banner :focus-visible {
+    outline-color: var(--focus);
+  }
+  .install-close:active {
+    background: rgb(var(--color-line));
+  }
+  .theme-option[aria-pressed='true'],
+  .install-icon {
+    background: rgb(var(--color-brand));
+    color: var(--on-brand);
+  }
+  .theme-option:active {
+    background: rgb(var(--color-surface-2));
+  }
   .app-shell {
     @apply flex flex-col;
     min-height: 100vh;
@@ -100,7 +121,10 @@
      widths the promotion intentionally occupies a second row so controls
      keep their touch target and the header never overflows horizontally. */
   .auth-header {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 42rem) minmax(max-content, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 42rem) minmax(
+        max-content,
+        1fr
+      );
   }
   .auth-brand {
     grid-column: 1;
@@ -134,9 +158,15 @@
     }
   }
   @media (max-width: 479px) {
-    .auth-header { gap: 0.75rem; }
-    .install-banner .install-description { line-height: 1.35; }
-    .install-banner .btn-primary { padding-inline: 0.75rem; }
+    .auth-header {
+      gap: 0.75rem;
+    }
+    .install-banner .install-description {
+      line-height: 1.35;
+    }
+    .install-banner .btn-primary {
+      padding-inline: 0.75rem;
+    }
   }
   .auth-main {
     padding-block: clamp(1.5rem, 5vh, 3.5rem);
@@ -152,15 +182,16 @@
     }
   }
   .card {
-    @apply rounded-3xl border border-line bg-surface shadow-sm;
+    @apply rounded-3xl border border-line bg-surface;
+    box-shadow: 0 16px 48px rgb(15 23 42 / 0.06);
   }
   .btn-primary,
   .btn-secondary {
-    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-primary {
     @apply bg-brand-600;
-    color: #17200a;
+    color: var(--on-brand);
   }
   .btn-primary:active {
     background: var(--primary-hover);
@@ -190,7 +221,9 @@
     @apply mt-2 text-sm;
     color: var(--danger);
   }
-  .password-rule-valid { color: var(--success); }
+  .password-rule-valid {
+    color: var(--success);
+  }
   .alert {
     @apply rounded-xl border p-3 text-sm leading-relaxed;
     color: var(--danger);
@@ -207,11 +240,85 @@
     @apply absolute right-1 top-1/2 min-h-12 -translate-y-1/2 rounded-lg px-3 text-sm font-medium text-muted;
   }
   .brand-highlight {
-    background: rgb(var(--color-brand));
-    color: #17200a;
-    box-decoration-break: clone;
-    padding-inline: 0.15em;
+    color: var(--story-accent);
   }
+  .auth-story {
+    position: relative;
+    overflow: hidden;
+    flex-direction: column;
+    justify-content: center;
+    align-self: stretch;
+    min-height: 36rem;
+    padding: 3rem;
+    border-radius: 2rem;
+    background: var(--story-bg);
+    color: var(--story-ink);
+    background-image: radial-gradient(
+      ellipse at top right,
+      rgb(99 102 241 / 0.28),
+      transparent 70%
+    );
+  }
+  .story-eyebrow {
+    margin-bottom: 2.5rem;
+    color: var(--story-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .story-description {
+    margin-top: 1.5rem;
+    max-width: 23rem;
+    line-height: 1.8;
+    color: var(--story-muted);
+  }
+  .story-note {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 4rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(165 180 252 / 0.35);
+    color: var(--story-muted);
+  }
+  .story-monogram {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    flex-shrink: 0;
+    border-radius: 1rem;
+    background: var(--story-accent);
+    color: var(--story-bg);
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  .auth-main {
+    column-gap: clamp(2rem, 5vw, 5rem);
+  }
+  .auth-form {
+    align-self: center;
+  }
+  .auth-form h1 {
+    text-wrap: balance;
+  }
+  .auth-form a {
+    text-underline-offset: 0.2em;
+  }
+  .auth-brand img {
+    background: var(--story-bg);
+  }
+  .install-banner {
+    box-shadow: none;
+  }
+  .skip-link:focus {
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 100;
+  }
+
   .skip-link {
     @apply sr-only;
   }

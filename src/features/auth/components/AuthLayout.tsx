@@ -22,32 +22,38 @@ export function AuthLayout({ children }: PropsWithChildren) {
           </span>
         </div>
         <InstallApp />
-        <div className="auth-theme"><ThemeSelector /></div>
+        <div className="auth-theme">
+          <ThemeSelector />
+        </div>
       </header>
       <main
         id="main"
-        className="auth-main mx-auto grid min-w-0 w-full max-w-6xl flex-1 items-start gap-10 lg:grid-cols-2 lg:gap-24"
+        className="auth-main mx-auto grid min-w-0 w-full max-w-6xl flex-1 items-start gap-10 lg:grid-cols-2 lg:gap-16"
       >
-        <aside className="hidden lg:block">
-          <p className="mb-6 text-sm font-semibold uppercase tracking-[0.2em] text-muted">
-            Para contadores y despachos
-          </p>
+        <aside className="auth-story hidden lg:flex">
+          <p className="story-eyebrow">Para contadores y despachos</p>
           <h2 className="max-w-lg text-5xl font-semibold leading-tight tracking-tight">
             Tus finanzas,
             <br />
             <span className="brand-highlight">bajo control.</span>
           </h2>
-          <p className="mt-6 max-w-sm text-lg leading-relaxed text-muted">
-            Un lugar para dar claridad a tu trabajo contable. Empieza por entrar
-            a tu cuenta.
+          <p className="story-description">
+            Menos ruido. Más claridad. Tu espacio para dar el siguiente paso en
+            tu trabajo contable.
           </p>
-          <div aria-hidden="true" className="mt-12 flex gap-3">
-            <span className="h-2 w-20 rounded-full bg-brand-600" />
-            <span className="h-2 w-8 rounded-full bg-line" />
-            <span className="h-2 w-3 rounded-full bg-line" />
+          <div className="story-note">
+            <span className="story-monogram" aria-hidden="true">
+              N
+            </span>
+            <div>
+              <p className="font-semibold">Un espacio para enfocarte.</p>
+              <p className="mt-1 text-sm">
+                Diseñado para contadores y despachos.
+              </p>
+            </div>
           </div>
         </aside>
-        <section className="card mx-auto w-full max-w-md p-6 sm:p-10">
+        <section className="auth-form card mx-auto w-full max-w-md p-6 sm:p-10">
           {children}
         </section>
       </main>

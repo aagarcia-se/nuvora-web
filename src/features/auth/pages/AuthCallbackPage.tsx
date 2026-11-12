@@ -64,12 +64,16 @@ export function AuthCallbackPage() {
     async function adoptSession() {
       if (!supabase) {
         cleanCallbackUrl();
-        if (activeRef.current) setError('El acceso aún no está configurado. Contacta al administrador.');
+        if (activeRef.current)
+          setError(
+            'El acceso aún no está configurado. Contacta al administrador.',
+          );
         return;
       }
       if (queryError || hashError) {
         cleanCallbackUrl();
-        if (activeRef.current) setError(callbackErrorMessage(queryError || hashError));
+        if (activeRef.current)
+          setError(callbackErrorMessage(queryError || hashError));
         return;
       }
 
@@ -90,16 +94,22 @@ export function AuthCallbackPage() {
           if (await navigateIfSession()) return;
           cleanCallbackUrl();
           if (activeRef.current)
-            setError('El enlace de Google no es válido o ya venció. Intenta iniciar sesión de nuevo.');
+            setError(
+              'El enlace de Google no es válido o ya venció. Intenta iniciar sesión de nuevo.',
+            );
           return;
         }
         // Adoption emits SIGNED_IN asynchronously. Retrying getSession during
         // this short grace period covers a callback opened twice or reloaded.
         if (!(await navigateIfSession()) && activeRef.current)
-          setError('El enlace de Google no es válido o ya venció. Intenta iniciar sesión de nuevo.');
+          setError(
+            'El enlace de Google no es válido o ya venció. Intenta iniciar sesión de nuevo.',
+          );
       } catch {
         if (!(await navigateIfSession()) && activeRef.current)
-          setError('El enlace de Google no es válido o ya venció. Intenta iniciar sesión de nuevo.');
+          setError(
+            'El enlace de Google no es válido o ya venció. Intenta iniciar sesión de nuevo.',
+          );
       }
     }
 
@@ -112,6 +122,9 @@ export function AuthCallbackPage() {
 
   return (
     <div className="space-y-5 text-center" aria-live="polite">
+      <h1 className="text-3xl font-semibold tracking-tight">
+        {error ? 'No pudimos completar el acceso' : 'Completando tu acceso'}
+      </h1>
       {error ? (
         <>
           <InlineAlert>{error}</InlineAlert>
@@ -121,9 +134,13 @@ export function AuthCallbackPage() {
         </>
       ) : (
         <>
-          <div className="mx-auto h-8 w-8 animate-pulse rounded-full bg-brand-600" aria-hidden="true" />
-          <p className="font-medium">Completando tu acceso…</p>
-          <p className="text-sm text-muted">Estamos verificando tu sesión de forma segura.</p>
+          <div
+            className="mx-auto h-8 w-8 animate-pulse rounded-full bg-brand-600"
+            aria-hidden="true"
+          />
+          <p className="text-sm text-muted">
+            Estamos verificando tu sesión de forma segura.
+          </p>
         </>
       )}
     </div>

@@ -1,8 +1,14 @@
 import { test, expect, type Page } from '@playwright/test';
-test('promoción en desarrollo sin CTA operativo antes del evento', async ({ page }) => {
+test('promoción en desarrollo sin CTA operativo antes del evento', async ({
+  page,
+}) => {
   await page.goto('/login');
-  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toContainText('Modo desarrollo');
-  await expect(page.getByRole('button', { name: 'Instalar Nuvora' })).toHaveCount(0);
+  await expect(
+    page.getByRole('complementary', { name: 'Instalar aplicación' }),
+  ).toContainText('Modo desarrollo');
+  await expect(
+    page.getByRole('button', { name: 'Instalar Nuvora' }),
+  ).toHaveCount(0);
 });
 const user = {
   id: 'demo-user',
@@ -95,7 +101,9 @@ test('Demo: validación, mostrar contraseña, 401 y reenvío', async ({
     page.getByRole('heading', { name: 'Te damos la bienvenida' }),
   ).toBeVisible();
 });
-test('Demo: recuperación solicita correo sin enumerar cuentas y no reintenta 429', async ({ page }) => {
+test('Demo: recuperación solicita correo sin enumerar cuentas y no reintenta 429', async ({
+  page,
+}) => {
   await page.goto('/login');
   await page.getByRole('link', { name: '¿Olvidaste tu contraseña?' }).click();
   await expect(page).toHaveURL(/auth\/forgot-password$/);
@@ -103,37 +111,56 @@ test('Demo: recuperación solicita correo sin enumerar cuentas y no reintenta 42
   let calls = 0;
   await page.route('**/api/v1/auth/password-reset/request', (route) => {
     calls++;
-    expect(route.request().postDataJSON()).toEqual({ email: 'contador@example.com' });
+    expect(route.request().postDataJSON()).toEqual({
+      email: 'contador@example.com',
+    });
     return route.fulfill({ status: 429, json: { error: 'AUTH_RATE_LIMITED' } });
   });
   await page.getByRole('button', { name: 'Enviar enlace' }).click();
   await expect(page.getByRole('alert')).toContainText('minutos');
   expect(calls).toBe(1);
 });
-test('Demo: recuperación hash limpia URL y actualiza con sesión SDK', async ({ page }) => {
+test('Demo: recuperación hash limpia URL y actualiza con sesión SDK', async ({
+  page,
+}) => {
   await mocks(page);
   await login(page);
   let updateCalls = 0;
-  await page.route('http://api.demo.test/api/v1/auth/password-reset/update', (route) => {
-    updateCalls++;
-    expect(route.request().headers().authorization).toBe(`Bearer ${token}`);
-    expect(route.request().url()).not.toContain('access_token');
-    expect(route.request().postDataJSON()).toEqual({ password: 'New-demo-password' });
-    return route.fulfill({ status: 204 });
-  });
-  await page.goto(`/auth/reset-password#access_token=${encodeURIComponent(token)}&refresh_token=demo-refresh-fixture&type=recovery`);
+  await page.route(
+    'http://api.demo.test/api/v1/auth/password-reset/update',
+    (route) => {
+      updateCalls++;
+      expect(route.request().headers().authorization).toBe(`Bearer ${token}`);
+      expect(route.request().url()).not.toContain('access_token');
+      expect(route.request().postDataJSON()).toEqual({
+        password: 'New-demo-password1!',
+      });
+      return route.fulfill({ status: 204 });
+    },
+  );
+  await page.goto(
+    `/auth/reset-password#access_token=${encodeURIComponent(token)}&refresh_token=demo-refresh-fixture&type=recovery`,
+  );
   await expect(page).toHaveURL(/auth\/reset-password$/);
   await expect(page).not.toHaveURL(/access_token|refresh_token|type=recovery/);
-  await expect(page.getByRole('heading', { name: 'Crea una contraseña nueva' })).toBeVisible();
-  await page.getByLabel('Contraseña nueva').fill('New-demo-password');
-  await page.getByLabel('Repite la contraseña').fill('New-demo-password');
+  await expect(
+    page.getByRole('heading', { name: 'Crea una contraseña nueva' }),
+  ).toBeVisible();
+  await page.getByLabel('Contraseña nueva').fill('New-demo-password1!');
+  await page.getByLabel('Repite la contraseña').fill('New-demo-password1!');
   await page.getByRole('button', { name: 'Actualizar contraseña' }).click();
-  await expect(page.getByRole('heading', { name: 'Contraseña actualizada' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Contraseña actualizada' }),
+  ).toBeVisible();
   expect(updateCalls).toBe(1);
 });
-test('Demo: recuperación sin enlace muestra estado inválido y no expone secretos', async ({ page }) => {
+test('Demo: recuperación sin enlace muestra estado inválido y no expone secretos', async ({
+  page,
+}) => {
   await page.goto('/auth/reset-password?access_token=not-a-token');
-  await expect(page.getByRole('heading', { name: 'No pudimos actualizarla' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'No pudimos actualizarla' }),
+  ).toBeVisible();
   await expect(page).toHaveURL(/auth\/reset-password$/);
   await expect(page.locator('body')).not.toContainText('not-a-token');
 });
@@ -180,7 +207,9 @@ test('temas, teclado, tamaños responsive y standalone simulado', async ({
   });
   await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
   await page.goto('/login');
-  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toHaveCount(0);
+  await expect(
+    page.getByRole('complementary', { name: 'Instalar aplicación' }),
+  ).toHaveCount(0);
   await expect(page.locator('html')).toHaveClass('dark');
   await page.emulateMedia({ colorScheme: 'light' });
   await expect(page.locator('html')).not.toHaveClass('dark');
@@ -195,7 +224,9 @@ test('temas, teclado, tamaños responsive y standalone simulado', async ({
   await page.emulateMedia({ colorScheme: 'dark' });
   await expect(page.locator('html')).not.toHaveClass('dark');
   await page.getByRole('button', { name: 'Modo oscuro' }).click();
-  await expect(page.getByRole('button', { name: 'Modo oscuro' })).toHaveAttribute('aria-pressed', 'true');
+  await expect(
+    page.getByRole('button', { name: 'Modo oscuro' }),
+  ).toHaveAttribute('aria-pressed', 'true');
   for (const [width, height] of [
     [320, 568],
     [375, 667],
@@ -230,7 +261,7 @@ test('temas, teclado, tamaños responsive y standalone simulado', async ({
   });
   await expect(
     page.getByRole('button', { name: 'Iniciar sesión', exact: true }),
-  ).toHaveCSS('background-color', 'rgb(213, 244, 84)');
+  ).toHaveCSS('background-color', 'rgb(165, 180, 252)');
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.getByRole('button', { name: 'Modo claro' }).click();
   await page.screenshot({
@@ -275,14 +306,22 @@ test('Demo: red caída permite reenvío sin duplicación', async ({ page }) => {
 });
 
 for (const [name, oauthUrl] of [
-  ['URL Supabase de autorización', 'https://auth.demo.test/auth/v1/authorize?provider=google'],
+  [
+    'URL Supabase de autorización',
+    'https://auth.demo.test/auth/v1/authorize?provider=google',
+  ],
   ['URL del API permitido', 'http://api.demo.test/oauth/google'],
-  ['URL del proveedor Google permitido', 'https://accounts.google.com/o/oauth2/v2/auth?client_id=demo'],
+  [
+    'URL del proveedor Google permitido',
+    'https://accounts.google.com/o/oauth2/v2/auth?client_id=demo',
+  ],
 ] as const) {
   test(`Demo: acepta ${name}`, async ({ page }) => {
     await page.route('http://api.demo.test/**', (route) => route.abort());
     await page.route('https://auth.demo.test/**', (route) => route.abort());
-    await page.route('https://accounts.google.com/**', (route) => route.abort());
+    await page.route('https://accounts.google.com/**', (route) =>
+      route.abort(),
+    );
     await page.route('**/api/v1/auth/oauth/google/url', (route) =>
       route.fulfill({ json: { url: oauthUrl } }),
     );
@@ -297,11 +336,17 @@ for (const [name, oauthUrl] of [
 
 test('Demo: rechaza URL OAuth externa no permitida', async ({ page }) => {
   await page.route('**/api/v1/auth/oauth/google/url', (route) =>
-    route.fulfill({ json: { url: 'https://evil.example/redirect?next=https://auth.demo.test' } }),
+    route.fulfill({
+      json: {
+        url: 'https://evil.example/redirect?next=https://auth.demo.test',
+      },
+    }),
   );
   await page.goto('/login');
   await page.getByRole('button', { name: 'Continuar con Google' }).click();
-  await expect(page.getByRole('alert')).toContainText('No pudimos iniciar sesión con Google');
+  await expect(page.getByRole('alert')).toContainText(
+    'No pudimos iniciar sesión con Google',
+  );
   await expect(page).toHaveURL(/\/login$/);
 });
 
@@ -345,7 +390,9 @@ test('Demo: callback sin datos redirige si ya existe sesión válida', async ({
   await expect(page.getByText(user.email, { exact: true })).toBeVisible();
   await page.goto('/auth/callback');
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('heading', { name: 'Te damos la bienvenida' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Te damos la bienvenida' }),
+  ).toBeVisible();
   await expect(page.getByRole('alert')).toHaveCount(0);
 });
 
@@ -355,22 +402,135 @@ test('Demo: callback con error OAuth explícito muestra mensaje y limpia URL', a
   await page.goto('/auth/callback?error=access_denied');
   await expect(page).toHaveURL(/auth\/callback$/);
   await expect(page.getByRole('alert')).toContainText('Cancelaste el acceso');
-  await expect(page.getByRole('link', { name: 'Volver a iniciar sesión' })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Volver a iniciar sesión' }),
+  ).toBeVisible();
 });
 
-test('Demo: token vencido se renueva solo mediante SDK Supabase', async ({ page }) => {
+test('Demo: token vencido se renueva solo mediante SDK Supabase', async ({
+  page,
+}) => {
   await mocks(page);
   const expired = `${token.split('.')[0]}.${Buffer.from(JSON.stringify({ sub: user.id, exp: 1 })).toString('base64url')}.demo-signature`;
-  await page.route('**/api/v1/auth/signin', route => route.fulfill({ json: { user, session: { access_token: expired, refresh_token: 'demo-refresh-fixture' } } }));
+  await page.route('**/api/v1/auth/signin', (route) =>
+    route.fulfill({
+      json: {
+        user,
+        session: {
+          access_token: expired,
+          refresh_token: 'demo-refresh-fixture',
+        },
+      },
+    }),
+  );
   let refreshes = 0;
-  await page.route('**/auth/v1/token?grant_type=refresh_token', route => {
+  await page.route('**/auth/v1/token?grant_type=refresh_token', (route) => {
     refreshes++;
-    return route.fulfill({ json: { access_token: token, refresh_token: 'demo-refresh-renewed', token_type: 'bearer', expires_in: 3600, user } });
+    return route.fulfill({
+      json: {
+        access_token: token,
+        refresh_token: 'demo-refresh-renewed',
+        token_type: 'bearer',
+        expires_in: 3600,
+        user,
+      },
+    });
   });
   let apiRefreshes = 0;
-  page.on('request', request => { if (request.url().includes('/api/v1/auth/refresh')) apiRefreshes++; });
+  page.on('request', (request) => {
+    if (request.url().includes('/api/v1/auth/refresh')) apiRefreshes++;
+  });
   await login(page);
   await expect(page.getByText(user.email, { exact: true })).toBeVisible();
   expect(refreshes).toBe(1);
   expect(apiRefreshes).toBe(0);
+});
+
+for (const theme of ['light', 'dark'] as const) {
+  test(`contraste semántico WCAG AA: ${theme}`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: theme });
+    await page.goto('/login');
+    await expect(
+      page.getByRole('heading', { name: 'Iniciar sesión' }),
+    ).toBeVisible();
+    const results = await page.evaluate(() => {
+      const css = getComputedStyle(document.documentElement);
+      const color = (name: string) => {
+        const value = css.getPropertyValue(name).trim();
+        return value.startsWith('#')
+          ? value
+              .slice(1)
+              .match(/.{2}/g)!
+              .map((n) => parseInt(n, 16))
+          : value.split(/\s+/).map(Number);
+      };
+      const luminance = (rgb: number[]) =>
+        rgb
+          .map((v) => {
+            const n = v / 255;
+            return n <= 0.04045 ? n / 12.92 : ((n + 0.055) / 1.055) ** 2.4;
+          })
+          .reduce((sum, v, i) => sum + v * [0.2126, 0.7152, 0.0722][i], 0);
+      const pairs: [string, string, number][] = [
+        ['--color-ink', '--color-bg', 4.5],
+        ['--color-muted', '--color-bg', 4.5],
+        ['--color-muted', '--color-surface', 4.5],
+        ['--color-muted', '--color-surface-2', 4.5],
+        ['--on-brand', '--color-brand', 4.5],
+        ['--on-brand', '--primary-hover', 4.5],
+        ['--danger', '--danger-bg', 4.5],
+        ['--success', '--color-surface', 4.5],
+        ['--control-border', '--color-surface', 3],
+        ['--focus', '--color-surface', 3],
+        ['--story-muted', '--story-bg', 4.5],
+      ];
+      return pairs.map(([foreground, background, minimum]) => {
+        const a = luminance(color(foreground)),
+          b = luminance(color(background));
+        return {
+          foreground,
+          background,
+          minimum,
+          ratio: (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05),
+        };
+      });
+    });
+    for (const result of results)
+      expect(result.ratio, JSON.stringify(result)).toBeGreaterThanOrEqual(
+        result.minimum,
+      );
+    for (const route of [
+      '/login',
+      '/auth/register',
+      '/auth/forgot-password',
+      '/auth/reset-password',
+      '/auth/callback',
+    ]) {
+      await page.goto(route);
+      await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+      for (const width of [375, 768, 1440]) {
+        await page.setViewportSize({ width, height: 900 });
+        expect(
+          await page.evaluate(
+            () => document.documentElement.scrollWidth <= innerWidth,
+          ),
+        ).toBe(true);
+      }
+    }
+  });
+}
+
+test('registro aplica política Unicode del API y rechaza espacio como símbolo', async ({
+  page,
+}) => {
+  await page.goto('/auth/register');
+  const password = page.getByLabel('Contraseña', { exact: true });
+  const submit = page.getByRole('button', {
+    name: 'Crear cuenta',
+    exact: true,
+  });
+  await password.fill('Abcdefg1 ');
+  await expect(submit).toBeDisabled();
+  await password.fill('Áé١!abcd');
+  await expect(submit).toBeEnabled();
 });

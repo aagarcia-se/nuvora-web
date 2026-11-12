@@ -186,3 +186,10 @@ Esta actualización documental no volvió a ejecutar pruebas ni implica publicac
 - `/auth/callback` elimina `code`, errores y tokens hash de la barra de direcciones antes del trabajo asíncrono. Adopta `?code=` con `exchangeCodeForSession` o `access_token`/`refresh_token` con `setSession`; no guarda tokens manualmente. Después deja que el provider valide `/auth/me` y redirige a `/`.
 - Para habilitarlo: activar Google en Supabase Authentication → Providers → Google; registrar el Client ID y Client Secret de Google en Supabase. En local usar `http://localhost:5173/auth/callback`; en el ambiente publicado usar `https://nuvorapil.vercel.app/auth/callback` y configurar el mismo valor en `AUTH_REDIRECT_URL` del backend. La recuperación publicada usa `https://nuvorapil.vercel.app/auth/reset-password` en `PASSWORD_RESET_REDIRECT_URL`. El API publicado está en `https://nuvora-api-pil.onrender.com`; el usuario confirmó registro, Google y recuperación reales después de corregir CORS y redirects.
 - La integración real requiere un proveedor configurado y una cuenta autorizada. No se considera validada por una respuesta simulada del endpoint ni por la compilación.
+
+
+## 15. Rediseño y accesibilidad — 2026-11-12
+
+Por solicitud del usuario, la identidad índigo sustituye la lima de la sección 13. El banner vigente es superior **en flujo**, no fijo, como dispone AGENTS.md. Se conserva autenticación/PWA y se rediseñan todas las pantallas existentes mediante el shell y componentes compartidos; no se añaden módulos de negocio.
+
+Decisiones, contraste AA de las parejas comprobadas y límites: [UI-ACCESSIBILITY.md](./UI-ACCESSIBILITY.md). Lint/build correctos; 22 pruebas Auth/contraste/responsive y 6 PWA aprobadas con Chrome como alternativa al Chromium local que falla al arrancar. Capturas de escritorio claro y móvil oscuro inspeccionadas. Continúan pendientes instalación real por SO, Safari/iOS y certificación integral de accesibilidad. El build conserva el aviso de bundle superior a 500 kB.

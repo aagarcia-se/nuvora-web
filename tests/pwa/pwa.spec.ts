@@ -22,7 +22,7 @@ test('manifest, iconos e instalación disponibles en Chromium', async ({
     return (await fetch(link!.href)).json();
   });
   expect(manifest.display).toBe('standalone');
-  expect(manifest.theme_color).toBe('#171A19');
+  expect(manifest.theme_color).toBe('#0F172A');
   expect(manifest.icons).toEqual(
     expect.arrayContaining([
       expect.objectContaining({ sizes: '192x192', purpose: 'any' }),
@@ -42,7 +42,11 @@ test('manifest, iconos e instalación disponibles en Chromium', async ({
   const { installabilityErrors } = await client.send(
     'Page.getInstallabilityErrors',
   );
-  expect(installabilityErrors).toEqual([]);
+  // Chrome automation uses an incognito context, where OS installation is unavailable.
+  // Keep asserting every other manifest/installability error.
+  expect(
+    installabilityErrors.filter((error) => error.errorId !== 'in-incognito'),
+  ).toEqual([]);
 });
 
 test('abre el shell offline y no guarda peticiones privadas en caché', async ({
@@ -95,22 +99,31 @@ test('ofrece instalación y oculta el control al confirmar appinstalled', async 
   });
   await page.getByRole('button', { name: /^Instalar / }).click();
   await page.evaluate(() => window.dispatchEvent(new Event('appinstalled')));
-  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toHaveCount(0);
+  await expect(
+    page.getByRole('complementary', { name: 'Instalar aplicación' }),
+  ).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Instalar / })).toHaveCount(0);
 });
 
-test('promoción fija no reserva espacio, es responsive y conserva el cierre persistente', async ({ page }) => {
+test('promoción superior en flujo, es responsive y conserva el cierre persistente', async ({
+  page,
+}) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.addInitScript(() => {
     Object.defineProperty(navigator, 'userAgent', { value: 'iPhone Safari' });
     localStorage.setItem('nuvora-install-dismissed-at', String(Date.now()));
   });
   await page.goto('/login');
-  const banner = page.getByRole('complementary', { name: 'Instalar aplicación' });
+  const banner = page.getByRole('complementary', {
+    name: 'Instalar aplicación',
+  });
   await expect(banner).toBeVisible();
   await page.evaluate(() => {
     const event = new Event('beforeinstallprompt', { cancelable: true });
-    Object.assign(event, { prompt: async () => undefined, userChoice: Promise.resolve({ outcome: 'dismissed' }) });
+    Object.assign(event, {
+      prompt: async () => undefined,
+      userChoice: Promise.resolve({ outcome: 'dismissed' }),
+    });
     window.dispatchEvent(event);
   });
   await expect(banner).toBeVisible();
@@ -118,29 +131,53 @@ test('promoción fija no reserva espacio, es responsive y conserva el cierre per
   const header = await page.getByRole('banner').boundingBox();
   const form = page.locator('main section');
   const formBefore = await form.boundingBox();
-  expect(await banner.evaluate(element => getComputedStyle(element).position)).toBe('fixed');
+  expect(
+    await banner.evaluate((element) => getComputedStyle(element).position),
+  ).toBe('static');
   expect(box!.y).toBeLessThanOrEqual(header!.y + header!.height);
   expect(formBefore).not.toBeNull();
-  await page.getByRole('button', { name: 'Cerrar aviso de instalación' }).click();
+  await page
+    .getByRole('button', { name: 'Cerrar aviso de instalación' })
+    .click();
   await expect(banner).toHaveCount(0);
   const formAfter = await form.boundingBox();
-  expect(formAfter!.y).toBe(formBefore!.y);
+  expect(formAfter!.y).toBeLessThan(formBefore!.y);
   await page.reload();
   await expect(banner).toHaveCount(0);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
   for (const width of [320, 768, 1440]) {
     await page.setViewportSize({ width, height: 800 });
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
   }
 });
 
-test('prompt único y cancelación sin instalación ficticia', async ({ page }) => {
+test('prompt único y cancelación sin instalación ficticia', async ({
+  page,
+}) => {
   await page.goto('/login');
   await page.evaluate(() => {
     const event = new Event('beforeinstallprompt', { cancelable: true });
     Object.assign(event, {
-      prompt: async () => { document.documentElement.dataset.promptCalls = String(Number(document.documentElement.dataset.promptCalls || 0) + 1); },
-      userChoice: new Promise(resolve => window.addEventListener('demo-dismiss', () => resolve({ outcome: 'dismissed' }), { once: true })),
+      prompt: async () => {
+        document.documentElement.dataset.promptCalls = String(
+          Number(document.documentElement.dataset.promptCalls || 0) + 1,
+        );
+      },
+      userChoice: new Promise((resolve) =>
+        window.addEventListener(
+          'demo-dismiss',
+          () => resolve({ outcome: 'dismissed' }),
+          { once: true },
+        ),
+      ),
     });
     window.dispatchEvent(event);
   });
@@ -148,23 +185,39 @@ test('prompt único y cancelación sin instalación ficticia', async ({ page }) 
   await expect(page.getByRole('button', { name: /^Instalar / })).toBeDisabled();
   await expect(page.locator('html')).toHaveAttribute('data-prompt-calls', '1');
   await page.evaluate(() => window.dispatchEvent(new Event('demo-dismiss')));
-  await expect(page.getByRole('complementary', { name: 'Instalar aplicación' })).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Instalar / })).toBeDisabled();
+  await expect(
+    page.getByRole('complementary', { name: 'Instalar aplicación' }),
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: /^Instalar / })).toHaveCount(0);
 });
 
-test('preview real: captura evento nativo sin dispatch sintético', async ({ page }) => {
+test('preview real: captura evento nativo sin dispatch sintético', async ({
+  page,
+}) => {
   await page.addInitScript(() => {
-    window.addEventListener('beforeinstallprompt', event => {
+    window.addEventListener('beforeinstallprompt', (event) => {
       document.documentElement.dataset.nativeInstall = String(event.isTrusted);
     });
   });
   await openApp(page);
   let native = false;
   try {
-    await expect(page.locator('html')).toHaveAttribute('data-native-install', 'true', { timeout: 10000 });
+    await expect(page.locator('html')).toHaveAttribute(
+      'data-native-install',
+      'true',
+      { timeout: 10000 },
+    );
     native = true;
-  } catch { /* Some headless browsers do not offer an installation prompt. */ }
+  } catch {
+    /* Some headless browsers do not offer an installation prompt. */
+  }
   console.log(`Preview native beforeinstallprompt observed: ${native}`);
-  if (native) await expect(page.getByRole('button', { name: /^Instalar / })).toBeEnabled();
-  else await expect(page.getByRole('button', { name: /^Instalar / })).toBeDisabled();
+  if (native)
+    await expect(
+      page.getByRole('button', { name: /^Instalar / }),
+    ).toBeEnabled();
+  else
+    await expect(page.getByRole('button', { name: /^Instalar / })).toHaveCount(
+      0,
+    );
 });

@@ -2,13 +2,20 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta id="theme-color" name="theme-color" content="#F7F8F6" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content"
+    />
+    <meta id="theme-color" name="theme-color" content="#F8FAFC" />
     <meta name="color-scheme" content="light dark" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta id="apple-status-bar-style" name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      id="apple-status-bar-style"
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
     <meta name="mobile-web-app-capable" content="yes" />
     <style>
       html,
@@ -16,7 +23,7 @@
         margin: 0;
         min-height: 100%;
         min-height: 100dvh;
-        background: var(--initial-splash-background, #F7F8F6);
+        background: var(--initial-splash-background, #f8fafc);
       }
       #initial-splash {
         position: fixed;
@@ -27,18 +34,34 @@
         box-sizing: border-box;
         padding: env(safe-area-inset-top) env(safe-area-inset-right)
           env(safe-area-inset-bottom) env(safe-area-inset-left);
-        background: var(--initial-splash-background, #F7F8F6);
+        background: var(--initial-splash-background, #f8fafc);
       }
-      #initial-splash svg { width: 4.5rem; height: 4.5rem; display: block; }
-      #initial-splash path { fill: var(--initial-splash-logo, #17211D); }
-      html.dark #initial-splash path { fill: #D5F454; }
-      #initial-splash[hidden] { display: none; }
+      #initial-splash svg {
+        width: 4.5rem;
+        height: 4.5rem;
+        display: block;
+      }
+      #initial-splash path {
+        fill: var(--initial-splash-logo, #4f46e5);
+      }
+      html.dark #initial-splash path {
+        fill: #a5b4fc;
+      }
+      #initial-splash[hidden] {
+        display: none;
+      }
     </style>
     <title>Nuvora</title>
   </head>
   <body>
     <div id="initial-splash" role="status" aria-label="Cargando Nuvora">
-      <svg viewBox="0 0 512 512" width="72" height="72" aria-hidden="true" focusable="false">
+      <svg
+        viewBox="0 0 512 512"
+        width="72"
+        height="72"
+        aria-hidden="true"
+        focusable="false"
+      >
         <path d="M156 356V156h48l104 126V156h48v200h-48L204 230v126z" />
       </svg>
     </div>

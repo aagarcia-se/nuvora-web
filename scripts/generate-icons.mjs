@@ -17,7 +17,7 @@ for (const [name, size] of [
 ]) {
   await sharp(fileURLToPath(source))
     .resize(size, size)
-    .flatten({ background: '#111715' })
+    .flatten({ background: '#0F172A' })
     .png()
     .toFile(fileURLToPath(new URL(name, output)));
 }

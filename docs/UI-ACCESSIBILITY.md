@@ -63,3 +63,12 @@ Por autorización del usuario se sustituye la N tipográfica por una silueta geo
 `public/brand-mark.svg` contiene la versión independiente. Cabecera: máscara SVG con el token principal para adaptarse al tema, sin placa. Favicon, splash y PNG instalables: símbolo lavanda sobre #0F172A uniforme. La silueta inline de `index.html` mantiene el mismo trazado sin peticiones adicionales durante el arranque. El símbolo se incluye entre los recursos PWA. Conservar sincronizados estos SVG y el trazado inline al editar la geometría.
 
 Solo se regeneran recursos gráficos; no se ejecutan pruebas, lint ni build por instrucción vigente. La actualización de iconos de una PWA ya instalada depende del navegador y puede requerir reinstalación tras publicar.
+
+
+## Refinamiento de jerarquía y proporciones — 2026-11-12
+
+Se conserva el acceso centrado y sin panel lateral. Formulario de hasta 416px útiles con encabezados de escala fluida, párrafos de medida corta y espaciado coherente. El contexto «Contadores» acompaña la marca en cabecera; una línea neutra estructura el área superior. El login agrupa recuperación con contraseña, separa la invitación a crear cuenta y elimina el espacio del resumen de errores cuando no hay mensajes. Se mantienen etiquetas, errores asociados, estados de envío y nombres de acciones.
+
+Promoción PWA secundaria con icono neutro y acción de instalación de menor peso visual. Conserva ubicación superior en flujo, disponibilidad, cierre y comportamiento de instalación. El selector sol/luna utiliza selección tonal y objetivos de 44px, sin etiqueta visible. La tipografía y los controles compartidos propagan la coherencia a las otras pantallas de autenticación. Se aplicaron búsquedas locales de UI/UX Pro Max para formularios y estilo minimalista, con resultados compatibles con web SaaS; no se añaden fuentes externas ni dependencias.
+
+No se ejecutaron pruebas, lint, build ni validación visual en navegador por la indicación vigente del usuario. La lectura del código no sustituye esas verificaciones; los resultados automatizados de apartados anteriores corresponden a la revisión previa.

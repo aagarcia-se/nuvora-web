@@ -87,9 +87,11 @@
     min-width: 0;
     max-width: 42rem;
     margin: 0;
-    background: rgb(var(--color-surface-2));
+    padding: 0.5rem;
+    border: 1px solid rgb(var(--color-line));
+    border-radius: 0.875rem;
+    background: transparent;
     color: rgb(var(--color-ink));
-    border-color: rgb(var(--color-line));
   }
   .install-description {
     color: rgb(var(--color-muted));
@@ -100,14 +102,39 @@
   .install-close:active {
     background: rgb(var(--color-line));
   }
-  .theme-option[aria-pressed='true'],
-  .install-icon {
-    background: rgb(var(--color-brand));
-    color: var(--on-brand);
+  .theme-switch {
+    display: flex;
+    gap: 0.125rem;
+    padding: 0.25rem;
+    border-radius: 0.875rem;
+    background: rgb(var(--color-surface));
+  }
+  .theme-option {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+    border-radius: 0.625rem;
+    cursor: pointer;
+    transition: background-color 150ms, color 150ms;
+  }
+  .theme-option[aria-pressed='true'] {
+    background: rgb(var(--color-surface-2));
+    color: rgb(var(--color-brand));
   }
   .theme-option:active {
     background: rgb(var(--color-surface-2));
   }
+  .install-icon {
+    color: rgb(var(--color-muted));
+  }
+  .install-banner .install-action {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.75rem;
+  }
+  .install-close {
+    color: rgb(var(--color-muted));
+  }
+
   .app-shell {
     @apply flex flex-col;
     min-height: 100vh;
@@ -117,14 +144,23 @@
       max(1rem, env(safe-area-inset-bottom))
       max(1rem, env(safe-area-inset-left));
   }
-  /* Desktop keeps brand, promotion and theme control on one row. At tablet
-     widths the promotion intentionally occupies a second row so controls
-     keep their touch target and the header never overflows horizontally. */
+  /* Stable brand and appearance controls; the promotion stays secondary. */
   .auth-header {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 42rem) minmax(
-        max-content,
-        1fr
-      );
+    grid-template-columns: minmax(10rem, 1fr) minmax(0, 32rem) minmax(max-content, 1fr);
+    padding-block: 1rem;
+    border-bottom: 1px solid rgb(var(--color-line));
+  }
+  .auth-brand-name {
+    font-size: 1.25rem;
+    font-weight: 650;
+    letter-spacing: -0.045em;
+    line-height: 1.2;
+  }
+  .auth-brand-caption {
+    margin-top: 0.25rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    color: rgb(var(--color-muted));
   }
   .auth-brand {
     grid-column: 1;
@@ -164,21 +200,20 @@
     .install-banner .install-description {
       line-height: 1.35;
     }
-    .install-banner .btn-primary {
-      padding-inline: 0.75rem;
-    }
   }
   .auth-main {
-    padding-block: clamp(1.5rem, 5vh, 3.5rem);
+    padding-block: clamp(2rem, 6vh, 4rem);
   }
-  @media (min-width: 1024px) {
+  .auth-footer {
+    padding-block: 1rem;
+    line-height: 1.6;
+  }
+  @media (max-width: 479px) {
     .auth-main {
-      padding-block: clamp(2rem, 6vh, 4rem);
+      padding-block: 2rem;
     }
-  }
-  @media (min-width: 1024px) and (max-height: 700px) {
-    .auth-main {
-      padding-block: 1.5rem;
+    .auth-footer {
+      padding-block: 0.75rem;
     }
   }
   .card {
@@ -241,10 +276,94 @@
   }
   .auth-form {
     align-self: center;
+    max-width: 26rem;
+    padding-inline: 0.25rem;
   }
   .auth-form h1 {
+    font-size: clamp(1.875rem, 5vw, 2.25rem);
+    line-height: 1.15;
+    letter-spacing: -0.045em;
     text-wrap: balance;
   }
+  .auth-form > .alert {
+    margin-bottom: 1.5rem;
+  }
+  .auth-heading {
+    margin-bottom: 2rem;
+  }
+  .auth-eyebrow {
+    margin-bottom: 0.875rem;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgb(var(--color-brand));
+  }
+  .auth-description {
+    margin-top: 0.875rem;
+    color: rgb(var(--color-muted));
+    font-size: 0.9375rem;
+    line-height: 1.7;
+  }
+  .auth-login-form {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .auth-field-heading {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    column-gap: 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  .auth-field-heading .field-label {
+    margin-bottom: 0;
+  }
+  .auth-recovery-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-block: -0.5rem;
+    font-size: 0.75rem;
+    color: rgb(var(--color-muted));
+    text-decoration: underline;
+  }
+  .auth-form .input {
+    min-height: 3.25rem;
+  }
+  .auth-form .field-label {
+    font-weight: 600;
+  }
+  .auth-divider {
+    margin-block: 0.125rem;
+  }
+  .auth-account-prompt {
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(var(--color-line));
+    text-align: center;
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: rgb(var(--color-muted));
+  }
+  .auth-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    margin-block: -0.5rem;
+    font-weight: 600;
+    color: rgb(var(--color-brand));
+    text-decoration: underline;
+  }
+  .auth-connection-note {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: rgb(var(--color-muted));
+  }
+
   .auth-form a {
     text-underline-offset: 0.2em;
   }
@@ -282,6 +401,8 @@
   .btn-primary:hover {
     background: var(--primary-hover);
   }
+  .theme-option:hover,
+  .install-close:hover,
   .btn-secondary:hover,
   .password-toggle:hover {
     background: rgb(var(--color-surface-2));

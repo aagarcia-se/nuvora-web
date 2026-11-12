@@ -29,17 +29,17 @@ export function InstallApp() {
     try { localStorage.setItem(dismissKey, String(Date.now())); } catch { /* Dismiss for this visit when storage is blocked. */ }
     setDismissed(true);
   }
-  return <aside aria-label="Instalar aplicación" className="install-banner rounded-2xl border p-2 text-left shadow-lg">
+  return <aside aria-label="Instalar aplicación" className="install-banner text-left">
     <div className="flex min-w-0 items-center gap-2">
-      <span className="install-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"><Icon name="download" /></span>
+      <span className="install-icon flex h-8 w-8 shrink-0 items-center justify-center"><Icon name="download" /></span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold">Instala {env.appName}</p>
-        <p className="install-description mt-1 text-xs leading-relaxed">Acceso desde tu pantalla de inicio.</p>
+        <p className="text-xs font-semibold">Instala {env.appName}</p>
+        {(canInstall || installing) && <p className="install-description mt-1 text-xs leading-relaxed">Acceso desde tu pantalla de inicio.</p>}
         {!canInstall && !installing && <p role="status" className="install-description mt-1 text-xs leading-relaxed">{availability}</p>}
         {error && <p role="alert" className="field-error">No se pudo abrir la instalación. Podrás reintentar cuando el navegador vuelva a ofrecerla.</p>}
       </div>
-      {canInstall && <button type="button" aria-label={`Instalar ${env.appName}`} className="btn-primary shrink-0" disabled={installing} onClick={() => void install()}>{installing ? 'Abriendo…' : 'Instalar'}</button>}
-      <button type="button" aria-label="Cerrar aviso de instalación" title="No mostrar durante 14 días" onClick={dismiss} className="install-close flex min-h-12 min-w-12 shrink-0 items-center justify-center rounded-xl"><Icon name="close" /></button>
+      {canInstall && <button type="button" aria-label={`Instalar ${env.appName}`} className="install-action btn-secondary shrink-0" disabled={installing} onClick={() => void install()}>{installing ? 'Abriendo…' : 'Instalar'}</button>}
+      <button type="button" aria-label="Cerrar aviso de instalación" title="No mostrar durante 14 días" onClick={dismiss} className="install-close flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-lg"><Icon name="close" /></button>
     </div>
   </aside>;
 }

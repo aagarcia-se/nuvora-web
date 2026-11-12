@@ -34,11 +34,11 @@ export function ThemeSelector() {
     return () => media.removeEventListener('change', apply);
   }, [theme]);
   return (
-    <div role="group" aria-label="Apariencia" className="flex gap-1 rounded-2xl border border-line bg-surface p-1">
+    <div role="group" aria-label="Apariencia" className="theme-switch">
       {(['light', 'dark'] as const).map(value => <button key={value} type="button"
         aria-label={value === 'light' ? 'Modo claro' : 'Modo oscuro'}
         aria-pressed={(theme === 'system' ? (systemDark ? 'dark' : 'light') : theme) === value}
-        onClick={() => setTheme(value)} className="theme-option flex min-h-12 min-w-12 items-center justify-center rounded-xl text-muted">
+        onClick={() => setTheme(value)} className="theme-option flex items-center justify-center text-muted">
         <Icon name={value === 'light' ? 'sun' : 'moon'} />
       </button>)}
     </div>

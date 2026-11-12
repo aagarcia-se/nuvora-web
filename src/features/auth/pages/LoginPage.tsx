@@ -64,13 +64,13 @@ export function LoginPage() {
   }
   return (
     <>
-      <p className="mb-3 text-sm font-medium text-muted">
-        Bienvenido a tu espacio
-      </p>
-      <h1 className="text-3xl font-semibold tracking-tight">Iniciar sesión</h1>
-      <p className="mb-8 mt-3 text-muted">
-        Ingresa con el correo de tu cuenta.
-      </p>
+      <div className="auth-heading">
+        <p className="auth-eyebrow">Tu espacio contable</p>
+        <h1 className="text-3xl font-semibold tracking-tight">Iniciar sesión</h1>
+        <p className="auth-description">
+          Qué gusto tenerte de vuelta. Accede a tu cuenta.
+        </p>
+      </div>
       {!authConfigured && (
         <InlineAlert>
           El acceso aún no está configurado. Contacta al administrador para
@@ -80,10 +80,14 @@ export function LoginPage() {
       <form
         onSubmit={submit}
         noValidate
-        className="mt-6 space-y-5"
+        className="auth-login-form"
         aria-busy={pending}
       >
-        <div ref={summary} tabIndex={-1}>
+        <div
+          ref={summary}
+          tabIndex={-1}
+          hidden={!error && !auth.error && !errors.email && !errors.password}
+        >
           {(error || auth.error) && (
             <InlineAlert>{error || auth.error}</InlineAlert>
           )}
@@ -128,9 +132,14 @@ export function LoginPage() {
           )}
         </div>
         <div>
-          <label htmlFor="password" className="field-label">
-            Contraseña
-          </label>
+          <div className="auth-field-heading">
+            <label htmlFor="password" className="field-label">
+              Contraseña
+            </label>
+            <Link className="auth-recovery-link" to="/auth/forgot-password">
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
           <div className="relative">
             <input
               id="password"
@@ -168,7 +177,7 @@ export function LoginPage() {
           {pending ? 'Iniciando sesión…' : 'Iniciar sesión'}
         </Button>
         <div
-          className="my-1 flex items-center gap-3 text-xs text-muted"
+          className="auth-divider flex items-center gap-3 text-xs text-muted"
           aria-hidden="true"
         >
           <span className="h-px flex-1 bg-line" />
@@ -186,21 +195,18 @@ export function LoginPage() {
           <GoogleMark />
           {googlePending ? 'Conectando con Google…' : 'Continuar con Google'}
         </Button>
-        <p className="text-center text-sm">
-          <Link className="underline" to="/auth/forgot-password">
-            ¿Olvidaste tu contraseña?
-          </Link>
-        </p>
-        <p className="text-center text-sm">
+      </form>
+      <div className="auth-account-prompt">
+        <p>
           ¿Aún no tienes cuenta?{' '}
-          <Link className="font-semibold underline" to="/auth/register">
+          <Link className="auth-link" to="/auth/register">
             Crear cuenta
           </Link>
         </p>
-        <p className="text-center text-xs leading-relaxed text-muted">
-          Necesitas conexión a internet para acceder.
-        </p>
-      </form>
+      </div>
+      <p className="auth-connection-note">
+        Necesitas conexión a internet para acceder.
+      </p>
     </>
   );
 }

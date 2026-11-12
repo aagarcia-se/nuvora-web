@@ -12,4 +12,6 @@
     (preference !== 'light' &&
       matchMedia('(prefers-color-scheme: dark)').matches);
   document.documentElement.classList.toggle('dark', dark);
+  const themeColor = document.querySelector('#theme-color');
+  if (themeColor) themeColor.setAttribute('content', dark ? '#171A19' : '#F4F2ED');
 })();

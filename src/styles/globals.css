@@ -4,30 +4,32 @@
 
 :root {
   color-scheme: light;
-  --color-bg: 247 248 242;
+  /* Nuvora palette: warm neutrals carry the UI; lima is identity and action only. */
+  --color-brand: 213 244 84;
+  --color-bg: 244 242 237;
   --color-surface: 255 255 255;
-  --color-surface-2: 238 242 228;
-  --color-line: 220 227 206;
-  --color-ink: 27 33 20;
-  --color-muted: 85 96 71;
-  --control-border: #788367;
-  --focus: #48620d;
-  --primary-hover: #c6e544;
-  --danger: #a52121;
-  --danger-bg: #fff0ee;
-  --success: #236237;
-  --warning: #745000;
-  --info: #255d82;
+  --color-surface-2: 234 231 224;
+  --color-line: 214 210 201;
+  --color-ink: 30 36 33;
+  --color-muted: 89 97 92;
+  --control-border: #7b827c;
+  --focus: #516b18;
+  --primary-hover: #c2e744;
+  --danger: #b42318;
+  --danger-bg: #fff1ef;
+  --success: #166534;
+  --warning: #854d0e;
+  --info: #075985;
 }
 .dark {
   color-scheme: dark;
-  --color-bg: 16 18 13;
-  --color-surface: 25 29 20;
-  --color-surface-2: 35 41 27;
-  --color-line: 60 70 48;
-  --color-ink: 245 247 239;
-  --color-muted: 181 190 166;
-  --control-border: #859271;
+  --color-bg: 23 26 25;
+  --color-surface: 32 37 35;
+  --color-surface-2: 43 49 46;
+  --color-line: 65 73 68;
+  --color-ink: 243 244 239;
+  --color-muted: 183 192 186;
+  --control-border: #89938d;
   --focus: #d5f454;
   --primary-hover: #e1fa83;
   --danger: #ffb4ab;
@@ -68,15 +70,14 @@
     min-width: 0;
     max-width: 42rem;
     margin: 0;
-    background: #23291b;
-    color: #f5f7ef;
-    border-color: #3c4630;
+    background: rgb(var(--color-surface-2));
+    color: rgb(var(--color-ink));
+    border-color: rgb(var(--color-line));
   }
-  .dark .install-banner { background: #191d14; border-color: #596549; }
-  .install-description { color: #c6cfb8; }
-  .install-banner :focus-visible { outline-color: #d5f454; }
-  .install-close:active { background: #3c4630; }
-  .theme-option[aria-pressed='true'], .install-icon { background: #d5f454; color: #17200a; }
+  .install-description { color: rgb(var(--color-muted)); }
+  .install-banner :focus-visible { outline-color: var(--focus); }
+  .install-close:active { background: rgb(var(--color-line)); }
+  .theme-option[aria-pressed='true'], .install-icon { background: rgb(var(--color-brand)); color: #17200a; }
   .theme-option:active { background: rgb(var(--color-surface-2)); }
   .app-shell {
     @apply flex flex-col;
@@ -198,7 +199,7 @@
     @apply absolute right-1 top-1/2 min-h-12 -translate-y-1/2 rounded-lg px-3 text-sm font-medium text-muted;
   }
   .brand-highlight {
-    background: #d5f454;
+    background: rgb(var(--color-brand));
     color: #17200a;
     box-decoration-break: clone;
     padding-inline: 0.15em;

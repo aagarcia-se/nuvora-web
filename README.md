@@ -20,7 +20,7 @@ Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
 implementados. El usuario confirmó login real funcional después de corregir el
 origen del API y posteriormente aceptó las pruebas del banner/interfaz. No se
 registraron navegador/dispositivo ni una lista detallada de casos manuales.
-Registro por correo/contraseña está disponible en `/auth/register`, con confirmación de correo cuando el API no devuelve sesión. Google OAuth está disponible mediante `/auth/callback`; recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`.
+Registro por correo/contraseña está disponible en `/auth/register`, con confirmación de correo cuando el API no devuelve sesión. Google OAuth está disponible mediante `/auth/callback`; recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`. El usuario confirmó estos tres flujos en el ambiente publicado después de configurar el API de Render y los redirects HTTPS.
 
 La interfaz usa lima `#D5F454`, control sol/luna y banner compacto superior de
 instalación. El banner puede mostrarse antes de que el navegador permita instalar;
@@ -132,21 +132,30 @@ VITE_SUPABASE_URL=<URL pública del proyecto Supabase>
 VITE_SUPABASE_PUBLISHABLE_KEY=<clave publishable pública de Supabase>
 ```
 
+Para el ambiente publicado actual, configura en Vercel:
+
+```text
+VITE_API_BASE_URL=https://nuvora-api-pil.onrender.com
+```
+
+No uses el dominio anterior de Vercel para el API ni agregues `/api` o
+`/api/v1`. El API Express está desplegado en Render.
+
 Todas las variables `VITE_*` quedan en el navegador. No configurar claves
 secretas, service role ni credenciales de proveedores. Al cambiar una variable,
 crea un nuevo deployment porque Vite las incorpora durante el build.
 
 ### Redirects, CORS y pasos de producción
 
-Después de que Vercel asigne el dominio final, registra la URL HTTPS real en los
-redirects permitidos de Supabase, incluyendo:
+Para el ambiente publicado, registra en los redirects permitidos de Supabase:
 
 ```text
-https://<dominio-final>/auth/callback
+https://nuvorapil.vercel.app/auth/callback
+https://nuvorapil.vercel.app/auth/reset-password
 ```
 
-Configura el mismo callback/origen en `AUTH_REDIRECT_URL` del backend y en
-Google OAuth/Supabase. En el API permite por CORS el origen HTTPS final de
+En Render configura `AUTH_REDIRECT_URL` y `PASSWORD_RESET_REDIRECT_URL` con esas
+URLs. En el API permite por CORS el origen HTTPS final de
 Vercel (además de los orígenes locales/staging necesarios), no `/api/v1` ni un
 comodín innecesario. `VITE_API_BASE_URL` debe ser solo el origen del API; el
 frontend añade `/api/v1`.
@@ -160,8 +169,9 @@ Pasos exactos:
    `.env`.
 4. Despliega desde Vercel y prueba una ruta interna, `/auth/callback`, el
    manifest y `/sw.js`.
-5. Configura el dominio final en Supabase/Google OAuth y el CORS del API;
-   valida login, refresh, logout y recarga directa de una ruta interna.
+5. Configura el dominio final en Supabase, los redirects en Render y el CORS
+   del API; valida registro, login, Google OAuth, recuperación, refresh, logout
+   y recarga directa de una ruta interna.
 
 ## PWA
 

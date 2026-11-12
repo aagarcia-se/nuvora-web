@@ -2,7 +2,7 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
-import { pwaThemeColor } from './src/shared/config/brand.ts';
+import { pwaBackgroundColor, pwaThemeColor } from './src/shared/config/brand.ts';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
           scope: '/',
           display: 'standalone',
           theme_color: pwaThemeColor,
-          background_color: '#F7F8F2',
+           background_color: pwaBackgroundColor,
           icons: [
             {
               src: '/icons/icon-192.png',

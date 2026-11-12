@@ -15,10 +15,9 @@ export function ThemeSelector() {
     const media = matchMedia('(prefers-color-scheme: dark)');
     const apply = () => {
       setSystemDark(media.matches);
-      document.documentElement.classList.toggle(
-        'dark',
-        theme === 'dark' || (theme === 'system' && media.matches),
-      );
+      const dark = theme === 'dark' || (theme === 'system' && media.matches);
+      document.documentElement.classList.toggle('dark', dark);
+      document.querySelector('#theme-color')?.setAttribute('content', dark ? '#171A19' : '#F4F2ED');
     };
     apply();
     try {

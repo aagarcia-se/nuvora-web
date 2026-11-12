@@ -3,6 +3,8 @@ import { mkdir } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
 // La N está dentro de la zona segura circular del icono maskable (80%).
+// Los iconos instalables no pueden depender de transparencia: Android puede
+// componerla sobre negro durante el splash. El fondo coincide con el manifest.
 const source = new URL('../public/favicon.svg', import.meta.url);
 const output = new URL('../public/icons/', import.meta.url);
 await mkdir(output, { recursive: true });
@@ -15,6 +17,7 @@ for (const [name, size] of [
 ]) {
   await sharp(fileURLToPath(source))
     .resize(size, size)
+    .flatten({ background: '#F7F8F6' })
     .png()
     .toFile(fileURLToPath(new URL(name, output)));
 }

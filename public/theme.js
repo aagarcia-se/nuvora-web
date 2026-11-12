@@ -15,4 +15,6 @@
   document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
   const themeColor = document.querySelector('#theme-color');
   if (themeColor) themeColor.setAttribute('content', dark ? '#111715' : '#F7F8F6');
+  const appleStatusBar = document.querySelector('#apple-status-bar-style');
+  if (appleStatusBar) appleStatusBar.setAttribute('content', dark ? 'black-translucent' : 'default');
 })();

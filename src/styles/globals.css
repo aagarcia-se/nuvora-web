@@ -41,11 +41,18 @@
 @layer base {
   body {
     @apply m-0 bg-bg font-sans text-ink antialiased;
+    background-color: rgb(var(--color-bg));
   }
   html,
   body,
   #root {
     min-height: 100%;
+    background-color: rgb(var(--color-bg));
+  }
+  body,
+  #root {
+    min-height: 100vh;
+    min-height: 100dvh;
   }
   html {
     overflow-wrap: break-word;

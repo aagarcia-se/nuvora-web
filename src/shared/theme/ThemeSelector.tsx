@@ -1,6 +1,13 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@/shared/ui/components/Icon';
 type Theme = 'light' | 'dark' | 'system';
+const lightThemeColor = '#F4F2ED';
+const darkThemeColor = '#171A19';
+
+function applyThemeColor(dark: boolean) {
+  document.querySelector('#theme-color')?.setAttribute('content', dark ? darkThemeColor : lightThemeColor);
+}
+
 export function ThemeSelector() {
   const [theme, setTheme] = useState<Theme>(() => {
     try {
@@ -17,7 +24,7 @@ export function ThemeSelector() {
       setSystemDark(media.matches);
       const dark = theme === 'dark' || (theme === 'system' && media.matches);
       document.documentElement.classList.toggle('dark', dark);
-      document.querySelector('#theme-color')?.setAttribute('content', dark ? '#171A19' : '#F4F2ED');
+       applyThemeColor(dark);
     };
     apply();
     try {

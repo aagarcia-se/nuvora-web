@@ -191,7 +191,8 @@ una PWA previamente instalada desde cualquier pestaña/navegador.
 
 El build incluye manifest, service worker y registro desde `PwaStatus`.
 El nombre del manifest usa `VITE_APP_NAME` al compilar. La identidad
-de instalación es una N oscura sobre lima `#D5F454`.
+de instalación es una N lima `#D5F454` sobre fondo transparente; el arranque
+PWA usa grafito `#171A19` para evitar un recuadro lima.
 Los iconos PNG (192, 512, maskable 512 y Apple 180) se versionan en `public/icons`.
 Para regenerarlos después de editar `public/favicon.svg`:
 

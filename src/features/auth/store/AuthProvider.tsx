@@ -18,6 +18,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     ...anonymous,
     status: supabase ? 'loading' : 'anonymous',
   });
+  const [initializing, setInitializing] = useState(Boolean(supabase));
   const request = useRef<AbortController | null>(null);
   const generation = useRef(0);
   const sessionRef = useRef<Session | null>(null);
@@ -35,6 +36,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
       const version = generation.current;
       if (!session) {
         sessionRef.current = null;
+        setInitializing(false);
         setState(anonymous);
         return;
       }
@@ -46,6 +48,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
         const user = await currentUser(session.access_token, controller.signal);
         if (version === generation.current)
           setState({ status: 'authenticated', user, error: null });
+        setInitializing(false);
       } catch (error) {
         if (version !== generation.current || controller.signal.aborted) return;
         // A stale /me (or provider) failure must not replace a newer, valid
@@ -65,12 +68,14 @@ export function AuthProvider({ children }: PropsWithChildren) {
               ...anonymous,
               error: 'El servidor rechazó la sesión. Inicia sesión de nuevo.',
             });
+          setInitializing(false);
         } else
           setState({
             ...anonymous,
             status: 'error',
             error: authMessage(error),
           });
+        setInitializing(false);
       }
     },
     [clear],
@@ -163,7 +168,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
   }
   return (
-      <AuthContext.Provider value={{ ...state, login, register, logout, retry }}>
+      <AuthContext.Provider value={{ ...state, initializing, login, register, logout, retry }}>
       {children}
     </AuthContext.Provider>
   );

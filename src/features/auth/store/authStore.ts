@@ -2,6 +2,7 @@ import { createContext, useContext } from 'react';
 import type { AuthState } from '../types/auth.types';
 export const AuthContext = createContext<
   | (AuthState & {
+      initializing: boolean;
       login: (email: string, password: string) => Promise<void>;
       register: (email: string, password: string) => Promise<boolean>;
       logout: () => Promise<void>;

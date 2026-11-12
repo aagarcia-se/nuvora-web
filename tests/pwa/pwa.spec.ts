@@ -22,7 +22,7 @@ test('manifest, iconos e instalación disponibles en Chromium', async ({
     return (await fetch(link!.href)).json();
   });
   expect(manifest.display).toBe('standalone');
-  expect(manifest.theme_color).toBe('#F4F2ED');
+  expect(manifest.theme_color).toBe('#171A19');
   expect(manifest.icons).toEqual(
     expect.arrayContaining([
       expect.objectContaining({ sizes: '192x192', purpose: 'any' }),

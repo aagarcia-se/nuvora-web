@@ -94,3 +94,8 @@ Guía operativa, estados, archivos y verificaciones en [WORKSPACES.md](./WORKSPA
 Se reutiliza la composición de workspaces y la skill UI/UX Pro Max (minimalismo y resumen de errores enfocable), sin cambiar identidad, tokens o estilos globales. La cartera requiere espacio confirmado; nombre del espacio visible en sección y diálogos. Creación con nombre/NIT opcional; edición con acciones mantener/cambiar/quitar NIT y PATCH parcial. Formularios con labels, hints, resumen enlazado, estado de guardado y bloqueo de doble envío. Permisos del API controlan las acciones disponibles; el servidor conserva autorización. Máscaras no se reconstruyen.
 
 Estilos locales y patrón de diálogo nativo existente, con listas adaptables, carga/vacío/error y confirmación. Los estados descritos están implementados, no certificados por inspección visual o suites. Casos mockeados preparados sin ejecutar Playwright. Informe vigente: [ENTITIES.md](./ENTITIES.md).
+
+
+## Ampliación de paleta — 2026-11-12
+
+Paleta complementaria aplicada y contraste numérico revisado en ambos temas. Decisiones y límites actuales: [PALETTE.md](PALETTE.md), [PALETTE-CONTRAST.md](PALETTE-CONTRAST.md). No se ejecutó revisión visual/Playwright de esta ampliación.

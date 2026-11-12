@@ -69,8 +69,9 @@
   place-items: center;
   border: 1px solid rgb(var(--color-line));
   border-radius: 0.75rem;
-  color: rgb(var(--color-brand));
-  background: rgb(var(--color-surface));
+  color: rgb(var(--color-accent));
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
   font-size: 0.875rem;
   font-weight: 600;
 }
@@ -162,7 +163,7 @@
   overscroll-behavior: contain;
   padding: max(0.5rem, env(safe-area-inset-top)) 0
     max(1rem, env(safe-area-inset-bottom)) max(0px, env(safe-area-inset-left));
-  background: rgb(var(--color-surface));
+  background: rgb(var(--color-nav));
   border-right: 1px solid rgb(var(--color-line));
   box-shadow: 16px 0 64px rgb(0 0 0 / 0.12);
 }
@@ -201,7 +202,7 @@
     overflow-y: auto;
     padding-top: env(safe-area-inset-top);
     border-right: 1px solid rgb(var(--color-line));
-    background: rgb(var(--color-surface));
+    background: rgb(var(--color-nav));
   }
   .sidebarHeading {
     display: flex;

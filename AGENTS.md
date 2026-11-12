@@ -1,5 +1,15 @@
 # AGENTS.md — Nuvora Web
 
+## Ajuste visual más reciente
+
+Usuario rechazó teal/borde decorativo de ficha. Acento compartido ahora azul #0369A1 claro / #7DD3FC oscuro; cabecera neutra y ficha sin borde exterior/línea superior. Conservar padding y distribución. Esta decisión reemplaza referencias históricas a cabecera teal. Estado y resultados en codex.md.
+
+
+## Paleta vigente — 2026-11-12
+
+Usuario autorizó ampliar la paleta: índigo de marca conservado, neutros azulados para superficies/navegación, teal de identidad, verde de éxito y azul informativo. Tokens centrales en globals.css y mapeo Tailwind 3.4; no dispersar hex ni usar colores de estado en decoraciones ambiguas. Documentación: docs/PALETTE.md y PALETTE-CONTRAST.md (24 combinaciones verificadas, sin revisión visual/Playwright). Esta autorización reemplaza las restricciones históricas de no cambiar paleta. Mantener arquitectura/rutas/sesión actuales.
+
+
 ## Continuidad vigente — menú responsive, 2026-11-12
 
 Menú autorizado e implementado sobre las rutas existentes: lateral desde 1024 px, panel modal nativo en móvil/PWA. Fuente de verdad del contexto: query del detalle del workspace confirmada por API, compartida con su boundary. Solo Espacios y Clientes cuando corresponda; sin secciones futuras. Perfil/apariencia/logout continúan en avatar; no duplicarlos en el menú lateral. Preservar cierre/foco/Escape/cambio de ancho, safe areas, tokens y restricción de Playwright. Ver `codex.md`, `docs/NAVIGATION.md` y `docs/ROUTING.md` para resultados reales. Los bloques históricos siguientes describen fases anteriores; no restaurar perfil/cartera incrustados en inicio.
@@ -195,3 +205,8 @@ Estado y límites en `codex.md` y `docs/ROUTING.md`: lint/build aprobados; suite
 ## Continuidad de sesión — 2026-11-12
 
 Preservar la corrección de AuthProvider: SIGNED_IN repetido/TOKEN_REFRESHED del mismo usuario ya verificado no deben limpiar Query ni desmontar UI. Identidad verificada se invalida en clear; cambios reales de sesión siguen resolviéndose. No desactivar refresh SDK ni revalidación de permisos para ocultar parpadeos. Hallazgo, caso preparado y resultados en `docs/SESSION-CONTINUITY.md`; Playwright no ejecutado.
+
+
+## Corrección de foco/ficha — 2026-11-12
+
+Main sigue como destino de foco programático y skip link, pero `.content:focus` no dibuja un contorno alrededor de toda la página. No extender esa excepción a controles interactivos. Ficha de cliente y edición tienen padding responsive propio, sin reutilizar el footer de diálogos en la vista de lectura; conservar cabecera teal, campos separados y acceso informativo azul. Estado y límites en codex.md.

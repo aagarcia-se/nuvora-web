@@ -196,7 +196,7 @@ function EntityPortfolio({
                     >
                       <span className={styles.identity}>
                         <span
-                          className={workspaceStyles.spaceInitials}
+                          className={`${workspaceStyles.spaceInitials} ${styles.clientAvatar}`}
                           aria-hidden="true"
                         >
                           {initials(entity.legal_name)}

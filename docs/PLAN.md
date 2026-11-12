@@ -279,3 +279,13 @@ Implementado lateral de escritorio y panel móvil/PWA sobre las rutas existentes
 ## Continuidad al recuperar foco — 2026-11-12
 
 Corregido reinicio de auth por eventos repetidos del SDK del mismo usuario verificado. Detalles y límites en [SESSION-CONTINUITY.md](SESSION-CONTINUITY.md).
+
+
+## Ampliación de paleta — 2026-11-12
+
+Paleta complementaria aplicada y contraste numérico revisado en ambos temas. Decisiones y límites actuales: [PALETTE.md](PALETTE.md), [PALETTE-CONTRAST.md](PALETTE-CONTRAST.md). No se ejecutó revisión visual/Playwright de esta ampliación.
+
+
+## Foco y ficha de cliente — 2026-11-12
+
+Corregido contorno de main y rediseñada ficha con padding, cabecera teal y datos agrupados. Estado en codex.md y [PALETTE.md](PALETTE.md). Validación visual pendiente.

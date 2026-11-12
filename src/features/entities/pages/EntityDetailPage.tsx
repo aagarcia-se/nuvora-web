@@ -1,7 +1,10 @@
 import { useRef, useState } from 'react';
 import { Button } from '@/shared/ui/components/Button';
 import { Icon } from '@/shared/ui/components/Icon';
-import { displayDate } from '@/features/workspace/utils/workspacePresentation';
+import {
+  displayDate,
+  initials,
+} from '@/features/workspace/utils/workspacePresentation';
 import workspaceStyles from '@/features/workspace/workspace.module.css';
 import { useEntity, useEntityWrite } from '../api/useEntityQueries';
 import { entityTaxLabel } from '../utils/entityPresentation';
@@ -67,26 +70,29 @@ export function EntityDetailPage({
         entity && (
           <>
             {editingAllowed ? (
-              <EntityForm
-                entity={entity}
-                pending={write.isPending}
-                error={write.error}
-                onCancel={cancelEdit}
-                onClearError={() => write.reset()}
-                onSave={async (input) => {
-                  const patch: PatchEntityInput = {};
-                  if (input.legalNameChanged) patch.legalName = input.legalName;
-                  if (input.taxId !== undefined) patch.taxId = input.taxId;
-                  await write.mutateAsync({
-                    kind: 'patch',
-                    entityId,
-                    input: patch,
-                  });
-                  setEditing(false);
-                  setMessage('Cambios guardados.');
-                  requestAnimationFrame(() => heading.current?.focus());
-                }}
-              />
+              <div className={styles.editCard}>
+                <EntityForm
+                  entity={entity}
+                  pending={write.isPending}
+                  error={write.error}
+                  onCancel={cancelEdit}
+                  onClearError={() => write.reset()}
+                  onSave={async (input) => {
+                    const patch: PatchEntityInput = {};
+                    if (input.legalNameChanged)
+                      patch.legalName = input.legalName;
+                    if (input.taxId !== undefined) patch.taxId = input.taxId;
+                    await write.mutateAsync({
+                      kind: 'patch',
+                      entityId,
+                      input: patch,
+                    });
+                    setEditing(false);
+                    setMessage('Cambios guardados.');
+                    requestAnimationFrame(() => heading.current?.focus());
+                  }}
+                />
+              </div>
             ) : (
               <div className={styles.detailBody}>
                 {message && (
@@ -95,34 +101,60 @@ export function EntityDetailPage({
                     {message}
                   </p>
                 )}
-                <h2 ref={heading} tabIndex={-1} className={styles.clientName}>
-                  {entity.legal_name}
-                </h2>
+                <div className={styles.detailIdentity}>
+                  <span className={styles.detailAvatar} aria-hidden="true">
+                    {initials(entity.legal_name)}
+                  </span>
+                  <div className={styles.detailIdentityCopy}>
+                    <p className={styles.detailKicker}>Ficha del cliente</p>
+                    <h2
+                      ref={heading}
+                      tabIndex={-1}
+                      className={styles.clientName}
+                    >
+                      {entity.legal_name}
+                    </h2>
+                  </div>
+                </div>
                 <dl className={styles.details}>
                   <div>
-                    <dt>{canEdit ? 'NIT' : 'NIT protegido'}</dt>
+                    <dt>
+                      <Icon name="id-card" />
+                      {canEdit ? 'NIT' : 'NIT protegido'}
+                    </dt>
                     <dd>{entityTaxLabel(entity)}</dd>
                   </div>
                   <div>
-                    <dt>Tu acceso</dt>
-                    <dd>{canEdit ? 'Consulta y edición' : 'Consulta'}</dd>
+                    <dt>
+                      <Icon name="shield" />
+                      Tu acceso
+                    </dt>
+                    <dd>
+                      <span className={styles.accessValue}>
+                        {canEdit ? 'Consulta y edición' : 'Consulta'}
+                      </span>
+                    </dd>
                   </div>
                   <div>
-                    <dt>Registrado el</dt>
+                    <dt>
+                      <Icon name="calendar" />
+                      Registrado el
+                    </dt>
                     <dd>{displayDate(entity.created_at)}</dd>
                   </div>
                   <div>
-                    <dt>Última actualización</dt>
+                    <dt>
+                      <Icon name="clock" />
+                      Última actualización
+                    </dt>
                     <dd>{displayDate(entity.updated_at)}</dd>
                   </div>
                 </dl>
-                {!canEdit && (
-                  <p className={styles.note}>
-                    Los datos disponibles y la edición dependen de tus permisos
-                    en este espacio.
+                <div className={styles.detailActions}>
+                  <p className={styles.actionHint}>
+                    La información y la edición disponibles dependen de tus
+                    permisos en este espacio.
                   </p>
-                )}
-                <div className={workspaceStyles.dialogActions}>
                   {canEdit && (
                     <Button
                       type="button"
@@ -132,6 +164,7 @@ export function EntityDetailPage({
                         write.reset();
                       }}
                     >
+                      <Icon name="pencil" />
                       Editar cliente
                     </Button>
                   )}

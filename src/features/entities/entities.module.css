@@ -117,6 +117,8 @@
 }
 .detailBody {
   margin-top: 1.5rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: rgb(var(--color-surface));
 }
 .clientName {
   font-size: 1.25rem;
@@ -126,24 +128,40 @@
   overflow-wrap: anywhere;
 }
 .details {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  margin-block: 1.5rem;
-  padding-block: 1.25rem;
-  border-block: 1px solid rgb(var(--color-line));
+  margin-block: 0.5rem 1.5rem;
 }
 .details > div {
+  display: grid;
+  grid-template-columns: minmax(11rem, 0.6fr) minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 2rem;
+  row-gap: 0.5rem;
   min-width: 0;
+  padding-block: 1.125rem;
+  border-bottom: 1px solid rgb(var(--color-line));
+}
+.details > div:last-child {
+  border-bottom: 0;
 }
 .details dt {
-  margin-bottom: 0.375rem;
-  font-size: 0.6875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  font-size: 0.8125rem;
   color: rgb(var(--color-muted));
+  line-height: 1.6;
+}
+.details dt svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  color: rgb(var(--color-accent));
 }
 .details dd {
-  font-size: 0.8125rem;
+  font-size: 0.9375rem;
   line-height: 1.7;
+  font-variant-numeric: tabular-nums;
   overflow-wrap: anywhere;
 }
 .note {
@@ -159,6 +177,10 @@
   margin-bottom: 1.25rem;
   color: var(--success);
   font-size: 0.875rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--success-border);
+  border-radius: 0.75rem;
+  background: var(--success-bg);
 }
 .recoveryLink {
   display: inline-flex;
@@ -215,11 +237,96 @@
   margin-inline: auto;
 }
 .detailPage .detailBody {
-  border: 1px solid rgb(var(--color-line));
-  border-radius: 1rem;
+  border: 0;
+  border-radius: 1.25rem;
 }
 
 .row {
   text-decoration: none;
   color: inherit;
+}
+
+.clientAvatar {
+  color: rgb(var(--color-accent));
+  background: var(--accent-bg);
+  border-color: var(--accent-border);
+}
+
+.detailIdentity {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgb(var(--color-line));
+}
+.detailIdentityCopy {
+  min-width: 0;
+}
+.detailAvatar {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.875rem;
+  background: rgb(var(--color-accent));
+  color: var(--on-accent);
+  font-size: 1rem;
+  font-weight: 600;
+}
+.detailKicker {
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: rgb(var(--color-accent));
+}
+.accessValue {
+  color: var(--info);
+  font-weight: 500;
+}
+.detailActions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(var(--color-line));
+}
+.actionHint {
+  max-width: 27rem;
+  color: rgb(var(--color-muted));
+  font-size: 0.8125rem;
+  line-height: 1.75;
+}
+.detailActions > button {
+  flex-shrink: 0;
+}
+.editCard {
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 0;
+  border-radius: 1.25rem;
+  background: rgb(var(--color-surface));
+}
+@media (max-width: 639px) {
+  .detailActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+  .detailIdentity {
+    align-items: flex-start;
+  }
+  .details > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .details dd {
+    padding-left: 1.875rem;
+  }
+  .detailAvatar {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+  .details {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

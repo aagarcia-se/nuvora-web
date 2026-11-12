@@ -1,3 +1,37 @@
+# Estado vigente — ficha sin borde y acento azul, 2026-11-12
+
+Ajuste solicitado sobre la captura: retirados borde exterior/línea superior de la ficha, borde de su cabecera y línea superior de edición. Distribución, padding y bloques de datos conservados. Cabecera neutra azulada, avatar/acento azul en lugar de teal; éxito mantiene verde y acciones mantienen índigo.
+
+Skill UI/UX Pro Max consultada: `B2B Service professional navy --domain color`, coincidencia B2B Service (navy/azul). Adaptación a marca índigo existente; tokens de acento centrales #0369A1 claro / #7DD3FC oscuro, fondos #F0F9FF / #132F43. Cambia también el acento compartido en lista de clientes/contexto para conservar coherencia. Sin cambios de API, datos, permisos o foco.
+
+Contraste numérico actualizado en docs/PALETTE-CONTRAST.md. **Lint y build aprobados (salida 0)**. Permanece el aviso de chunk superior a 500 kB. Las 6 combinaciones nuevas de acento superan 4,5:1. Playwright y validación visual del resultado pendientes. Los apartados de teal siguientes son históricos y quedan reemplazados por esta decisión.
+
+---
+
+# Estado vigente — correcciones por capturas del usuario, 2026-11-12
+
+**Implementado:** quitar el contorno de foco del contenedor de lectura `.content` (main), conservando su destino de foco/tabindex para navegación y skip link. No se eliminaron los indicadores de foco de botones, enlaces, campos o títulos enfocados al guardar/cancelar.
+
+Ficha de cliente rediseñada: tarjeta con fondo de superficie y padding responsive de 20–32 px, cabecera teal con iniciales, bloques de datos con padding propio, etiqueta azul de permisos y pie independiente con acción/explicación. Formulario de edición también dentro de tarjeta acolchada. Sin cambios de datos, autorización, sesión o API. El color no implica aprobación fiscal.
+
+UI/UX Pro Max consultada: jerarquía tipográfica y espaciado/padding responsive. La consulta de stack devuelve guía Tailwind 4.3; solo se aplicaron principios de espaciado en CSS compatible con el proyecto 3.4, sin migración. Nuevo token `--on-accent` para texto sobre teal: contraste sRGB 5,47:1 claro y 12,07:1 oscuro.
+
+**Lint y build aprobados (salida 0)**; TypeScript y generación Vite/PWA completos. Bundle principal 657,85 kB (191,37 kB gzip); permanece el aviso superior a 500 kB. Playwright no ejecutado. Las capturas del usuario muestran el problema anterior; no equivalen a aceptación de la corrección ni a revisión del resultado en navegador. Solo `nuvora-web`; sin Git, env, dependencias o API. Historial a continuación.
+
+---
+
+# Estado vigente — paleta complementaria, 2026-11-12
+
+**Paleta implementada por solicitud del usuario**, conservando índigo de marca. UI/UX Pro Max consultada y refinada a paleta Micro SaaS índigo/esmeralda; adaptación operativa documentada en [docs/PALETTE.md](docs/PALETTE.md).
+
+Fondo gris azulado, superficies secundarias neutras y navegación diferenciada; teal para contexto/iniciales de clientes; verde semántico en confirmaciones de creación/guardado/Auth y azul en etiquetas de acceso. Advertencia ámbar disponible en tokens sin inventar estados. Temas claro/oscuro centralizados en globals.css y mapeados en Tailwind 3.4. Meta claro alineado con fondo; PWA nativa oscura conservada.
+
+**24 combinaciones de texto verificadas numéricamente, todas ≥4,5:1**, incluyendo selección con transparencia. Ver [docs/PALETTE-CONTRAST.md](docs/PALETTE-CONTRAST.md). No equivale a auditoría completa ni validación visual. Playwright no ejecutado. **Lint y build aprobados (salida 0)**; permanece el aviso de chunk superior a 500 kB. Resultados en la guía de paleta.
+
+Solo `nuvora-web`; sin API, entornos, dependencias o Git. La corrección de continuidad de sesión anterior fue confirmada funcional por el usuario; esa confirmación no valida otros escenarios de sesión ni estos cambios visuales. Historial a continuación.
+
+---
+
 # Estado vigente — continuidad al recuperar foco, 2026-11-12
 
 **Corrección implementada:** `AuthProvider` ya no limpia caché ni desmonta la aplicación ante `SIGNED_IN` repetido o `TOKEN_REFRESHED` del mismo usuario previamente verificado por `/auth/me`. La sesión más reciente se conserva en la referencia; Supabase continúa como único gestor de renovación. Inicio inicial, cambio de identidad, recuperación, error/reintento y logout mantienen su resolución/limpieza.

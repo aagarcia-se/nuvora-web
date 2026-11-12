@@ -2,6 +2,10 @@ export function Icon({
   name,
 }: {
   name:
+    | 'id-card'
+    | 'calendar'
+    | 'clock'
+    | 'pencil'
     | 'menu'
     | 'sun'
     | 'moon'
@@ -30,6 +34,30 @@ export function Icon({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      {name === 'id-card' && (
+        <>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <circle cx="8" cy="10" r="1.5" />
+          <path d="M5.5 15a2.5 2.5 0 0 1 5 0M14 9h4m-4 4h4" />
+        </>
+      )}
+      {name === 'calendar' && (
+        <>
+          <rect x="3" y="5" width="18" height="16" rx="2" />
+          <path d="M16 3v4M8 3v4M3 11h18m-13 5h2" />
+        </>
+      )}
+      {name === 'clock' && (
+        <>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v5l3 2" />
+        </>
+      )}
+      {name === 'pencil' && (
+        <>
+          <path d="m15 5 4 4M4 20l4-1L20 7a2.8 2.8 0 0 0-4-4L4 15l-1 6Z" />
+        </>
+      )}
       {name === 'menu' && <path d="M4 6h16M4 12h16M4 18h16" />}
       {name === 'sun' && (
         <>

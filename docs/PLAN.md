@@ -1,6 +1,8 @@
-# Plan vigente — Login Nuvora Web
+# Plan y continuidad — Nuvora Web
 
-**Estado de cierre:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
+**Lectura prioritaria:** la sección 16 contiene el estado operativo y pendientes actuales. Las secciones de resultados anteriores son históricas; los refinamientos visuales posteriores no se han validado. Por indicación del usuario, no ejecutar pruebas, lint ni build hasta nueva autorización.
+
+**Estado de autenticación:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
 
 Registro por correo/contraseña está implementado en `/auth/register`, junto con el enlace desde login. Google OAuth se reutiliza para registro/inicio con URL emitida por el API, callback PKCE/hash y adopción de sesión Supabase. La recuperación web está implementada con solicitud genérica, adopción PKCE/hash y actualización final de contraseña.
 
@@ -8,9 +10,9 @@ El frontend y backend están alineados para contraseñas nuevas: 8–128 caracte
 
 ## 1. Objetivo y prioridad
 
-Implementar los flujos Auth web coordinados: login y registro por correo/contraseña consumiendo el API existente, Google, gestión de sesión, bienvenida protegida y logout. Diseño responsive con verde lima **#D5F454**, tema claro, oscuro y sistema.
+Implementar los flujos Auth web coordinados: login y registro por correo/contraseña consumiendo el API existente, Google, gestión de sesión, bienvenida protegida y logout. Diseño responsive minimalista con índigo **#4F46E5**, lavanda **#A5B4FC** en oscuro y sistema por defecto hasta elección manual.
 
-Este es el punto de entrada vigente del plan frontend. Reemplaza la propuesta anterior de esmeralda y la entrega conjunta de todos los flujos Auth. Registro, recuperación y Google están implementados; cartera, libros y portal siguen en el roadmap y no se muestran enlaces a flujos inexistentes.
+Este es el punto de entrada vigente del plan frontend. La identidad índigo reemplaza las propuestas previas de esmeralda y lima; no restaurarlas. Registro, recuperación y Google están implementados; cartera, libros y portal siguen en el roadmap y no se muestran enlaces a flujos inexistentes.
 
 Referencias:
 - [AGENTS.md](../AGENTS.md): reglas permanentes.
@@ -26,7 +28,7 @@ El borrador detallado de esta entrega se creó en `C:/Users/agarcia/.opencode/pl
 - Arquitectura `app`, `features`, `shared`, `styles` y alias `@/`.
 - PWA existente: instalación, manifest, iconos, service worker, aviso de actualización y shell offline; pruebas Playwright.
 - API Express/Supabase: signin, validación Bearer y `/auth/me`, seguridad y logs existentes. No reconstruir ni modificar el backend dentro de esta tarea sin coordinación.
-- Inspeccionar git y dependencias antes de trabajar y conservar cambios del usuario. No instalar paquetes ni generar módulos ajenos al login.
+- Inspeccionar archivos y dependencias sin ejecutar comandos Git y conservar cambios del usuario. No instalar paquetes ni generar módulos ajenos al login.
 
 ## 3. UI/UX Pro Max
 
@@ -34,35 +36,33 @@ Leer y aplicar `.opencode/skills/ui-ux-pro-max/SKILL.md` para sistema visual, co
 
 La skill está instalada. Aunque Python no estaba disponible en la primera planificación, el agente reportó haber consultado su buscador durante la implementación. Revalidar disponibilidad en futuras tareas; no instalar Python automáticamente ni atribuir resultados a búsquedas no ejecutadas.
 
-El agente define componentes, colores complementarios, tipografía y recursos visuales. La elección explícita del usuario de lima y ambos temas prevalece sobre recomendaciones automáticas.
+El agente define componentes, colores complementarios, tipografía y recursos visuales. La elección vigente del usuario de sustituir lima por índigo y conservar ambos temas prevalece sobre recomendaciones automáticas.
 
 ## 4. Diseño aprobado como dirección
 
-Inspiración: imagen compartida de Dapta por su lima, contraste y tipografía marcada. No copiar marca, textos, métricas, logos de clientes ni estructura de landing. Crear una interfaz de acceso profesional para Nuvora Contadores.
+El usuario pidió sustituir lima por una identidad SaaS índigo y después rechazó el panel morado lateral. La dirección actual es centrada, funcional y minimalista, sin bloque de color, tarjeta ni sombra alrededor del formulario. No reconstruir la composición anterior.
 
 | Token | Claro | Oscuro |
 | --- | --- | --- |
-| Marca / botón primario | `#D5F454` | `#D5F454` |
-| Texto del botón primario | `#17200A` | `#17200A` |
-| Hover primario | `#C6E544` | `#E1FA83` |
-| Fondo | `#F7F8F2` | `#10120D` |
-| Superficie | `#FFFFFF` | `#191D14` |
-| Superficie secundaria | `#EEF2E4` | `#23291B` |
-| Texto principal | `#1B2114` | `#F5F7EF` |
-| Texto secundario | `#556047` | `#B5BEA6` |
-| Borde decorativo | `#DCE3CE` | `#3C4630` |
-| Enlace / foco propuesto | `#48620D` | `#D5F454` |
+| Marca / acción principal | `#4F46E5` | `#A5B4FC` |
+| Texto de acción principal | `#FFFFFF` | `#1E1B4B` |
+| Hover principal | `#4338CA` | `#C7D2FE` |
+| Fondo | `#F8FAFC` | `#0F172A` |
+| Superficie | `#FFFFFF` | `#1E293B` |
+| Superficie secundaria | `#EEF2FF` | `#273449` |
+| Texto principal | `#0F172A` | `#F8FAFC` |
+| Texto secundario | `#475569` | `#CBD5E1` |
+| Borde de campo | `#64748B` | `#94A3B8` |
+| Foco | `#4F46E5` | `#A5B4FC` |
 
-- Verificar contraste sobre componentes reales: texto normal 4.5:1, grande y controles relevantes 3:1. Bordes decorativos no sustituyen indicadores de foco/límites de input suficientemente contrastados.
-- No texto blanco sobre botón lima ni texto lima esencial sobre blanco. Estados error/éxito/advertencia/información tienen tokens propios y texto/icono, no solo color.
-- Centralizar tokens en Tailwind y `globals.css`. Conservar Inter/sistema si adecuada, espaciado consistente, radios moderados y sombras discretas.
-- Escritorio: formulario protagonista con panel lateral discreto de marca. Móvil: columna única y decoración reducida.
-- Formulario: correo, contraseña, mostrar/ocultar, Iniciar sesión y mensajes de estado. Labels visibles, teclado, foco, errores asociados y carga sin doble envío.
-- Permitir pegado, gestores de contraseñas y autocomplete `username`/`current-password`. No aplicar trim a contraseña.
-- Iconos SVG consistentes, preferiblemente Lucide tras revisar dependencias; nombre accesible en botones y decorativos ocultos al lector.
-- Si se necesita decoración, composición ligera SVG/CSS propia; no se requiere fotografía. Recursos externos con licencia, optimización y autorización aplicable.
-- Control accesible de iconos sol/luna: sistema por defecto hasta elección manual claro/oscuro, persistida y aplicada antes del primer render. Respetar reduced motion.
-- Unificar favicon/iconos PWA/metadatos con lima usando scripts existentes, sin reemplazar el mecanismo PWA. Verificar legibilidad y tamaños; no afirmar soporte de integración del sistema operativo sin probar.
+- Fuente de colores de interfaz: variables de `src/styles/globals.css`; `tailwind.config.ts` mapea los nombres semánticos. Cambiar solo Tailwind no sincroniza metadatos ni recursos gráficos.
+- Formulario máximo 416px, títulos fluidos, cabecera marca/«Contadores», recuperación junto al campo de contraseña, invitación a registro separada y texto auxiliar de conexión.
+- El selector sol/luna conserva sistema por defecto y preferencia manual persistida, con selección tonal discreta. Banner superior en flujo, icono neutro y acción de instalación secundaria; nunca un CTA inoperante.
+- Labels visibles, autocomplete, pegado, gestores de contraseñas, foco, estados y errores asociados. No aplicar trim a contraseña. Mantener semántica y objetivos táctiles de al menos 44px.
+- Monograma N geométrico SVG propio. Cabecera mediante máscara temática, sin placa; favicon/splash/PNG con lavanda sobre fondo uniforme #0F172A. Sin tipografía, imágenes externas ni dependencias nuevas.
+- Geometría sincronizada en `public/brand-mark.svg`, `public/favicon.svg`, `public/splash-logo.svg` y path inline de `index.html`. `scripts/generate-icons.mjs` genera los PNG desde **splash-logo.svg**, no desde el favicon.
+- Contraste objetivo AA: texto normal 4.5:1; texto grande y controles/foco pertinentes 3:1. Los cálculos y pruebas iniciales son históricos y no certifican toda la interfaz actual. Error/éxito no dependen solo del color.
+- Detalles y evolución: [UI-ACCESSIBILITY.md](./UI-ACCESSIBILITY.md).
 
 ## 5. Contratos verificados
 
@@ -126,13 +126,13 @@ No crear carpetas vacías para funcionalidades futuras. Ajustar nombres tras ins
 - Fallos de red/429/5xx recuperables y sin bucles de refresh.
 - Claro/oscuro/sistema persistentes, sin flash; contraste y teclado verificados en móvil/escritorio.
 - API, callbacks, tokens y documentos excluidos del caché PWA. Shell offline se conserva.
-- Ejecutar `npm run lint`, `npm run build`, pruebas funcionales login/temas y `npm run test:pwa` cuando se afecte PWA/iconos.
+- Solo tras nueva autorización del usuario: ejecutar `npm run lint`, `npm run build`, pruebas funcionales login/temas y `npm run test:pwa` según los cambios. Actualmente estas ejecuciones están suspendidas.
 - Mocks para casos de comportamiento y login real con usuario de prueba autorizado y Supabase no productivo. No versionar credenciales ni atribuir a mocks una integración real.
 
 ## 9. Orden de trabajo y entrega
 
 1. Leer AGENTS y skill, inspeccionar estado/dependencias/contratos.
-2. Implementar tokens lima, temas y formulario accesible.
+2. Mantener tokens índigo, temas y formulario accesible con la composición vigente.
 3. Integrar signin/Supabase, sesión, guards, bienvenida y logout.
 4. Completar errores, identidad PWA y pruebas.
 5. Entregar cambios, checks reales, configuración local y pendientes. Detenerse tras esta entrega y esperar la siguiente indicación.
@@ -157,7 +157,7 @@ demostraba caída del API. Los agentes no modificaron `.env` ni sus claves.
 - `/auth/reset-password` adopta enlaces PKCE (`code`) o recovery hash (`access_token`/`refresh_token`) mediante el SDK oficial Supabase. Limpia query/hash antes de continuar y nunca muestra ni persiste tokens o contraseñas.
 - La actualización obtiene la sesión vigente desde Supabase en el momento del envío y llama `POST /api/v1/auth/password-reset/update` con Bearer únicamente al API. Tras `204`, cierra la sesión local y ofrece volver a iniciar sesión.
 - Estados de validación, carga, éxito, enlace vencido/cancelado, errores de red/429 y validación de contraseña tienen feedback accesible. El marcador de recuperación en `sessionStorage` no contiene tokens y solo permite recuperar el estado de la pantalla después de limpiar la URL.
-- Verificación automatizada actual: 14 pruebas Auth simuladas, incluyendo solicitud/429 sin reintento, hash, limpieza de URL, Bearer al API, enlace inválido y regresiones de login/guards/logout. No certifica envío real de correo ni recuperación con una cuenta autorizada.
+- Verificación histórica de la entrega de recuperación: 14 pruebas Auth simuladas, incluyendo solicitud/429 sin reintento, hash, limpieza de URL, Bearer al API, enlace inválido y regresiones de login/guards/logout. No certifica envío real de correo ni recuperación con una cuenta autorizada.
 
 ## 12. Registro de usuarios
 
@@ -168,7 +168,7 @@ demostraba caída del API. Los agentes no modificaron `.env` ni sus claves.
 - Google reutiliza el flujo OAuth existente: una cuenta Google nueva puede registrarse mediante el proveedor y una existente iniciar sesión. No se implementan Microsoft ni LinkedIn.
 - Validación frontend/backend completada; falta probar registro real con confirmación de correo y SMTP del proyecto Supabase de cada ambiente.
 
-## 13. Cierre visual y PWA
+## 13. Cierre visual y PWA — histórico, sustituido por secciones 15 y 16
 
 - Identidad lima `#D5F454`, claro/oscuro con control sol/luna; sistema por defecto hasta elección manual persistida.
 - Banner compacto superior fijo, con icono, título, subtítulo, acción Instalar y cierre. Se muestra como promoción antes de recibir `beforeinstallprompt`; solo habilita instalación cuando puede abrir la confirmación nativa y no reserva espacio para el formulario.
@@ -188,8 +188,45 @@ Esta actualización documental no volvió a ejecutar pruebas ni implica publicac
 - La integración real requiere un proveedor configurado y una cuenta autorizada. No se considera validada por una respuesta simulada del endpoint ni por la compilación.
 
 
-## 15. Rediseño y accesibilidad — 2026-11-12
+## 15. Rediseño y accesibilidad — primera revisión del 2026-11-12
 
 Por solicitud del usuario, la identidad índigo sustituye la lima de la sección 13. El banner vigente es superior **en flujo**, no fijo, como dispone AGENTS.md. Se conserva autenticación/PWA y se rediseñan todas las pantallas existentes mediante el shell y componentes compartidos; no se añaden módulos de negocio.
 
 Decisiones, contraste AA de las parejas comprobadas y límites: [UI-ACCESSIBILITY.md](./UI-ACCESSIBILITY.md). Lint/build correctos; 22 pruebas Auth/contraste/responsive y 6 PWA aprobadas con Chrome como alternativa al Chromium local que falla al arrancar. Capturas de escritorio claro y móvil oscuro inspeccionadas. Continúan pendientes instalación real por SO, Safari/iOS y certificación integral de accesibilidad. El build conserva el aviso de bundle superior a 500 kB.
+
+
+<a id="continuidad-agentes"></a>
+
+## 16. Continuidad para el próximo agente — estado vigente 2026-11-12
+
+### Implementación que se debe conservar
+
+- Eliminación del panel morado lateral y de la tarjeta/sombra del formulario en el shell Auth compartido.
+- Monograma N geométrico aplicado a cabecera, favicon, splash HTML e iconos instalables; recursos PNG regenerados. Fondo del splash y de sus iconos igual al manifest: #0F172A, sin recuadro interior.
+- Refinamiento del login: medida de 416px, títulos fluidos, encabezado «Tu espacio contable», recuperación junto a contraseña, registro separado y resumen de errores oculto cuando está vacío.
+- Cabecera con contexto «Contadores» y divisor neutro; selector sol/luna con selección tonal; promoción PWA de menor peso visual, siempre superior en flujo.
+- Reglas de contraseñas compartidas en `types/passwordRules.ts`, alineadas con Unicode y espacios según el schema API; `GoogleMark` en componentes, sin importar la página de login desde registro.
+
+### Archivos para continuar
+
+| Responsabilidad | Archivo |
+| --- | --- |
+| Composición de acceso y cabecera | `src/features/auth/components/AuthLayout.tsx` |
+| Orden de campos, enlaces y mensajes de login | `src/features/auth/pages/LoginPage.tsx` |
+| Tokens, medidas, tipografía y estados | `src/styles/globals.css` |
+| Mapeo de tokens Tailwind 3.4 | `tailwind.config.ts` |
+| Promoción e instalación | `src/shared/pwa/InstallApp.tsx`, `usePwaInstall.ts` |
+| Selector y metadatos de tema | `src/shared/theme/ThemeSelector.tsx`, `themeMeta.ts` |
+| Colores de navegador/arranque | `src/shared/config/brand.ts`, `public/theme.js`, `index.html` |
+| Logo y PNG PWA | SVG de `public/`, `public/icons/`, `scripts/generate-icons.mjs` |
+| Recursos precacheados y manifest | `vite.config.ts` |
+
+### Validación y pendientes
+
+1. **No ejecutar pruebas, lint ni build hasta nueva autorización expresa.** Esta restricción reemplaza los pasos generales de verificación. No ejecutar Git ni modificar `.env`/claves. Esta entrega documental no autoriza implementación adicional ni despliegue.
+2. Los resultados de la primera revisión fueron 22 pruebas Auth/contraste/responsive, 6 PWA y 1 adicional Unicode; lint/build aprobados entonces, con aviso de bundle ~600 kB. No corresponden a los últimos refinamientos.
+3. El PNG del nuevo monograma se inspeccionó como imagen; no se comprobó su render en la cabecera, favicon ni splash de una instalación real. Tampoco se revisó en navegador el último ajuste de proporciones y jerarquía. La configuración temporal para probar con Chrome ya fue retirada.
+4. Si se autoriza verificar: revisar claro/oscuro, 320/375/768/1440px, orientación horizontal, títulos largos, foco/teclado, estados de error/carga, banner con/sin prompt y cierre. Verificar la máscara del logo y su inclusión en el shell offline. Después ejecutar los checks pertinentes, registrando resultados nuevos.
+5. Instalación/splash reales, Safari/iOS, lectores de pantalla, teclado virtual/safe areas y actualización entre despliegues siguen pendientes. Una PWA instalada puede conservar iconos antiguos hasta una actualización o reinstalación tras publicar.
+6. La skill está en `.opencode/skills/ui-ux-pro-max/SKILL.md`. Python se encontró en `C:/Users/agarcia/AppData/Local/Python/pythoncore-3.15-64/python.exe`; es una ruta local orientativa, comprobar disponibilidad sin instalar herramientas automáticamente. Node/npm funcionaron fuera del sandbox; no confundir restricciones de acceso con dependencias ausentes ni eludir aprobaciones.
+7. No hay aprobación visual final del usuario sobre el último refinamiento. Recibir su feedback antes de considerarlo cerrado. No añadir por iniciativa propia módulos de cartera, captura, libros o portal; requieren nueva fase y contratos API confirmados.

@@ -12,6 +12,12 @@ en [docs/PLAN.md](docs/PLAN.md). El plan coordinado
 está en `../nuvora-api/docs/PLAN.md`. La base de autenticación y seguridad del API
 se conserva; los módulos de negocio de esta propuesta aún están por implementar.
 
+## Continuidad para agentes
+
+Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md#continuidad-agentes) antes de cambiar código. El estado visual vigente y sus límites están en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
+
+**Instrucción vigente:** no ejecutar pruebas, lint ni build hasta nueva autorización del usuario; no ejecutar comandos Git ni modificar entornos/claves sin autorización. Los comandos siguientes son referencia de desarrollo, no autorización de ejecución automática. Los últimos ajustes visuales y de logo todavía no se han validado en navegador ni tienen aceptación visual final confirmada.
+
 ## Desarrollo
 
 ### Estado de la entrega
@@ -22,7 +28,7 @@ origen del API y posteriormente aceptó las pruebas del banner/interfaz. No se
 registraron navegador/dispositivo ni una lista detallada de casos manuales.
 Registro por correo/contraseña está disponible en `/auth/register`, con confirmación de correo cuando el API no devuelve sesión. Google OAuth está disponible mediante `/auth/callback`; recuperación de contraseña disponible en `/auth/forgot-password` y `/auth/reset-password`. El usuario confirmó estos tres flujos en el ambiente publicado después de configurar el API de Render y los redirects HTTPS.
 
-La interfaz usa lima `#D5F454`, control sol/luna y banner compacto superior de
+La interfaz usa índigo `#4F46E5` en claro y lavanda `#A5B4FC` en oscuro, control sol/luna y banner compacto superior en flujo de
 instalación. El banner puede mostrarse antes de que el navegador permita instalar;
 el botón solo se habilita al disponer del prompt nativo. Se respetan cierre e
 instalación detectada. Limpiar caché no necesariamente borra preferencias en
@@ -81,14 +87,11 @@ Query. Si falla, se muestra error y reintento sin declarar cierre exitoso.
 - `src/shared/{lib,ui,theme}`: SDK Supabase, componentes y selector de tema.
 - `src/styles/globals.css`: tokens claros/oscuros y estilos reutilizables.
 
-La identidad lima `#D5F454` usa texto oscuro y superficies neutras cálidas.
-Tokens semánticos en `globals.css` y Tailwind 3.4; Inter/sistema sin descargas.
-Control sol/luna accesible, sistema por defecto hasta elección manual persistida;
-`public/theme.js` aplica el tema antes del render. La dirección lima aprobada
-prevalece sobre recomendaciones genéricas de landing.
-Layout fluido con safe areas, `100dvh`, controles de 48px y texto de input 16px.
-La promoción PWA es fija y superpuesta: no reserva espacio ni cambia la posición
-vertical del formulario al aparecer o cerrarse.
+La identidad vigente es índigo con neutros slate, acceso centrado sin panel lateral ni tarjeta/sombra y monograma N geométrico. El formulario tiene máximo 416px, títulos fluidos y enlaces agrupados según su función. El selector sol/luna y la promoción PWA son secundarios frente a la acción de acceso.
+
+Los colores de interfaz se cambian en `src/styles/globals.css`, tanto en `:root` como en `.dark`. `tailwind.config.ts` mapea esos tokens; editar solamente Tailwind no actualiza todos los recursos. Para cambiar la marca completa, coordinar además `src/shared/config/brand.ts`, `public/theme.js`, `index.html`, SVG y PNG PWA. Tipografía Inter/sistema sin descargas externas.
+
+Sistema por defecto hasta elección manual persistida; `public/theme.js` aplica el tema antes del render. Layout con safe areas y `100dvh`, campos con texto de 16px y controles táctiles de al menos 44px. La promoción PWA está **en flujo**, por lo que su presencia/cierre puede cambiar la posición del contenido. No restaurar el banner fijo ni el panel morado rechazado por el usuario.
 
 El origen configurado en `VITE_API_BASE_URL` se normaliza sin slash final y no debe
 incluir `/api/v1`. `src/shared/config/env.ts` define `API_PREFIX` y
@@ -97,6 +100,8 @@ versión, actualiza esa constante sin modificar cada endpoint Auth. `/health` qu
 fuera de este cliente versionado si se necesita consultar ese endpoint público.
 
 ## Verificación y compilación
+
+Comandos disponibles para cuando el usuario autorice reanudar la validación; actualmente suspendida.
 
 ```sh
 npm run lint
@@ -175,7 +180,7 @@ Pasos exactos:
 
 ## PWA
 
-El banner superior compacto y fijo se muestra como promoción incluso antes de que el
+El banner superior compacto y en flujo se muestra como promoción incluso antes de que el
 navegador ofrezca instalación. El botón solo se habilita al recibir
 `beforeinstallprompt`; conserva la confirmación del navegador. Sin evento indica
 desarrollo, conexión no segura, iOS/no soporte o disponibilidad pendiente, sin
@@ -190,17 +195,21 @@ confirmada durante la sesión ocultan el banner. No existe detección universal 
 una PWA previamente instalada desde cualquier pestaña/navegador.
 
 El build incluye manifest, service worker y registro desde `PwaStatus`.
-El nombre del manifest usa `VITE_APP_NAME` al compilar. La identidad
-de instalación es una N lima `#D5F454` sobre fondo transparente; el arranque
-PWA usa grafito `#171A19` para evitar un recuadro lima.
-Los iconos PNG (192, 512, maskable 512 y Apple 180) se versionan en `public/icons`.
-Para regenerarlos después de editar `public/favicon.svg`:
+El nombre del manifest usa `VITE_APP_NAME` al compilar. La identidad de instalación es una N geométrica lavanda `#A5B4FC` sobre #0F172A uniforme, coincidente con el fondo del manifest. No incluir una placa morada de otro tono dentro del icono: produciría un recuadro visible durante el splash.
+
+- `public/brand-mark.svg`: símbolo independiente; la cabecera lo usa como máscara y aplica el token de color del tema, sin placa.
+- `public/favicon.svg` y `public/splash-logo.svg`: versiones sobre fondo oscuro uniforme.
+- `index.html`: mismo trazado SVG inline para el splash HTML antes de React.
+- `scripts/generate-icons.mjs`: genera los PNG desde **`public/splash-logo.svg`**.
+- `public/icons`: PNG 192, 512, maskable 512 y Apple 180. `vite.config.ts` incluye los recursos de marca en PWA.
+
+Al cambiar la geometría, sincronizar los tres SVG y el path inline de `index.html`; después regenerar los PNG. Al cambiar colores, sincronizar también los metadatos y el arranque. El script gráfico siguiente no ejecuta pruebas ni build:
 
 ```sh
 npm run icons:generate
 ```
 
-Para probar instalación y offline sobre el build real:
+Cuando se autorice validar, para probar instalación y offline sobre el build real:
 
 ```sh
 npm run build
@@ -223,7 +232,7 @@ Servir `sw.js` e `index.html` con revalidación (`Cache-Control: no-cache`),
 y assets con hash con caché inmutable. El hosting debe excluir `/api`, `/health`
 y callbacks de autenticación de cualquier fallback offline propio.
 
-Pruebas de navegador (Chromium):
+Pruebas de navegador (Chromium), solo al reautorizar su ejecución:
 
 ```sh
 npx playwright install chromium
@@ -248,12 +257,9 @@ La estructura de Auth sigue las responsabilidades de `san-gabriel-app`, leído
 como referencia: `api`, `components`, `pages`, `store`, `types`. Se conserva
 Supabase en lugar de copiar JWT propio, Zustand, permisos o persistencia manual.
 
-En la revisión local las tres variables públicas estaban presentes, pero la URL
-del API no cumplía el formato de origen previsto y no se pudo alcanzar `/health`
-ni `/api/v1/auth/me`. No se modificaron archivos `.env`. El propietario debe
-confirmar un origen operativo y CORS para `http://localhost:5173`.
-No se probó login real por falta de cuenta autorizada y conectividad; las pruebas
-automatizadas usan exclusivamente servicios Demo simulados.
+La configuración de origen/CORS/redirects que bloqueó una revisión inicial fue corregida por el propietario, quien confirmó después login, registro, Google y recuperación reales. Esa confirmación histórica no valida todos los dispositivos ni el diseño recién modificado. No modificar `.env` ni usar credenciales reales para reproducir casos automatizados.
+
+Los checks iniciales del rediseño fueron aprobados (22 Auth/contraste/responsive, 6 PWA y 1 Unicode adicional, más lint/build). Se usó Chrome instalado porque Chromium local fallaba al iniciar; la configuración temporal ya fue retirada. Los cambios posteriores de composición, monograma y jerarquía se implementaron sin checks por indicación del usuario. No presentar los resultados anteriores como validación del estado actual. El aviso de bundle ~600 kB, la instalación real por SO y Safari/iOS siguen pendientes.
 
 Limitación del contrato actual: `/auth/me` responde 401 tanto ante rechazo de
 token como ante indisponibilidad del proveedor. El cliente trata ese 401 como

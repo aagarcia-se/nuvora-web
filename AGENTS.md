@@ -1,5 +1,17 @@
 # AGENTS.md — Nuvora Web
 
+## Contexto operativo vigente — 2026-11-12
+
+Leer primero este bloque y [docs/PLAN.md](docs/PLAN.md), sección «Continuidad para el próximo agente». Las preferencias siguientes reemplazan referencias históricas que indiquen lima, panel lateral, banner fijo o validación automática obligatoria.
+
+- **Diseño vigente:** acceso minimalista centrado, sin panel morado lateral, tarjeta ni sombra de formulario. Ancho máximo 416px, títulos fluidos, contexto «Contadores» junto a la marca. Recuperación junto a contraseña y registro separado del formulario. Preservar estos ajustes; el usuario rechazó el panel de color.
+- **Marca:** índigo en claro y lavanda en oscuro, monograma N geométrico de trazo ancho y esquinas suaves. Cabecera sin recuadro; splash e iconos con fondo uniforme #0F172A, sin placa morada interior. No restaurar la N tipográfica anterior.
+- **Prioridad de interfaz:** acceso como acción principal; promoción PWA y selector de apariencia de menor peso visual. Banner superior en flujo, oculto en standalone o tras cierre/instalación detectada; CTA solo cuando existe prompt.
+- **Restricción vigente del usuario:** no ejecutar pruebas, lint ni build hasta nueva autorización. No usar scripts compuestos que los ejecuten indirectamente. `icons:generate` se ha usado exclusivamente para generar recursos gráficos; no equivale a validación. La prohibición de ejecutar comandos Git y de modificar entornos/claves sin autorización sigue vigente.
+- **Estado real:** autenticación y PWA implementadas; sin módulos de negocio. Los últimos cambios visuales y del monograma están implementados, pero no tienen validación posterior de navegador, lint/build o suites ni aceptación visual final confirmada por el usuario. No reutilizar resultados históricos como comprobación del estado actual.
+- **Próximo paso:** esperar la tarea concreta del usuario y conservar la base actual. Si autoriza validar, revisar primero login claro/oscuro, móvil/escritorio, banner y splash instalado; después las verificaciones pertinentes. No adelantar cartera, libros o portal sin nueva fase y contratos confirmados.
+- **Skill requerida para diseño:** `.opencode/skills/ui-ux-pro-max/SKILL.md`. Cargar sus instrucciones y usar búsquedas locales según su flujo. Documentación visual y límites en [docs/UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
+
 ## 1. Dirección de producto — 2026-11-10
 
 Actúa como arquitecto frontend senior, desarrollador React/TypeScript y diseñador de producto SaaS accesible y multi-tenant. Este archivo es autónomo. Plan coordinado en `../nuvora-api/docs/PLAN.md`; integración en `../nuvora-api/docs/frontend-handoff.md`.
@@ -41,7 +53,7 @@ Estos módulos futuros no se implementan por adelantado. Preparar límites de do
 - Login correo/contraseña, registro, Google OAuth, recuperación, sesión SDK Supabase, rutas protegidas, bienvenida y logout implementados; usuario confirmó login real y Google funcional tras corregir el origen del API/callback. No hay módulos de negocio.
 - Auth sigue la referencia San Gabriel: `api`, `components`, `pages` (plural), `store`, `types`. Interfaces en `types/auth.types.ts`, transporte en `api/authApi.ts`, formulario mediante `api/useLogin.ts`; SDK como gestor único de sesión, sin persistencia manual ni credenciales en Query.
 - Scripts actuales: `dev`, `build`, `preview`, `lint`, `format`, `icons:generate`, `test:auth`, `test:pwa`. No hay `test` ni `typecheck`; build ejecuta TypeScript.
-- Revisar archivos/scripts y preservar cambios del usuario. Por instrucción vigente, el control de versiones lo ejecuta el usuario: no ejecutar comandos Git ni commit/push. Tests, lint y build sí están autorizados. No modificar `.env` ni claves existentes sin autorización expresa.
+- Revisar archivos/scripts y preservar cambios del usuario. Por instrucción vigente, el control de versiones lo ejecuta el usuario: no ejecutar comandos Git ni commit/push. La autorización general previa de tests/lint/build está suspendida por la restricción vigente del bloque inicial. No modificar `.env` ni claves existentes sin autorización expresa.
 
 Separar UI, estado remoto, sesión y transporte. Mantener TanStack Query para datos remotos; no añadir gestores globales sin necesidad. Usar Tailwind 3.4 y centralizar marca y tokens. La dirección visual se define según la responsabilidad de diseño siguiente, sin imponer la paleta histórica.
 
@@ -55,13 +67,13 @@ Separar UI, estado remoto, sesión y transporte. Mantener TanStack Query para da
 - Diseñar la experiencia alrededor de seleccionar cliente, cargar documentos, revisar, aprobar y cerrar el período, reduciendo pasos y haciendo visible el contexto activo y las acciones importantes.
 - Crear recursos visuales o utilizar bibliotecas/servicios de iconos modernos e imágenes cuando aporten claridad. Preferir una familia consistente de iconos SVG, por ejemplo Lucide, según dependencias existentes; evitar emojis como sustitutos de iconos de interfaz y mezclas de estilos.
 - Seleccionar, crear o encargar las imágenes e ilustraciones necesarias para onboarding, estados vacíos o presentación del producto. Respetar licencias y atribuciones, optimizar tamaño/formato, definir texto alternativo cuando corresponda y evitar imágenes decorativas que dificulten el trabajo contable. Si se requiere un servicio externo o generación de imágenes, usarlo solo con herramientas disponibles y autorización aplicable.
-- Mantener coherencia entre identidad de interfaz, favicon e iconos PWA. Documentar las decisiones del sistema visual al implementarlo y comprobar las pantallas en tamaños móviles y de escritorio.
+- Mantener coherencia entre identidad de interfaz, favicon e iconos PWA. Documentar las decisiones del sistema visual al implementarlo y comprobar las pantallas en tamaños móviles y de escritorio cuando el usuario autorice la validación.
 
 ### Banner y estado de validación
 
 - Conservar banner PWA compacto superior, en flujo y respetando safe areas. Puede mostrarse como promoción antes de disponer del prompt; habilitar «Instalar» únicamente cuando exista `beforeinstallprompt`. Informar disponibilidad sin prometer instalación universal ni mostrar un CTA activo inoperante.
 - Ocultar en standalone/instalación confirmada y respetar cierre persistido. No restaurar el desplegable de instrucciones ni el banner inferior.
-- Login real y últimos ajustes visuales cuentan con confirmación del usuario. Resultados automatizados y límites están en `docs/PLAN.md`; no atribuir a esta confirmación pruebas específicas de dispositivos o todos los casos de sesión. Las funcionalidades futuras requieren nueva indicación.
+- Los flujos Auth reales cuentan con confirmación histórica del usuario. Los ajustes recientes de diseño y monograma no tienen nueva aceptación visual ni validación automatizada posterior. Resultados históricos y límites están en `docs/PLAN.md`; no atribuirles pruebas del estado actual, de dispositivos concretos o de todos los casos de sesión. Las funcionalidades futuras requieren nueva indicación.
 
 ## 4. Dominio preparado para expansión
 
@@ -152,8 +164,8 @@ No adelantar módulos futuros ni declarar funcionalidades completas basándose e
 - Cambios pequeños, tipados, consistentes con la estructura existente. Inspeccionar dependencias antes de instalar; no añadir infraestructura especulativa.
 - Cada fase: objetivo/archivos/decisiones/aceptación, implementación y resultados reales; aprobación antes de otra fase mayor.
 - No commit/push, borrados ajenos ni migraciones remotas sin autorización.
-- Para código: lint/build y pruebas adecuadas; `test:pwa` si afecta PWA. Incorporar tests funcionales de sesión, permisos, navegación, revisión, libros y un E2E del MVP.
-- Para documentación: consistencia, enlaces y diff; no afirmar checks de código no ejecutados.
+- Cuando el usuario vuelva a autorizar verificaciones de código: lint/build y pruebas adecuadas; `test:pwa` si afecta PWA. Incorporar tests funcionales de sesión, permisos, navegación, revisión, libros y un E2E del MVP.
+- Para documentación: revisar consistencia, enlaces y contenido sin comandos Git; no afirmar checks de código no ejecutados.
 
 ```bash
 npm run dev

@@ -1,20 +1,26 @@
 # Identidad y revisión de accesibilidad — 2026-11-12
 
-Solicitud vigente: sustituir lima por una identidad SaaS moderna. Se aplicó UI/UX Pro Max desde `.opencode/skills/ui-ux-pro-max/SKILL.md`, con búsquedas locales de sistema SaaS contable, contraste y formularios React. Se verificó que los resultados pertenecían a los dominios solicitados. La recomendación azul/slate se adaptó a índigo: la composición es de acceso, no una landing con CTA repetidos. Se evitan transparencias sobre texto y dependencias de fuentes externas.
+**Estado vigente:** acceso centrado y minimalista, sin panel lateral ni tarjeta/sombra; monograma geométrico N, cabecera temática sin placa, splash e iconos lavanda sobre fondo uniforme #0F172A. Formulario máximo 416px, recuperación junto a contraseña, registro separado, promoción PWA y selector sol/luna discretos. El último apartado de refinamiento describe la composición actual.
 
-## Sistema visual
+**Validación pendiente:** no ejecutar pruebas, lint ni build hasta nueva autorización del usuario. Los checks y capturas de la primera revisión que se enumeran abajo son históricos; no validan los cambios posteriores. El PNG del monograma sí se inspeccionó como imagen, pero no se verificaron después su render en navegador ni el splash de una instalación real. No hay aceptación visual final confirmada del último refinamiento.
+
+Continuidad y archivos: [PLAN.md, sección 16](./PLAN.md#continuidad-agentes). Instrucciones de trabajo: [AGENTS.md](../AGENTS.md).
+
+Solicitud inicial: sustituir lima por una identidad SaaS moderna. Se aplicó UI/UX Pro Max desde `.opencode/skills/ui-ux-pro-max/SKILL.md`, con búsquedas locales de sistema SaaS contable, contraste y formularios React. Se verificó que los resultados pertenecían a los dominios solicitados. La recomendación azul/slate se adaptó a índigo: la composición es de acceso, no una landing con CTA repetidos. Se evitan transparencias sobre texto y dependencias de fuentes externas.
+
+## Sistema visual — primera revisión, conservar solo los tokens vigentes
 
 - Primario: índigo #4F46E5, texto blanco. Hover #4338CA.
 - Oscuro: acción #A5B4FC, texto #1E1B4B. Hover #C7D2FE.
 - Fondos #F8FAFC / #0F172A; superficies #FFFFFF / #1E293B.
 - Tipografía: pila sans existente del sistema; escala de títulos y jerarquía conservadas.
 - Controles de 48px; radios 12px, tarjetas 24px, panel de identidad 32px; espaciado basado en 4px. Foco separado 2px con offset 3px. Animación limitada a color y desactivable.
-- Panel de identidad en escritorio y formulario prioritario en móvil. Sin métricas ficticias ni promesas fiscales.
+- Histórico, sustituido: panel de identidad en escritorio y formulario prioritario en móvil. Actualmente el formulario está centrado sin panel. Sin métricas ficticias ni promesas fiscales.
 - Tokens centrales en `src/styles/globals.css`, mapeados a Tailwind 3.4. Metadatos en `src/shared/config/brand.ts`; arranque previo a React y generador de iconos sincronizados.
 
-## Contraste
+## Contraste — cálculos de la primera revisión
 
-Cálculo de luminancia relativa sRGB. Umbral AA: texto normal 4.5:1 y controles/foco 3:1. Los bordes decorativos de tarjetas no son límites de controles. El texto del panel mantiene contraste incluso con el gradiente de baja intensidad.
+Cálculo de luminancia relativa sRGB. Umbral AA: texto normal 4.5:1 y controles/foco 3:1. Los bordes decorativos de tarjetas no son límites de controles. La fila «Panel» corresponde al panel retirado y no implica que deba restaurarse. Estos datos no comprueban los nuevos estados tonales o toda la composición actual.
 
 | Uso         |   Claro |  Oscuro |
 | ----------- | ------: | ------: |
@@ -37,7 +43,7 @@ Se comparten reglas de contraseña entre registro y recuperación, alineadas con
 La prueba de contraste automatizada comprueba tokens resueltos en Chromium para ambos temas; no es una certificación integral WCAG. Quedan fuera lectores de pantalla reales, instalación del SO, Safari/iOS y pruebas contra servicios reales. El build conserva advertencia de tamaño del bundle (~600 kB antes de gzip); dividir rutas requiere comprobar el comportamiento offline de los chunks y no se aplica a ciegas.
 
 
-## Verificación realizada
+## Verificación realizada antes del ajuste minimalista y del monograma
 
 - Prueba adicional de política Unicode y rechazo de espacios como símbolo: 1 aprobada.
 - Lint y build correctos. Permanece aviso de bundle ~600 kB (176 kB gzip).
@@ -53,7 +59,7 @@ La prueba de contraste automatizada comprueba tokens resueltos en Chromium para 
 
 Esta revisión sustituye el panel lateral descrito arriba por un formulario centrado sin tarjeta, sombra ni bloque de color. Se aplicó la búsqueda local `minimalism login whitespace` de UI/UX Pro Max (resultado verificado: Minimalism & Swiss Style), conservando jerarquía, controles y temas existentes. El shell compartido mantiene coherencia en las pantallas de autenticación.
 
-Los iconos instalables ahora se generan desde `public/splash-logo.svg`, con la N sobre #0F172A, coincidente con el fondo del manifest. El favicon conserva su placa de marca para navegador y cabecera. Se regeneran los PNG, sin pruebas, lint ni build por instrucción expresa del usuario. Los resultados anteriores corresponden a la revisión previa y no validan estos ajustes.
+Los iconos instalables ahora se generan desde `public/splash-logo.svg`, con la N sobre #0F172A, coincidente con el fondo del manifest. En ese ajuste el favicon conservaba su placa; el monograma posterior la sustituye por fondo uniforme y la cabecera pasa a máscara sin placa. Se regeneran los PNG, sin pruebas, lint ni build por instrucción expresa del usuario. Los resultados anteriores corresponden a la revisión previa y no validan estos ajustes.
 
 
 ## Monograma geométrico — 2026-11-12

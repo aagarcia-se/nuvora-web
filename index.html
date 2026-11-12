@@ -3,18 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta id="theme-color" name="theme-color" content="#F4F2ED" />
+    <meta id="theme-color" name="theme-color" content="#F7F8F6" />
     <meta name="color-scheme" content="light dark" />
     <script src="/theme.js"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="mobile-web-app-capable" content="yes" />
     <style>
-      #initial-splash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #F4F2ED; }
+      html, body { background: #F7F8F6; }
+      #initial-splash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #F7F8F6; }
       #initial-splash img { width: 4.5rem; height: 4.5rem; }
-      html.dark #initial-splash { background: #171A19; }
+      html.dark, html.dark body { background: #111715; }
+      html.dark #initial-splash { background: #111715; }
       #initial-splash[hidden] { display: none; }
     </style>
     <title>Nuvora</title>

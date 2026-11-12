@@ -20,13 +20,13 @@ export default defineConfig(({ mode }) => {
           name: appName,
           short_name: appName,
           description:
-            'Documentos FEL y control financiero para tu organización.',
+             'Documentos FEL y control financiero para tu organización.',
           lang: 'es-GT',
           start_url: '/',
           scope: '/',
           display: 'standalone',
-           theme_color: pwaThemeColor,
-           background_color: pwaBackgroundColor,
+          theme_color: pwaThemeColor,
+          background_color: pwaBackgroundColor,
           icons: [
             {
               src: '/icons/icon-192.png',

@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@/shared/ui/components/Icon';
+import { darkThemeColor, lightThemeColor } from '@/shared/config/brand';
 type Theme = 'light' | 'dark' | 'system';
-const lightThemeColor = '#F4F2ED';
-const darkThemeColor = '#171A19';
 
 function applyThemeColor(dark: boolean) {
+  document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
   document.querySelector('#theme-color')?.setAttribute('content', dark ? darkThemeColor : lightThemeColor);
 }
 
@@ -24,7 +24,7 @@ export function ThemeSelector() {
       setSystemDark(media.matches);
       const dark = theme === 'dark' || (theme === 'system' && media.matches);
       document.documentElement.classList.toggle('dark', dark);
-       applyThemeColor(dark);
+      applyThemeColor(dark);
     };
     apply();
     try {

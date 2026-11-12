@@ -12,11 +12,19 @@ en [docs/PLAN.md](docs/PLAN.md). Perfil/espacios y la fase actual de clientes/en
 está en `../nuvora-api/docs/PLAN.md`. La base de autenticación y seguridad del API
 se conserva; captura, revisión, documentos y módulos financieros siguen pendientes.
 
+## Estado actual de interfaz
+
+Espacios (`/`), cartera (`/workspaces/:workspaceId/clients`), detalle (`/workspaces/:workspaceId/clients/:entityId`) y perfil (`/account`) están separados por rutas. Navegación lateral desde 1024 px y panel modal en móvil/PWA. Perfil, apariencia y cierre de sesión están en el avatar.
+
+La ficha usa filas etiqueta/valor con iconos y separadores, sin tarjetas por dato. Cabecera limpia, iniciales y padding responsive. Marca índigo, acento azul y verde reservado a éxito; tokens en `src/styles/globals.css`, referenciados por Tailwind 3.4. La recuperación de foco conserva UI/borradores del mismo usuario validado.
+
+Estado y resultados más recientes en [codex.md](codex.md). Guías: [rutas](docs/ROUTING.md), [menú](docs/NAVIGATION.md), [paleta y composición](docs/PALETTE.md), [contraste](docs/PALETTE-CONTRAST.md) y [sesión](docs/SESSION-CONTINUITY.md). Los cierres anteriores son históricos; no restaurar tarjetas por campo, cabecera teal ni perfil incrustado en inicio.
+
 ## Continuidad para agentes
 
 Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md#entities-vigente) antes de cambiar código. El estado visual vigente y sus límites están en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
 
-**Verificación de la fase actual:** codex.md solicita lint/build y mantiene Playwright condicionado a autorización expresa. No ejecutar test:auth/test:pwa automáticamente. No ejecutar comandos Git ni modificar entornos/claves. Los resultados y pendientes actuales se registran en docs/WORKSPACES.md; los resultados de versiones anteriores no prueban esta entrega.
+**Verificación de la fase actual:** codex.md solicita lint/build y mantiene Playwright condicionado a autorización expresa. No ejecutar test:auth/test:pwa automáticamente. No ejecutar comandos Git ni modificar entornos/claves. Los resultados y pendientes actuales se registran al inicio de codex.md; los resultados de versiones anteriores no prueban esta entrega.
 
 ## Desarrollo
 

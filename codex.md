@@ -1,3 +1,17 @@
+# Estado vigente — ficha minimalista por filas, 2026-11-12
+
+**Documentación sincronizada:** README, AGENTS, docs/ENTITIES, docs/PLAN y docs/PALETTE reflejan rutas, menú, acento azul y ficha por filas. Revisión exclusivamente documental: no se volvieron a ejecutar checks de código ni se modificó la implementación.
+
+**Rediseño implementado por solicitud del usuario:** sin cards por dato. Una superficie de lectura con cabecera sin fondo decorativo, iniciales y lista semántica `dl` de NIT, acceso y fechas. Filas etiqueta/valor con separadores horizontales discretos; móvil apila contenido. Permiso como texto azul, sin badge/caja. Acción de edición conserva texto y añade icono.
+
+Skill UI/UX Pro Max aplicada: búsqueda UX inicial poco específica, refinada a `minimalism whitespace typography --domain style`, coincidencia `minimalism-and-swiss-style` apropiada para herramientas profesionales/SaaS. Se aplican jerarquía, espacio, grilla y eliminación de decoraciones, respetando colores aprobados. Iconos SVG de identificación, calendario, reloj y edición amplían la familia existente, todos decorativos con etiquetas textuales. Sin dependencias nuevas.
+
+Se revisó la composición del detalle y se conservaron controles existentes de formulario, carga/error y permisos; no es una auditoría integral de cada componente de la app. No se cambian API, datos, sesión, NIT protegido ni autorizaciones. Conservado padding exterior responsive y foco visible. Sin cambios de PWA ni paleta global.
+
+**Lint y build aprobados (salida 0)**, TypeScript y generación Vite/PWA completos. Bundle principal 658,62 kB (191,62 kB gzip); se conserva el aviso superior a 500 kB. Playwright no ejecutado y revisión visual en navegador pendiente. Los bloques históricos que describen cards por campo o cabeceras con fondo quedan reemplazados.
+
+---
+
 # Estado vigente — ficha sin borde y acento azul, 2026-11-12
 
 Ajuste solicitado sobre la captura: retirados borde exterior/línea superior de la ficha, borde de su cabecera y línea superior de edición. Distribución, padding y bloques de datos conservados. Cabecera neutra azulada, avatar/acento azul en lugar de teal; éxito mantiene verde y acciones mantienen índigo.

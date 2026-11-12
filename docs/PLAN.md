@@ -289,3 +289,8 @@ Paleta complementaria aplicada y contraste numérico revisado en ambos temas. De
 ## Foco y ficha de cliente — 2026-11-12
 
 Corregido contorno de main y rediseñada ficha con padding, cabecera teal y datos agrupados. Estado en codex.md y [PALETTE.md](PALETTE.md). Validación visual pendiente.
+
+
+## Estado vigente consolidado — ficha minimalista, 2026-11-12
+
+Finalizado rediseño de ficha por filas con iconos y separadores, sin tarjetas por campo ni badge de acceso. Cabecera sin fondo decorativo; acento azul sustituye teal. Se conservan rutas, menú responsive, formularios, permisos y corrección de continuidad de sesión. Lint/build del último cambio aprobados; Playwright y revisión visual pendientes. Estado operativo actual: [codex.md](../codex.md), [ENTITIES.md](ENTITIES.md) y [PALETTE.md](PALETTE.md). Las composiciones anteriores de esta bitácora son históricas.

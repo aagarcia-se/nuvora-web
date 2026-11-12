@@ -1,5 +1,10 @@
 # AGENTS.md — Nuvora Web
 
+## Ficha minimalista vigente
+
+Conservar detalle del cliente como filas etiqueta/valor con iconos y separadores, sin cards por dato ni badge de acceso. Cabecera sin panel coloreado; iniciales conservadas. Usuario pidió diseño moderno/minimalista. Estado y límites en codex.md; no restaurar variantes anteriores por descripciones históricas.
+
+
 ## Ajuste visual más reciente
 
 Usuario rechazó teal/borde decorativo de ficha. Acento compartido ahora azul #0369A1 claro / #7DD3FC oscuro; cabecera neutra y ficha sin borde exterior/línea superior. Conservar padding y distribución. Esta decisión reemplaza referencias históricas a cabecera teal. Estado y resultados en codex.md.
@@ -7,19 +12,19 @@ Usuario rechazó teal/borde decorativo de ficha. Acento compartido ahora azul #0
 
 ## Paleta vigente — 2026-11-12
 
-Usuario autorizó ampliar la paleta: índigo de marca conservado, neutros azulados para superficies/navegación, teal de identidad, verde de éxito y azul informativo. Tokens centrales en globals.css y mapeo Tailwind 3.4; no dispersar hex ni usar colores de estado en decoraciones ambiguas. Documentación: docs/PALETTE.md y PALETTE-CONTRAST.md (24 combinaciones verificadas, sin revisión visual/Playwright). Esta autorización reemplaza las restricciones históricas de no cambiar paleta. Mantener arquitectura/rutas/sesión actuales.
+Usuario autorizó ampliar la paleta: índigo de marca conservado, neutros azulados para superficies/navegación, azul de identidad/información y verde de éxito (el teal inicial fue sustituido). Tokens centrales en globals.css y mapeo Tailwind 3.4; no dispersar hex ni usar colores de estado en decoraciones ambiguas. Documentación: docs/PALETTE.md y PALETTE-CONTRAST.md (24 combinaciones verificadas, sin revisión visual/Playwright). Esta autorización reemplaza las restricciones históricas de no cambiar paleta. Mantener arquitectura/rutas/sesión actuales.
 
 
 ## Continuidad vigente — menú responsive, 2026-11-12
 
 Menú autorizado e implementado sobre las rutas existentes: lateral desde 1024 px, panel modal nativo en móvil/PWA. Fuente de verdad del contexto: query del detalle del workspace confirmada por API, compartida con su boundary. Solo Espacios y Clientes cuando corresponda; sin secciones futuras. Perfil/apariencia/logout continúan en avatar; no duplicarlos en el menú lateral. Preservar cierre/foco/Escape/cambio de ancho, safe areas, tokens y restricción de Playwright. Ver `codex.md`, `docs/NAVIGATION.md` y `docs/ROUTING.md` para resultados reales. Los bloques históricos siguientes describen fases anteriores; no restaurar perfil/cartera incrustados en inicio.
 
-## Contexto operativo vigente — fase codex.md, 2026-11-12
+## Base operativa — fases implementadas, 2026-11-12
 
 La fase actual es clientes/entidades de [codex.md](codex.md), exclusivamente en `nuvora-web`. Perfil/workspaces ya están implementados y no deben repetirse. Leer [docs/ENTITIES.md](docs/ENTITIES.md), [docs/WORKSPACES.md](docs/WORKSPACES.md) y las fases 17/18 de [docs/PLAN.md](docs/PLAN.md). No modificar `nuvora-api`, SQL, entornos, secretos o Git.
 
 - **Alcance implementado:** perfil/workspaces conservados; cartera de clientes solo tras workspace confirmado, alta, detalle y edición con contratos existentes. Crear según rol owner/admin del workspace; editar según canManage de la entity. No construir grants, invitaciones, entity_memberships, portal, FEL, libros, módulos financieros ni edición de perfil.
-- **UI/UX vigente:** acceso público minimalista existente. Después de login, vista propia de ancho completo con lista principal y perfil lateral, una columna en móvil, creación en diálogo nativo y contexto seleccionado visible. Cierre de sesión y apariencia dentro del menú de cuenta. No colocar la aplicación dentro del formulario de login de 416px.
+- **UI/UX vigente:** acceso público minimalista; tras login, shell con navegación lateral en escritorio y panel modal móvil. Espacios, cartera, detalle y perfil separados por rutas. Ficha de cliente con filas semánticas/iconos, sin cards por dato. Creación en diálogo nativo y contexto activo visible. Cierre de sesión y apariencia dentro del menú de cuenta. No colocar la aplicación dentro del formulario de login de 416px.
 - **Identidad preservada:** índigo/lavanda y superficies slate, monograma, temas, splash estático, PWA y controles existentes. Esta fase no cambia paleta, no incorpora gradientes ni reglas globales nuevas: estilos propios en `src/features/workspace/workspace.module.css` con tokens actuales. No restaurar lima ni el panel morado lateral.
 - **Estado remoto:** transporte compartido en `shared/api/authenticatedRequest.ts`, con SDK Supabase, errores normalizados y AbortSignal; Axios relativo al API y Query por usuario/workspace/entity. Selección nunca autoriza. No enviar owner_id/userId/granted_by ni usar NIT como permiso. Cambiar workspace cancela/elimina consultas de entidades antes de cambiar selección.
 - **Cancelación:** abortar lecturas/mutaciones al desmontar; Auth mantiene limpieza de caché. Las creaciones pendientes comprueban también identidad de la Query de lista antes de escribir en caché para rechazar respuestas después de un clear. No reintentar mutaciones; actualizar lista antes de repetir una creación de resultado incierto.

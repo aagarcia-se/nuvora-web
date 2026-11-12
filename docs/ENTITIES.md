@@ -1,6 +1,12 @@
 # Clientes y entidades — fase frontend de codex.md
 
-## Alcance y criterio UX
+## Estado vigente de presentación
+
+Cartera y detalle separados por rutas (ver [ROUTING.md](ROUTING.md)). Detalle en `src/features/entities/pages/EntityDetailPage.tsx`: una superficie con cabecera limpia e iniciales, lista semántica de NIT/acceso/fechas, iconos SVG y separadores. Etiqueta/valor en columnas en escritorio y apilados en móvil. Sin cards por dato, badge de acceso ni borde decorativo. Edición conserva permisos, formulario y manejo explícito de NIT; altas siguen en diálogos. Tokens índigo/azul/verde según [PALETTE.md](PALETTE.md).
+
+Última verificación de código: lint/build aprobados. Playwright, validación visual del resultado y API/RLS reales pendientes; ver codex.md para resultados. Las secciones siguientes conservan contratos y antecedentes; la descripción inicial de cartera incrustada queda reemplazada por esta sección.
+
+## Alcance y criterio UX original
 
 Integración únicamente en `nuvora-web` de los contratos ya implementados en el API. No se modificaron endpoints, SQL, configuración del backend ni secretos. Fuentes consultadas en lectura: `codex.md`, handoff/foundation y schemas, controladores y proyección del módulo entities del API.
 

@@ -1,3 +1,9 @@
+# Composición vigente — detalle minimalista
+
+Usuario solicita eliminar tarjetas por dato. Ficha con una superficie, cabecera limpia, filas de lista de definición con iconos y separadores; labels/valores en dos columnas en escritorio y apilados en móvil. Sin badge para acceso ni sombra decorativa. Iniciales y color azul aprobados conservados, sin nueva paleta. Skill UI/UX Pro Max: minimalism-and-swiss-style, adaptado a la app operativa. Archivos: EntityDetailPage.tsx, entities.module.css y shared/ui/components/Icon.tsx. Resultados de checks y límites en codex.md; sin Playwright/revisión visual ejecutados.
+
+---
+
 # Ajuste vigente — azul y cabecera neutra
 
 Por solicitud del usuario sobre la captura, se sustituyó teal por azul B2B: #0369A1 claro y #7DD3FC oscuro; fondos #F0F9FF y #132F43. Cabecera de ficha usa superficie secundaria neutra. Sin borde exterior ni línea superior decorativa; cabecera sin borde. Se conservan espaciado y distribución. Verde reservado a éxito e índigo a marca/acciones. Skill consultada: paleta B2B Service, adaptación a identidad aprobada. Contraste actualizado en PALETTE-CONTRAST.md. La propuesta teal inferior es histórica.

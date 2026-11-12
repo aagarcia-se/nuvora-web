@@ -62,12 +62,11 @@ export function useEntityWrite(workspaceId: string) {
   const active = useRef(false);
   const controller = useRef<AbortController | null>(null);
   const scope = useRef<object | undefined>(undefined);
+  const scopeKey = useRef<readonly string[]>([]);
   const current = () =>
     active.current &&
     Boolean(scope.current) &&
-    client
-      .getQueryCache()
-      .find({ queryKey: entityKeys.list(userId, workspaceId), exact: true }) ===
+    client.getQueryCache().find({ queryKey: scopeKey.current, exact: true }) ===
       scope.current;
   useEffect(() => {
     active.current = true;
@@ -84,9 +83,13 @@ export function useEntityWrite(workspaceId: string) {
         | { kind: 'patch'; entityId: string; input: PatchEntityInput },
     ) => {
       if (!active.current || !userId) throw new CanceledError();
+      scopeKey.current =
+        operation.kind === 'create'
+          ? entityKeys.list(userId, workspaceId)
+          : entityKeys.detail(userId, workspaceId, operation.entityId);
       scope.current = client
         .getQueryCache()
-        .find({ queryKey: entityKeys.list(userId, workspaceId), exact: true });
+        .find({ queryKey: scopeKey.current, exact: true });
       if (!current()) throw new CanceledError();
       const request = new AbortController();
       controller.current = request;
@@ -116,15 +119,16 @@ export function useEntityWrite(workspaceId: string) {
     },
     onSuccess: (entity) => {
       if (!current()) return;
-      client.setQueryData<Entity[]>(
-        entityKeys.list(userId, workspaceId),
-        (previous) => {
-          const items = (previous ?? []).filter(
-            (item) => item.id !== entity.id,
-          );
-          return entity.permissions.canView ? [...items, entity] : items;
-        },
-      );
+      if (client.getQueryState(entityKeys.list(userId, workspaceId)))
+        client.setQueryData<Entity[]>(
+          entityKeys.list(userId, workspaceId),
+          (previous) => {
+            const items = (previous ?? []).filter(
+              (item) => item.id !== entity.id,
+            );
+            return entity.permissions.canView ? [...items, entity] : items;
+          },
+        );
       if (
         client.getQueryState(entityKeys.detail(userId, workspaceId, entity.id))
       ) {

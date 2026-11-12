@@ -7,11 +7,17 @@ import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { WorkspacePage } from '@/features/workspace/pages/WorkspacePage';
 import { useAuth } from '@/features/auth/store/authStore';
+import {
+  PrivateShell,
+  WorkspaceBoundary,
+  ClientsPage,
+  ClientPage,
+  AccountPage,
+} from './WorkspaceRoutes';
 import { AuthCallbackPage } from '@/features/auth/pages/AuthCallbackPage';
 function WorkspaceEntry() {
   const { status, user } = useAuth();
-  if (status === 'authenticated' && user)
-    return <WorkspacePage key={user.id} />;
+  if (status === 'authenticated' && user) return <PrivateShell key={user.id} />;
   return (
     <AuthLayout>
       <ProtectedRoute>
@@ -69,7 +75,14 @@ export function AppRoutes() {
           }
         />
       </Route>
-      <Route path="/" element={<WorkspaceEntry />} />
+      <Route element={<WorkspaceEntry />}>
+        <Route path="/" element={<WorkspacePage />} />
+        <Route path="/account" element={<AccountPage />} />
+        <Route path="/workspaces/:workspaceId" element={<WorkspaceBoundary />}>
+          <Route path="clients" element={<ClientsPage />} />
+          <Route path="clients/:entityId" element={<ClientPage />} />
+        </Route>
+      </Route>
     </Routes>
   );
 }

@@ -1,3 +1,49 @@
+# Estado vigente — continuidad al recuperar foco, 2026-11-12
+
+**Corrección implementada:** `AuthProvider` ya no limpia caché ni desmonta la aplicación ante `SIGNED_IN` repetido o `TOKEN_REFRESHED` del mismo usuario previamente verificado por `/auth/me`. La sesión más reciente se conserva en la referencia; Supabase continúa como único gestor de renovación. Inicio inicial, cambio de identidad, recuperación, error/reintento y logout mantienen su resolución/limpieza.
+
+La causa se comprobó por inspección del proveedor y del código local del SDK: la recuperación de visibilidad puede emitir `SIGNED_IN`; anteriormente todos los eventos ejecutaban `resolve`, que limpiaba Query y ponía auth en loading. No se observó el síntoma en un dispositivo real. No hay evidencia de recarga de documento provocada por foco; PWA continúa con actualización por confirmación. Las consultas mantienen revalidación en segundo plano y autorización del API.
+
+Caso Demo añadido en `tests/auth/auth.spec.ts` para evento real del SDK tras visibilidad simulada, preservación del diálogo/borrador y ausencia de nueva petición `/me`; **no ejecutado** por restricción de Playwright. La liberación de pestañas/procesos por el navegador/SO todavía puede causar recargas reales; esta corrección no afirma evitarlo.
+
+**Lint y build aprobados (salida 0)**; permanece el aviso de chunk superior a 500 kB. Verificación final en [docs/SESSION-CONTINUITY.md](docs/SESSION-CONTINUITY.md). Solo frontend, sin API, secretos, dependencias o Git. Historial de fases a continuación.
+
+---
+
+# Estado vigente — menú responsive, 2026-11-12
+
+**Menú implementado para la fase autorizada por el usuario.** Solo `nuvora-web`; sin cambios de API, endpoints, entornos, dependencias o Git.
+
+- Escritorio desde 1024 px: lateral compacto con espacio activo, Espacios, Clientes y Cambiar espacio. Clientes solo aparece tras confirmar acceso al workspace mediante la query existente; permanece activo en el detalle.
+- Móvil/PWA: botón de menú y panel lateral modal nativo; cierre con botón, Escape, fondo o navegación. Control de foco, bloqueo de scroll de fondo y cierre al ampliar a escritorio. Safe areas y alto dinámico; sin animación de entrada ni tiempos de espera añadidos.
+- Perfil, apariencia y logout permanecen en el avatar. Las migas de ubicación y rutas existentes se conservan. No se añadieron secciones futuras vacías ni navegación inferior.
+- UI/UX Pro Max consultada para navegación con teclado/foco; estilos locales con los tokens actuales, iconos SVG coherentes y estados activos con texto, borde y `aria-current`.
+- Nuevos componentes: `features/workspace/components/WorkspaceNavigation.tsx` y `navigation.module.css`. Integración en `WorkspaceLayout.tsx` y `app/WorkspaceRoutes.tsx`. Sin llamadas a nuevos endpoints; TanStack Query comparte la consulta del workspace con el control de acceso existente.
+- Se adaptaron selectores de las suites a la navegación duplicada escritorio/móvil y se prepararon tres casos Demo para Escape/navegación, lateral activo y cambio de ancho. **Playwright no ejecutado**; validación visual, navegadores y dispositivos reales siguen pendientes.
+
+**Lint y build aprobados (salida 0).** Permanece el aviso de chunk superior a 500 kB. Resultados documentados en [docs/NAVIGATION.md](docs/NAVIGATION.md). No avanzar otra fase mayor sin nueva indicación. Los estados siguientes son históricos.
+
+---
+
+# Estado vigente — navegación por rutas, 2026-11-12
+
+**Fase de separación por rutas implementada**, autorizada por el usuario después del cierre de clientes. Este estado reemplaza la indicación anterior de que no había otra fase autorizada. Solo se trabajó en `nuvora-web`; no se cambiaron contratos ni endpoints del API.
+
+- `/`: selección y creación de espacios, sin cartera ni perfil incrustados.
+- `/workspaces/:workspaceId/clients`: cartera del espacio autorizado.
+- `/workspaces/:workspaceId/clients/:entityId`: detalle y edición según `canManage`.
+- `/account`: perfil, accesible desde el menú de cuenta. Apariencia y cierre de sesión conservan su ubicación en ese menú.
+- Layout privado persistente, enlaces jerárquicos y foco del contenido al navegar. Los diálogos se conservan para crear espacios/clientes.
+- Los enlaces directos validan UUID y revalidan workspace antes de montar datos de clientes. La edición directa utiliza la query del detalle, sin depender de visitar la lista antes.
+- Cambio de espacio cancela y elimina las queries de clientes del contexto anterior; desmontar cancela escrituras pendientes. Autenticación por correo conserva destinos internos conocidos; no admite redirecciones externas. Google conserva su retorno anterior al inicio.
+- UI/UX Pro Max consultada localmente: navegación jerárquica y headings secuenciales. Se preservan paleta, tokens, splash, PWA y controles de apariencia.
+
+Verificación: **lint y build aprobados (salida 0)**. Permanece el aviso de chunk superior a 500 kB. Detalles en [docs/ROUTING.md](docs/ROUTING.md). Playwright y revisión visual en navegador pendientes; no afirmar que enlaces directos, permisos, responsive o recorridos E2E pasaron pruebas ejecutadas. Las suites existentes se adaptaron y se añadieron casos Demo de recarga/Atrás/Adelante e identificador inválido, sin ejecutarlos.
+
+No adelantar otra fase mayor sin indicación del usuario. Los cierres siguientes son históricos.
+
+---
+
 # Frontend — Perfil, Workspaces y Clientes
 
 ## Estado actual — clientes/entidades implementados, 2026-11-12

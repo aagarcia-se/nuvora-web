@@ -1,32 +1,27 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { EntityPanel } from '@/features/entities/components/EntityPanel';
-import { entityKeys } from '@/features/entities/api/useEntityQueries';
 import { useState } from 'react';
 import { useAuth } from '@/features/auth/store/authStore';
 import { Button } from '@/shared/ui/components/Button';
 import { Icon } from '@/shared/ui/components/Icon';
 import { useWorkspaceQueries } from '../api/useWorkspaceQueries';
-import { WorkspaceLayout } from '../components/WorkspaceLayout';
-import { ProfileCard } from '../components/ProfileCard';
+import { Link } from 'react-router-dom';
+
 import { CreateWorkspaceDialog } from '../components/CreateWorkspaceDialog';
 import {
   WorkspaceFeedback,
   WorkspaceSkeleton,
 } from '../components/WorkspaceFeedback';
-import { displayDate, initials } from '../utils/workspacePresentation';
+import { initials } from '../utils/workspacePresentation';
 import type { Workspace } from '../types/workspace.types';
 import { workspaceRoles } from '../utils/workspacePresentation';
 import styles from '../workspace.module.css';
 
 export function WorkspacePage() {
   const { user } = useAuth();
-  const client = useQueryClient();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const [creating, setCreating] = useState(false);
   const [success, setSuccess] = useState('');
   const [search, setSearch] = useState('');
-  const { profile, list, detail, accessibleId } =
-    useWorkspaceQueries(selectedId);
+  const { profile, list } = useWorkspaceQueries();
   const displayName = profile.data?.display_name?.trim();
   const items = list.data ?? [];
   const showSearch = items.length > 4;
@@ -37,24 +32,12 @@ export function WorkspacePage() {
           .includes(search.trim().toLocaleLowerCase('es')),
       )
     : items;
-  const selected = accessibleId && detail.isSuccess ? detail.data : null;
-  function selectWorkspace(id: string) {
-    if (id !== selectedId && user?.id) {
-      void client.cancelQueries({ queryKey: entityKeys.user(user.id) });
-      client.removeQueries({ queryKey: entityKeys.user(user.id) });
-    }
-    setSelectedId(id);
-  }
   function created(workspace: Workspace) {
-    selectWorkspace(workspace.id);
     setSearch('');
     setSuccess(`Se creó «${workspace.name}» correctamente.`);
   }
   return (
-    <WorkspaceLayout
-      name={displayName || 'Mi cuenta'}
-      avatar={profile.data?.avatar_url}
-    >
+    <>
       <header className={styles.pageHeading}>
         <div>
           <p className={styles.eyebrow}>Vista general</p>
@@ -87,7 +70,7 @@ export function WorkspacePage() {
         </div>
       )}
 
-      <div className={styles.columns}>
+      <div>
         <div className={styles.primaryColumn}>
           <section
             className={styles.spacesCard}
@@ -167,18 +150,12 @@ export function WorkspacePage() {
                   aria-label="Mis espacios de trabajo"
                 >
                   {filtered.map((workspace) => {
-                    const active =
-                      workspace.id === accessibleId && detail.isSuccess;
-                    const checking =
-                      workspace.id === accessibleId && detail.isFetching;
                     return (
                       <li key={workspace.id}>
-                        <button
-                          type="button"
-                          className={`${styles.spaceOption} ${active ? styles.spaceOptionActive : ''}`}
-                          aria-pressed={active}
-                          aria-label={`Seleccionar ${workspace.name}`}
-                          onClick={() => selectWorkspace(workspace.id)}
+                        <Link
+                          className={styles.spaceOption}
+                          aria-label={`Abrir ${workspace.name}`}
+                          to={`/workspaces/${workspace.id}/clients`}
                         >
                           <span
                             className={styles.spaceInitials}
@@ -200,22 +177,11 @@ export function WorkspacePage() {
                                 ? workspaceRoles[workspace.role]
                                 : 'Acceso disponible'}
                             </span>
-                            <span
-                              className={
-                                active
-                                  ? styles.selectedLabel
-                                  : styles.selectLabel
-                              }
-                            >
-                              {checking
-                                ? 'Verificando…'
-                                : active
-                                  ? 'Seleccionado'
-                                  : 'Seleccionar'}
-                              <Icon name={active ? 'check' : 'arrow-right'} />
+                            <span className={styles.selectLabel}>
+                              Abrir espacio <Icon name="arrow-right" />
                             </span>
                           </span>
-                        </button>
+                        </Link>
                       </li>
                     );
                   })}
@@ -223,89 +189,8 @@ export function WorkspacePage() {
               )}
             </div>
           </section>
-
-          {accessibleId && (
-            <section
-              className={styles.selectionCard}
-              aria-labelledby="selected-heading"
-              aria-busy={detail.isFetching}
-            >
-              <div className={styles.selectionHeading}>
-                <Icon name="layers" />
-                <h2 id="selected-heading">Tu contexto de trabajo</h2>
-              </div>
-              {detail.isPending ? (
-                <p role="status" className={styles.selectionHint}>
-                  Verificando el acceso al espacio…
-                </p>
-              ) : detail.isError ? (
-                <WorkspaceFeedback
-                  error={detail.error}
-                  onRetry={() => {
-                    void list.refetch();
-                    void detail.refetch();
-                  }}
-                />
-              ) : (
-                selected && (
-                  <div role="status">
-                    <div className={styles.selectionName}>
-                      <h3>{selected.workspace.name}</h3>
-                      <span className={styles.role}>
-                        {workspaceRoles[selected.role]}
-                      </span>
-                    </div>
-                    <p className={styles.selectionHint}>
-                      Espacio seleccionado para esta sesión.
-                    </p>
-                    <a
-                      href="#workspace-clients"
-                      className="auth-link mt-3 gap-2"
-                    >
-                      Ver clientes <Icon name="arrow-right" />
-                    </a>
-                    <dl className={styles.selectionDetails}>
-                      <div>
-                        <dt>Identificador</dt>
-                        <dd>{selected.workspace.slug}</dd>
-                      </div>
-                      <div>
-                        <dt>Creado el</dt>
-                        <dd>{displayDate(selected.workspace.created_at)}</dd>
-                      </div>
-                    </dl>
-                  </div>
-                )
-              )}
-            </section>
-          )}
-          {selectedId && list.isSuccess && !accessibleId && (
-            <p role="status" className={styles.selectionHint}>
-              El espacio seleccionado ya no aparece entre tus accesos
-              disponibles.
-            </p>
-          )}
-          {!selectedId && list.isSuccess && items.length > 0 && (
-            <p className={styles.selectionHelp}>
-              <Icon name="shield" />
-              Selecciona un espacio para ver su información y tu rol.
-            </p>
-          )}
         </div>
-        <ProfileCard
-          profile={profile.data}
-          pending={profile.isPending}
-          error={profile.error}
-          onRetry={() => void profile.refetch()}
-        />
       </div>
-      {selected && (
-        <EntityPanel
-          key={`${user?.id}:${selected.workspace.id}`}
-          workspace={selected.workspace}
-          role={selected.role}
-        />
-      )}
       <CreateWorkspaceDialog
         open={creating}
         onClose={() => setCreating(false)}
@@ -317,6 +202,6 @@ export function WorkspacePage() {
         <span>Tu trabajo, en orden.</span>
         <span className="sr-only">{user?.id ? 'Sesión iniciada' : ''}</span>
       </footer>
-    </WorkspaceLayout>
+    </>
   );
 }

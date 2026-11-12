@@ -12,7 +12,7 @@ import { useEntities } from '../api/useEntityQueries';
 import { entityTaxLabel } from '../utils/entityPresentation';
 import { EntityFeedback } from './EntityFeedback';
 import { CreateEntityDialog } from './CreateEntityDialog';
-import { EntityDetailDialog } from './EntityDetailDialog';
+import { Link } from 'react-router-dom';
 import styles from '../entities.module.css';
 
 type Props = { workspace: Workspace; role: WorkspaceRole };
@@ -39,7 +39,6 @@ function EntityPortfolio({
   denied,
 }: Props & { list: ReturnType<typeof useEntities>; denied: boolean }) {
   const [creating, setCreating] = useState(false);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [success, setSuccess] = useState('');
   const items = list.data ?? [];
@@ -58,7 +57,7 @@ function EntityPortfolio({
       <div className={styles.heading}>
         <div>
           <p className={workspaceStyles.eyebrow}>Cartera de clientes</p>
-          <h2 id="clients-heading">Clientes de {workspace.name}</h2>
+          <h1 id="clients-heading">Clientes de {workspace.name}</h1>
           <p className={styles.description}>
             Consulta y organiza los clientes disponibles en este espacio.
           </p>
@@ -190,11 +189,10 @@ function EntityPortfolio({
               >
                 {filtered.map((entity) => (
                   <li key={entity.id}>
-                    <button
-                      type="button"
+                    <Link
                       className={styles.row}
                       aria-label={`Ver cliente ${entity.legal_name}`}
-                      onClick={() => setSelectedId(entity.id)}
+                      to={`/workspaces/${workspace.id}/clients/${entity.id}`}
                     >
                       <span className={styles.identity}>
                         <span
@@ -217,7 +215,7 @@ function EntityPortfolio({
                           : 'Consulta'}
                       </span>
                       <Icon name="arrow-right" />
-                    </button>
+                    </Link>
                   </li>
                 ))}
               </ul>
@@ -240,18 +238,6 @@ function EntityPortfolio({
             setSearch('');
             setSuccess(`Se creó «${entity.legal_name}» correctamente.`);
           }}
-        />
-      )}
-      {selectedId && !denied && (
-        <EntityDetailDialog
-          key={selectedId}
-          workspaceId={workspace.id}
-          workspaceName={workspace.name}
-          entityId={selectedId}
-          onClose={() => setSelectedId(null)}
-          onUpdated={(entity) =>
-            setSuccess(`Se actualizó «${entity.legal_name}».`)
-          }
         />
       )}
     </section>

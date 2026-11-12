@@ -22,9 +22,11 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const request = useRef<AbortController | null>(null);
   const generation = useRef(0);
   const sessionRef = useRef<Session | null>(null);
+  const verifiedUserId = useRef<string | null>(null);
   const busy = useRef(false);
   const signingOut = useRef(false);
   const clear = useCallback(() => {
+    verifiedUserId.current = null;
     generation.current++;
     request.current?.abort();
     void queryClient.cancelQueries();
@@ -46,8 +48,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
       setState({ ...anonymous, status: 'loading' });
       try {
         const user = await currentUser(session.access_token, controller.signal);
-        if (version === generation.current)
-          setState({ status: 'authenticated', user, error: null });
+        if (version !== generation.current || controller.signal.aborted) return;
+        verifiedUserId.current = user.id;
+        setState({ status: 'authenticated', user, error: null });
         setInitializing(false);
       } catch (error) {
         if (version !== generation.current || controller.signal.aborted) return;
@@ -86,8 +89,21 @@ export function AuthProvider({ children }: PropsWithChildren) {
     // Synchronous callback; SDK methods run outside its auth lock.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!signingOut.current) void resolve(session);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active || signingOut.current) return;
+      // The SDK re-emits SIGNED_IN on focus and refreshes tokens itself.
+      // Keep the mounted UI/cache for an already verified identity. Initial
+      // sessions, identity changes, recovery and sign-out still resolve fully.
+      if (
+        session &&
+        (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') &&
+        verifiedUserId.current === session.user.id &&
+        sessionRef.current?.user.id === session.user.id
+      ) {
+        sessionRef.current = session;
+        return;
+      }
+      void resolve(session);
     });
     void supabase.auth.getSession().then(({ error }) => {
       // getSession can finish after SIGNED_IN. In that case its error is no
@@ -168,7 +184,9 @@ export function AuthProvider({ children }: PropsWithChildren) {
     });
   }
   return (
-      <AuthContext.Provider value={{ ...state, initializing, login, register, logout, retry }}>
+    <AuthContext.Provider
+      value={{ ...state, initializing, login, register, logout, retry }}
+    >
       {children}
     </AuthContext.Provider>
   );

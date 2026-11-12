@@ -25,36 +25,18 @@ const retry = (count: number, error: unknown) =>
   count < 1 &&
   [0, 503].includes(workspaceStatus(error));
 
-export function useWorkspaceQueries(selectedId: string | null) {
+export function useWorkspaceQueries() {
   const { user, status } = useAuth();
   const userId = user?.id ?? '';
   const enabled = status === 'authenticated' && Boolean(userId);
-  const profile = useQuery({
-    queryKey: workspaceKeys.profile(userId),
-    queryFn: ({ signal }) => getProfile(userId, signal),
-    enabled,
-    retry,
-  });
+  const profile = useProfileQuery();
   const list = useQuery({
     queryKey: workspaceKeys.list(userId),
     queryFn: ({ signal }) => getWorkspaces(userId, signal),
     enabled,
     retry,
   });
-  // A selection is a UI context, never authorization. Detail rechecks it on the server.
-  const accessibleId =
-    !list.isError && list.data?.some((item) => item.id === selectedId)
-      ? selectedId
-      : null;
-  const detail = useQuery({
-    queryKey: workspaceKeys.detail(userId, accessibleId ?? ''),
-    queryFn: ({ signal }) => getWorkspace(userId, accessibleId!, signal),
-    enabled: enabled && Boolean(accessibleId),
-    gcTime: 0,
-    staleTime: 0,
-    retry,
-  });
-  return { profile, list, detail, accessibleId };
+  return { profile, list };
 }
 
 export function useCreateWorkspace() {
@@ -104,5 +86,30 @@ export function useCreateWorkspace() {
       );
       void client.invalidateQueries({ queryKey: workspaceKeys.list(userId) });
     },
+  });
+}
+
+// Direct links revalidate access with the API, independently of the portfolio list.
+export function useWorkspaceDetail(id: string) {
+  const { user, status } = useAuth();
+  const userId = user?.id ?? '';
+  return useQuery({
+    queryKey: workspaceKeys.detail(userId, id),
+    queryFn: ({ signal }) => getWorkspace(userId, id, signal),
+    enabled: status === 'authenticated' && Boolean(userId && id),
+    gcTime: 0,
+    staleTime: 0,
+    retry,
+  });
+}
+
+export function useProfileQuery() {
+  const { user, status } = useAuth();
+  const userId = user?.id ?? '';
+  return useQuery({
+    queryKey: workspaceKeys.profile(userId),
+    queryFn: ({ signal }) => getProfile(userId, signal),
+    enabled: status === 'authenticated' && Boolean(userId),
+    retry,
   });
 }

@@ -61,3 +61,8 @@ Resultados finales de esta fase:
 No se ejecutó Playwright, respetando codex.md. No hay comprobación funcional/visual actual en navegador ni afirmación de que los 24 casos pasaron. No se certifican API publicado, SQL remoto, RLS real, instalación del sistema operativo, Safari/iOS ni todos los lectores de pantalla.
 
 El propietario debe ejecutar manualmente el SQL pendiente del API según sus instrucciones (incluido 003 después de 001/002) y validar aislamiento con usuarios reales. No se ejecutó SQL remoto ni se implementaron grants, invitaciones, portal, FEL, libros o módulos financieros.
+
+
+## Actualización — navegación por rutas, 2026-11-12
+
+La fase de separación por rutas autorizada está implementada. La cartera y detalle ya no se incrustan en inicio; el perfil vive en `/account`. Estado actual, decisiones y límites en [ROUTING.md](ROUTING.md). Los resultados de fases anteriores no validan esta navegación.

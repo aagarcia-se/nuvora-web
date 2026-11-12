@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useAuth } from '@/features/auth/store/authStore';
 import { ThemeSelector } from '@/shared/theme/ThemeSelector';
@@ -70,7 +71,13 @@ export function WorkspaceAccount({
       <div id={panelId} className={styles.accountPanel} hidden={!open}>
         {open && (
           <>
-            <p className="font-semibold">Mi cuenta</p>
+            <Link
+              to="/account"
+              className="auth-link"
+              onClick={() => setOpen(false)}
+            >
+              Mi cuenta
+            </Link>
             <p className="mt-1 break-words text-sm text-muted">{user?.email}</p>
           </>
         )}

@@ -551,3 +551,58 @@ test('registro aplica política Unicode del API y rechaza espacio como símbolo'
   await password.fill('Áé١!abcd');
   await expect(submit).toBeEnabled();
 });
+
+test('Demo: recuperar visibilidad conserva el borrador sin repetir /me', async ({
+  page,
+}) => {
+  await mocks(page);
+  let identityReads = 0;
+  page.on('request', (request) => {
+    if (new URL(request.url()).pathname === '/api/v1/auth/me') identityReads++;
+  });
+  await login(page);
+  await expect(
+    page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Crear espacio', exact: true })
+    .click();
+  const field = page.getByLabel('Nombre del espacio', { exact: true });
+  await field.fill('Borrador Demo conservado');
+  const baseline = identityReads;
+  // The dev-server fixture imports the real SDK instance and waits for its
+  // repeated SIGNED_IN, rather than assuming visibility handling is synchronous.
+  await page.evaluate(async () => {
+    const modulePath = '/src/shared/lib/supabase.ts';
+    const { supabase } = await import(/* @vite-ignore */ modulePath);
+    let finish!: () => void;
+    const recovered = new Promise<void>((resolve) => {
+      finish = resolve;
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event: string) => {
+      if (event === 'SIGNED_IN') finish();
+    });
+    try {
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: 'hidden',
+      });
+      window.dispatchEvent(new Event('visibilitychange'));
+      Object.defineProperty(document, 'visibilityState', {
+        configurable: true,
+        value: 'visible',
+      });
+      window.dispatchEvent(new Event('visibilitychange'));
+      await recovered;
+    } finally {
+      subscription.unsubscribe();
+      delete (document as unknown as { visibilityState?: string })
+        .visibilityState;
+    }
+  });
+  await expect(page.getByRole('dialog')).toBeVisible();
+  await expect(field).toHaveValue('Borrador Demo conservado');
+  expect(identityReads).toBe(baseline);
+});

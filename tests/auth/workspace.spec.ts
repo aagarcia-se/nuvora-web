@@ -138,14 +138,15 @@ test('Demo: perfil y lista autenticados sin reutilizar el contenedor de login', 
 }) => {
   await setup(page);
   await expect(
+    page.getByRole('link', { name: 'Abrir Despacho Demo' }),
+  ).toBeVisible();
+  await page.goto('/account');
+  await expect(
     page
       .getByRole('complementary', { name: 'Tu perfil' })
       .getByRole('heading', { name: 'Contadora Demo' }),
   ).toBeVisible();
   await expect(page.getByText('Español · Guatemala')).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Seleccionar Despacho Demo' }),
-  ).toBeVisible();
   await expect(page.locator('main')).toHaveCount(1);
   await expect(page.locator('.auth-form')).toHaveCount(0);
 });
@@ -154,6 +155,7 @@ test('Demo: perfil sin nombre ni avatar tiene presentación alternativa', async 
   page,
 }) => {
   await setup(page, { noName: true });
+  await page.goto('/account');
   const card = page.getByRole('complementary', { name: 'Tu perfil' });
   await expect(card.getByRole('heading', { name: 'Tu cuenta' })).toBeVisible();
   await expect(card.getByText(user.email, { exact: true })).toBeVisible();
@@ -162,12 +164,13 @@ test('Demo: perfil sin nombre ni avatar tiene presentación alternativa', async 
 test('Demo: perfil 404 no bloquea espacios disponibles', async ({ page }) => {
   await setup(page, { profileStatus: 404 });
   await expect(
+    page.getByRole('link', { name: 'Abrir Despacho Demo' }),
+  ).toBeVisible();
+  await page.goto('/account');
+  await expect(
     page.getByText(
       'Tu perfil todavía no está disponible. Puedes continuar con tu cuenta.',
     ),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('button', { name: 'Seleccionar Despacho Demo' }),
   ).toBeVisible();
 });
 
@@ -178,9 +181,7 @@ test('Demo: lista vacía muestra creación y no datos ficticios', async ({
   await expect(
     page.getByRole('heading', { name: 'Todo empieza con un espacio.' }),
   ).toBeVisible();
-  await expect(page.getByRole('button', { name: /^Seleccionar / })).toHaveCount(
-    0,
-  );
+  await expect(page.getByRole('link', { name: /^Abrir / })).toHaveCount(0);
 });
 
 test('Demo: creación única, confirmación y detalle autorizado', async ({
@@ -203,10 +204,7 @@ test('Demo: creación única, confirmación y detalle autorizado', async ({
     page.getByText('Se creó «Equipo Demo» correctamente.'),
   ).toBeVisible();
   await expect(
-    page.getByRole('heading', { name: 'Tu contexto de trabajo' }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Equipo Demo', exact: true }),
+    page.getByRole('link', { name: 'Abrir Equipo Demo' }),
   ).toBeVisible();
   expect(api.creations()).toBe(1);
 });
@@ -253,9 +251,7 @@ for (const status of [401, 403, 503])
   }) => {
     await setup(page, { listStatus: status });
     await expect(page.getByRole('alert')).toBeVisible();
-    await expect(
-      page.getByRole('button', { name: /^Seleccionar / }),
-    ).toHaveCount(0);
+    await expect(page.getByRole('link', { name: /^Abrir / })).toHaveCount(0);
     if (status === 401)
       await expect(
         page.getByRole('button', { name: 'Volver a iniciar sesión' }),
@@ -271,18 +267,19 @@ test('Demo: perfil 503 permite continuar y reintentar su consulta', async ({
 }) => {
   await setup(page, { profileStatus: 503 });
   await expect(
+    page.getByRole('link', { name: 'Abrir Despacho Demo' }),
+  ).toBeVisible();
+  await page.goto('/account');
+  await expect(
     page.getByRole('complementary', { name: 'Tu perfil' }).getByRole('alert'),
   ).toContainText('El servicio no está disponible');
-  await expect(
-    page.getByRole('button', { name: 'Seleccionar Despacho Demo' }),
-  ).toBeVisible();
 });
 
 test('Demo: detalle 404 no presenta selección como acceso confirmado', async ({
   page,
 }) => {
   await setup(page, { detailStatus: 404 });
-  await page.getByRole('button', { name: 'Seleccionar Despacho Demo' }).click();
+  await page.getByRole('link', { name: 'Abrir Despacho Demo' }).click();
   await expect(page.getByRole('alert')).toContainText(
     'Este espacio ya no está disponible',
   );

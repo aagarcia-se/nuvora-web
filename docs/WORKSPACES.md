@@ -56,3 +56,8 @@ Resultados finales de esta fase:
 ## Continuidad: entidades/clientes
 
 La fase posterior está en [ENTITIES.md](./ENTITIES.md). El panel se agrega únicamente al confirmar selección de workspace. El transporte de sesión ahora vive en `src/shared/api/authenticatedRequest.ts`; `workspaceApi.ts` conserva aliases/contratos existentes. Seleccionar otro espacio cancela y elimina sus consultas de entidades. Esto amplía la vista de workspaces sin rehacer su fase ni añadir módulos financieros.
+
+
+## Actualización — navegación por rutas, 2026-11-12
+
+La fase de separación por rutas autorizada está implementada. La cartera y detalle ya no se incrustan en inicio; el perfil vive en `/account`. Estado actual, decisiones y límites en [ROUTING.md](ROUTING.md). Los resultados de fases anteriores no validan esta navegación.

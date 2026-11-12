@@ -765,3 +765,32 @@
     padding-inline: 0.5rem;
   }
 }
+
+.routeNav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+  margin-bottom: 2rem;
+  font-size: 0.875rem;
+  color: rgb(var(--color-muted));
+}
+.routeNav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.routeNav [aria-current='page'] {
+  font-weight: 600;
+  text-decoration: none;
+}
+.accountContent {
+  max-width: 40rem;
+}
+
+.spaceOption {
+  text-decoration: none;
+  color: inherit;
+}

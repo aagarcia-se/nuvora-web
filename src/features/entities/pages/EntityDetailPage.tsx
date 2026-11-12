@@ -5,24 +5,20 @@ import { displayDate } from '@/features/workspace/utils/workspacePresentation';
 import workspaceStyles from '@/features/workspace/workspace.module.css';
 import { useEntity, useEntityWrite } from '../api/useEntityQueries';
 import { entityTaxLabel } from '../utils/entityPresentation';
-import type { Entity, PatchEntityInput } from '../types/entity.types';
-import { EntityDialog } from './EntityDialog';
-import { EntityFeedback } from './EntityFeedback';
-import { EntityForm } from './EntityForm';
+import type { PatchEntityInput } from '../types/entity.types';
+import { Link } from 'react-router-dom';
+import { EntityFeedback } from '../components/EntityFeedback';
+import { EntityForm } from '../components/EntityForm';
 import styles from '../entities.module.css';
 
-export function EntityDetailDialog({
+export function EntityDetailPage({
   workspaceId,
   workspaceName,
   entityId,
-  onClose,
-  onUpdated,
 }: {
   workspaceId: string;
   workspaceName: string;
   entityId: string;
-  onClose: () => void;
-  onUpdated: (entity: Entity) => void;
 }) {
   const detail = useEntity(workspaceId, entityId);
   const write = useEntityWrite(workspaceId);
@@ -38,13 +34,24 @@ export function EntityDetailDialog({
     requestAnimationFrame(() => heading.current?.focus());
   }
   return (
-    <EntityDialog
-      title={editingAllowed ? 'Editar cliente' : 'Detalle del cliente'}
-      description="Consulta la información disponible para tu cuenta."
-      workspaceName={workspaceName}
-      busy={write.isPending}
-      onClose={onClose}
-    >
+    <section className={styles.detailPage}>
+      <header className={workspaceStyles.pageHeading}>
+        <div>
+          <p className={workspaceStyles.eyebrow}>
+            Espacio activo: {workspaceName}
+          </p>
+          <h1>{editingAllowed ? 'Editar cliente' : 'Detalle del cliente'}</h1>
+          <p className={workspaceStyles.intro}>
+            Consulta la información disponible para tu cuenta.
+          </p>
+        </div>
+        <Link
+          className="btn-secondary"
+          to={`/workspaces/${workspaceId}/clients`}
+        >
+          Volver a clientes
+        </Link>
+      </header>
       {detail.isPending ? (
         <p role="status" className={styles.detailLoading}>
           Cargando información del cliente…
@@ -70,12 +77,11 @@ export function EntityDetailDialog({
                   const patch: PatchEntityInput = {};
                   if (input.legalNameChanged) patch.legalName = input.legalName;
                   if (input.taxId !== undefined) patch.taxId = input.taxId;
-                  const result = await write.mutateAsync({
+                  await write.mutateAsync({
                     kind: 'patch',
                     entityId,
                     input: patch,
                   });
-                  onUpdated(result);
                   setEditing(false);
                   setMessage('Cambios guardados.');
                   requestAnimationFrame(() => heading.current?.focus());
@@ -89,9 +95,9 @@ export function EntityDetailDialog({
                     {message}
                   </p>
                 )}
-                <h3 ref={heading} tabIndex={-1} className={styles.clientName}>
+                <h2 ref={heading} tabIndex={-1} className={styles.clientName}>
                   {entity.legal_name}
-                </h3>
+                </h2>
                 <dl className={styles.details}>
                   <div>
                     <dt>{canEdit ? 'NIT' : 'NIT protegido'}</dt>
@@ -117,9 +123,6 @@ export function EntityDetailDialog({
                   </p>
                 )}
                 <div className={workspaceStyles.dialogActions}>
-                  <Button type="button" variant="secondary" onClick={onClose}>
-                    Cerrar detalle
-                  </Button>
                   {canEdit && (
                     <Button
                       type="button"
@@ -138,6 +141,6 @@ export function EntityDetailDialog({
           </>
         )
       )}
-    </EntityDialog>
+    </section>
   );
 }

@@ -1,5 +1,9 @@
 # AGENTS.md — Nuvora Web
 
+## Continuidad vigente — menú responsive, 2026-11-12
+
+Menú autorizado e implementado sobre las rutas existentes: lateral desde 1024 px, panel modal nativo en móvil/PWA. Fuente de verdad del contexto: query del detalle del workspace confirmada por API, compartida con su boundary. Solo Espacios y Clientes cuando corresponda; sin secciones futuras. Perfil/apariencia/logout continúan en avatar; no duplicarlos en el menú lateral. Preservar cierre/foco/Escape/cambio de ancho, safe areas, tokens y restricción de Playwright. Ver `codex.md`, `docs/NAVIGATION.md` y `docs/ROUTING.md` para resultados reales. Los bloques históricos siguientes describen fases anteriores; no restaurar perfil/cartera incrustados en inicio.
+
 ## Contexto operativo vigente — fase codex.md, 2026-11-12
 
 La fase actual es clientes/entidades de [codex.md](codex.md), exclusivamente en `nuvora-web`. Perfil/workspaces ya están implementados y no deben repetirse. Leer [docs/ENTITIES.md](docs/ENTITIES.md), [docs/WORKSPACES.md](docs/WORKSPACES.md) y las fases 17/18 de [docs/PLAN.md](docs/PLAN.md). No modificar `nuvora-api`, SQL, entornos, secretos o Git.
@@ -179,3 +183,15 @@ npm run test:pwa
 ```
 
 Node.js 22.12+ o 24 LTS según README. Playwright requiere Chromium (`npx playwright install chromium`) cuando se ejecuten sus pruebas. `npm run format` modifica archivos; evitar formateo masivo. No existen `npm test`/`typecheck` hasta que se agreguen explícitamente.
+
+
+## Actualización de continuidad — 2026-11-12, rutas
+
+Separación de navegación autorizada e implementada: `/` espacios, `/workspaces/:workspaceId/clients` cartera, `/workspaces/:workspaceId/clients/:entityId` detalle/edición, `/account` perfil. Preservar esta separación, el shell privado y los diálogos de alta. Detalle anterior como diálogo sustituido por `features/entities/pages/EntityDetailPage.tsx`. La autorización del workspace se confirma antes de montar queries de clientes; edición directa no depende de una lista visitada previamente.
+
+Estado y límites en `codex.md` y `docs/ROUTING.md`: lint/build aprobados; suites adaptadas y nuevos casos Demo sin ejecutar, sin revisión visual ni integración real. Apariencia y logout permanecen en menú de cuenta. No adelantar fases mayores por este cierre.
+
+
+## Continuidad de sesión — 2026-11-12
+
+Preservar la corrección de AuthProvider: SIGNED_IN repetido/TOKEN_REFRESHED del mismo usuario ya verificado no deben limpiar Query ni desmontar UI. Identidad verificada se invalida en clear; cambios reales de sesión siguen resolviéndose. No desactivar refresh SDK ni revalidación de permisos para ocultar parpadeos. Hallazgo, caso preparado y resultados en `docs/SESSION-CONTINUITY.md`; Playwright no ejecutado.

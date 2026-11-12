@@ -2,6 +2,7 @@ export function Icon({
   name,
 }: {
   name:
+    | 'menu'
     | 'sun'
     | 'moon'
     | 'download'
@@ -29,6 +30,7 @@ export function Icon({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      {name === 'menu' && <path d="M4 6h16M4 12h16M4 18h16" />}
       {name === 'sun' && (
         <>
           <circle cx="12" cy="12" r="4" />

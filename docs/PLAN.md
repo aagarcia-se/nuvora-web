@@ -264,3 +264,18 @@ Detalles de archivos, cancelación, pruebas y límites: [ENTITIES.md](./ENTITIES
 
 
 Cierre de la fase 18: implementación frontend finalizada; lint/build aprobados en revisión final. JS 650,95 kB / 189,88 kB gzip, CSS 33,17 kB / 7,38 kB gzip; aviso de tamaño conservado. 24 casos Demo preparados sin ejecutar Playwright. Sin revisión visual ni validación real del API/RLS certificadas. codex.md actualizado con el cierre y los pendientes; no se autoriza una fase posterior automáticamente.
+
+
+## Actualización — navegación por rutas, 2026-11-12
+
+La fase de separación por rutas autorizada está implementada. La cartera y detalle ya no se incrustan en inicio; el perfil vive en `/account`. Estado actual, decisiones y límites en [ROUTING.md](ROUTING.md). Los resultados de fases anteriores no validan esta navegación.
+
+
+## Menú responsive — 2026-11-12
+
+Implementado lateral de escritorio y panel móvil/PWA sobre las rutas existentes. Estado, archivos y límites en [NAVIGATION.md](NAVIGATION.md). No se añadieron módulos futuros.
+
+
+## Continuidad al recuperar foco — 2026-11-12
+
+Corregido reinicio de auth por eventos repetidos del SDK del mismo usuario verificado. Detalles y límites en [SESSION-CONTINUITY.md](SESSION-CONTINUITY.md).

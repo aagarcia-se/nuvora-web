@@ -1,5 +1,6 @@
 import type { PropsWithChildren } from 'react';
-import { Navigate } from 'react-router-dom';
+import { safeReturnPath } from '@/shared/utils/returnPath';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/authStore';
 import { Button } from '@/shared/ui/components/Button';
 import { InlineAlert } from '@/shared/ui/components/InlineAlert';
@@ -8,6 +9,7 @@ export function ProtectedRoute({
   publicOnly = false,
 }: PropsWithChildren<{ publicOnly?: boolean }>) {
   const auth = useAuth();
+  const location = useLocation();
   if (auth.status === 'loading')
     return (
       <>
@@ -33,8 +35,19 @@ export function ProtectedRoute({
       </>
     );
   if (publicOnly && auth.status === 'authenticated')
-    return <Navigate to="/" replace />;
+    return (
+      <Navigate
+        to={safeReturnPath((location.state as { from?: unknown } | null)?.from)}
+        replace
+      />
+    );
   if (!publicOnly && auth.status === 'anonymous')
-    return <Navigate to="/login" replace />;
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: safeReturnPath(location.pathname) }}
+        replace
+      />
+    );
   return children;
 }

@@ -47,3 +47,19 @@ La prueba de contraste automatizada comprueba tokens resueltos en Chromium para 
 - Chromium headless-shell falló al arrancar (`spawn UNKNOWN`), y Chromium completo terminó antes de abrir una página. Se utilizó Chrome instalado como alternativa, sin cambiar la configuración habitual del proyecto.
 - Capturas de login escritorio claro y móvil oscuro inspeccionadas visualmente; formularios públicos comprobados a 375/768/1440 px en ambos temas. La prueba de teclado/tema también recorre 320 px y orientación horizontal.
 - No se modificaron entornos ni se ejecutaron comandos Git.
+
+
+## Ajuste minimalista solicitado — 2026-11-12
+
+Esta revisión sustituye el panel lateral descrito arriba por un formulario centrado sin tarjeta, sombra ni bloque de color. Se aplicó la búsqueda local `minimalism login whitespace` de UI/UX Pro Max (resultado verificado: Minimalism & Swiss Style), conservando jerarquía, controles y temas existentes. El shell compartido mantiene coherencia en las pantallas de autenticación.
+
+Los iconos instalables ahora se generan desde `public/splash-logo.svg`, con la N sobre #0F172A, coincidente con el fondo del manifest. El favicon conserva su placa de marca para navegador y cabecera. Se regeneran los PNG, sin pruebas, lint ni build por instrucción expresa del usuario. Los resultados anteriores corresponden a la revisión previa y no validan estos ajustes.
+
+
+## Monograma geométrico — 2026-11-12
+
+Por autorización del usuario se sustituye la N tipográfica por una silueta geométrica de trazo ancho, diagonal continua y esquinas suavizadas. SVG original, sin fuentes ni recursos externos. La búsqueda UI/UX Pro Max `geometric brand logo minimal` devuelve Minimalism & Swiss Style, coherente con la dirección minimalista vigente.
+
+`public/brand-mark.svg` contiene la versión independiente. Cabecera: máscara SVG con el token principal para adaptarse al tema, sin placa. Favicon, splash y PNG instalables: símbolo lavanda sobre #0F172A uniforme. La silueta inline de `index.html` mantiene el mismo trazado sin peticiones adicionales durante el arranque. El símbolo se incluye entre los recursos PWA. Conservar sincronizados estos SVG y el trazado inline al editar la geometría.
+
+Solo se regeneran recursos gráficos; no se ejecutan pruebas, lint ni build por instrucción vigente. La actualización de iconos de una PWA ya instalada depende del navegador y puede requerir reinstalación tras publicar.

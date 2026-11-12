@@ -5,7 +5,9 @@ import { fileURLToPath } from 'node:url';
 // La N está dentro de la zona segura circular del icono maskable (80%).
 // Los iconos instalables no pueden depender de transparencia: Android puede
 // componerla sobre negro durante el splash. El fondo coincide con el manifest.
-const source = new URL('../public/favicon.svg', import.meta.url);
+// El símbolo y el favicon comparten la identidad geométrica. El splash usa la N
+// sobre el mismo fondo sólido del manifest, sin un recuadro interior.
+const source = new URL('../public/splash-logo.svg', import.meta.url);
 const output = new URL('../public/icons/', import.meta.url);
 await mkdir(output, { recursive: true });
 

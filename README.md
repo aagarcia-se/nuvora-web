@@ -108,6 +108,61 @@ npm run test:auth
 `npm run format` aplica Prettier. El build genera `dist/`.
 Al desplegar, configurar el hosting para redirigir rutas de la SPA a `index.html`.
 
+## Despliegue en Vercel
+
+La configuración versionada en [`vercel.json`](vercel.json) prepara este proyecto
+como una SPA Vite:
+
+- build: `npm run build`;
+- salida: `dist`;
+- fallback de rutas client-side a `/index.html`, incluido `/auth/callback`;
+- `/api`, `/health` y archivos con extensión no se reescriben, para no romper
+  assets, `manifest.webmanifest` ni `sw.js`;
+- `index.html`, `manifest.webmanifest` y `sw.js` se revalidan; los assets hash de
+  `/assets` usan caché inmutable.
+
+### Variables públicas de Vercel
+
+Configura para cada ambiente, sin incluir secretos:
+
+```text
+VITE_APP_NAME=<nombre público de la aplicación>
+VITE_API_BASE_URL=<origen HTTPS del API, sin /api/v1>
+VITE_SUPABASE_URL=<URL pública del proyecto Supabase>
+VITE_SUPABASE_PUBLISHABLE_KEY=<clave publishable pública de Supabase>
+```
+
+Todas las variables `VITE_*` quedan en el navegador. No configurar claves
+secretas, service role ni credenciales de proveedores. Al cambiar una variable,
+crea un nuevo deployment porque Vite las incorpora durante el build.
+
+### Redirects, CORS y pasos de producción
+
+Después de que Vercel asigne el dominio final, registra la URL HTTPS real en los
+redirects permitidos de Supabase, incluyendo:
+
+```text
+https://<dominio-final>/auth/callback
+```
+
+Configura el mismo callback/origen en `AUTH_REDIRECT_URL` del backend y en
+Google OAuth/Supabase. En el API permite por CORS el origen HTTPS final de
+Vercel (además de los orígenes locales/staging necesarios), no `/api/v1` ni un
+comodín innecesario. `VITE_API_BASE_URL` debe ser solo el origen del API; el
+frontend añade `/api/v1`.
+
+Pasos exactos:
+
+1. Importa `nuvora-web` como proyecto Vercel y conserva su raíz.
+2. Verifica `npm run build` como comando y `dist` como output (ya están en
+   `vercel.json`).
+3. Añade las cuatro variables públicas en Preview y Production, sin copiar
+   `.env`.
+4. Despliega desde Vercel y prueba una ruta interna, `/auth/callback`, el
+   manifest y `/sw.js`.
+5. Configura el dominio final en Supabase/Google OAuth y el CORS del API;
+   valida login, refresh, logout y recarga directa de una ruta interna.
+
 ## PWA
 
 El banner superior compacto y fijo se muestra como promoción incluso antes de que el

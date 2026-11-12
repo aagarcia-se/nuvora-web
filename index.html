@@ -3,26 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta id="theme-color" name="theme-color" content="#111715" />
+    <meta id="theme-color" name="theme-color" content="#F7F8F6" />
     <meta name="color-scheme" content="light dark" />
-    <script src="/theme.js"></script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta id="apple-status-bar-style" name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="mobile-web-app-capable" content="yes" />
     <style>
-      html, body { margin: 0; min-height: 100%; background: #111715; }
-      #initial-splash { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: #111715; }
-      #initial-splash img { width: 4.5rem; height: 4.5rem; }
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+        min-height: 100dvh;
+        background: var(--initial-splash-background, #F7F8F6);
+      }
+      #initial-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        box-sizing: border-box;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right)
+          env(safe-area-inset-bottom) env(safe-area-inset-left);
+        background: var(--initial-splash-background, #F7F8F6);
+      }
+      #initial-splash svg { width: 4.5rem; height: 4.5rem; display: block; }
+      #initial-splash path { fill: var(--initial-splash-logo, #17211D); }
+      html.dark #initial-splash path { fill: #D5F454; }
       #initial-splash[hidden] { display: none; }
     </style>
     <title>Nuvora</title>
   </head>
   <body>
     <div id="initial-splash" role="status" aria-label="Cargando Nuvora">
-      <img src="/splash-logo.svg" width="72" height="72" alt="" />
+      <svg viewBox="0 0 512 512" width="72" height="72" aria-hidden="true" focusable="false">
+        <path d="M156 356V156h48l104 126V156h48v200h-48L204 230v126z" />
+      </svg>
     </div>
+    <script src="/theme.js"></script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

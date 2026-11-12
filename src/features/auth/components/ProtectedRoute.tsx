@@ -11,7 +11,7 @@ export function ProtectedRoute({
   if (auth.status === 'loading')
     return (
       <>
-        <h1 className="text-2xl font-semibold">Un momento</h1>
+        <h1 className="text-2xl font-semibold">Preparando sesión</h1>
         <p role="status" className="mt-4 text-muted">
           Comprobando tu sesión…
         </p>

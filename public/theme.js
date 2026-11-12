@@ -11,10 +11,17 @@
     preference === 'dark' ||
     (preference !== 'light' &&
       matchMedia('(prefers-color-scheme: dark)').matches);
-  document.documentElement.classList.toggle('dark', dark);
-  // The initial document and browser chrome are dark regardless of the app
-  // preference. The selected scheme is applied when React removes the splash.
-  document.documentElement.style.colorScheme = 'dark';
-  // Browser chrome stays dark while the initial splash is visible. React
-  // applies the selected status-bar color after initialization.
+  const root = document.documentElement;
+  const logoColor = dark ? '#D5F454' : '#17211D';
+  root.classList.toggle('dark', dark);
+  root.style.colorScheme = dark ? 'dark' : 'light';
+  root.style.setProperty('--initial-splash-background', dark ? '#111715' : '#F7F8F6');
+  root.style.setProperty('--initial-splash-logo', logoColor);
+  // The parser has already created the real F5 splash at this point. Set its
+  // paint directly so an SVG attribute or a stale cascade cannot win.
+  document.querySelector('#initial-splash path')?.style.setProperty('fill', logoColor, 'important');
+  document.querySelector('#theme-color')?.setAttribute(
+    'content',
+    dark ? '#111715' : '#F7F8F6',
+  );
 })();

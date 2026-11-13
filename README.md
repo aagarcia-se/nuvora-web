@@ -18,7 +18,7 @@ La aceptación abre `/client/entities/:entityId?workspaceId=:workspaceId`, sin n
 
 ## Accesos al cliente
 
-Invitaciones solo por enlace: elegir rol → Crear enlace → copiar/WhatsApp/Web Share. Creación envía únicamente `{ role }` y consume el enlace del API directamente. Cualquier usuario autenticado confirma la aceptación, sin correo de destinatario ni estados de entrega. Membresías y revocación con confirmación se conservan. Tokens efímeros; al recargar o volver de un acceso externo se debe reabrir el enlace original. Contratos, archivos y límites en [docs/ACCESS.md](docs/ACCESS.md). No ejecutar Playwright.
+Invitaciones solo por enlace: elegir rol → Crear enlace → copiar/WhatsApp/Web Share. Creación envía únicamente `{ role }` y consume el enlace del API directamente. Cualquier usuario autenticado confirma la aceptación, sin correo de destinatario ni estados de entrega. Si el acceso requiere Google, el contexto se conserva en un sobre tab-scoped de `sessionStorage` durante 10 minutos y vuelve a `/invitations/accept`; correo/registro conservan el mismo flujo sin pasar por el dashboard. El sobre se valida y se elimina al aceptar, cancelar, cerrar sesión o detectar expiración. No se usa `localStorage`, cookies permanentes, Query cache, analytics ni logs. Membresías y revocación con confirmación se conservan. Contratos, archivos, seguridad y límites en [docs/ACCESS.md](docs/ACCESS.md). No ejecutar Playwright.
 
 ## Estado actual de interfaz
 

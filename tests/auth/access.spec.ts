@@ -452,3 +452,44 @@ test('Demo: la inspección no acepta automáticamente y muestra contexto y rol',
   await expect(page.getByText(entity.id, { exact: true })).toBeVisible();
   expect(accepted).toBe(0);
 });
+
+test('Demo: continuidad link-first conserva la invitación al cancelar OAuth', async ({
+  page,
+}) => {
+  await page.goto(`/invitations/accept?token=${demoToken}`);
+  await page.evaluate(async () => {
+    const modulePath = '/src/features/access/invitationToken.ts';
+    const module = await import(/* @vite-ignore */ modulePath);
+    module.persistInvitationContinuation();
+  });
+  await page.goto('/auth/callback?error=access_denied');
+  await expect(page.getByRole('alert')).toContainText('Cancelaste');
+  await expect(
+    page.getByRole('link', { name: 'Volver a la invitación' }),
+  ).toBeVisible();
+  await page.getByRole('link', { name: 'Volver a la invitación' }).click();
+  await expect(page).toHaveURL(/\/invitations\/accept$/);
+  await expect(page.evaluate(() => ({ ...sessionStorage }))).resolves.toEqual(
+    expect.objectContaining({
+      'nuvora.invitation.continuation.v1': expect.stringContaining(demoToken),
+    }),
+  );
+});
+
+test('Demo: continuidad expirada se elimina y exige reabrir el enlace', async ({
+  page,
+}) => {
+  await page.addInitScript((token) => {
+    sessionStorage.setItem(
+      'nuvora.invitation.continuation.v1',
+      JSON.stringify({ token, createdAt: Date.now() - 11 * 60 * 1000 }),
+    );
+  }, demoToken);
+  await page.goto('/invitations/accept');
+  await expect(
+    page.getByRole('heading', { name: 'Vuelve a abrir la invitación' }),
+  ).toBeVisible();
+  await expect(page.evaluate(() => ({ ...sessionStorage }))).resolves.toEqual(
+    {},
+  );
+});

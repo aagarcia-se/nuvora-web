@@ -11,6 +11,7 @@ import {
 } from '../api/authApi';
 import { GoogleMark } from '../components/GoogleMark';
 import { useLogin } from '../api/useLogin';
+import { persistInvitationContinuation } from '@/features/access/invitationToken';
 export function LoginPage({ onRegister }: { onRegister?: () => void } = {}) {
   const auth = useAuth();
   const [show, setShow] = useState(false);
@@ -43,6 +44,7 @@ export function LoginPage({ onRegister }: { onRegister?: () => void } = {}) {
       return;
     }
     try {
+      persistInvitationContinuation();
       await mutateAsync({ email, password });
     } catch (cause) {
       setError(authMessage(cause));
@@ -53,6 +55,7 @@ export function LoginPage({ onRegister }: { onRegister?: () => void } = {}) {
     if (googlePending || pending || !authConfigured) return;
     setGooglePending(true);
     setGoogleError(null);
+    persistInvitationContinuation();
     const controller = new AbortController();
     try {
       const url = await getGoogleOAuthUrl(controller.signal);

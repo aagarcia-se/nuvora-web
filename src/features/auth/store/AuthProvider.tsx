@@ -12,6 +12,7 @@ import { queryClient } from '@/shared/api/queryClient';
 import { authMessage, currentUser, signIn, signUp } from '../api/authApi';
 import { AuthContext } from './authStore';
 import type { AuthState } from '../types/auth.types';
+import { clearInvitationContinuation } from '@/features/access/invitationToken';
 const anonymous: AuthState = { status: 'anonymous', user: null, error: null };
 export function AuthProvider({ children }: PropsWithChildren) {
   const [state, setState] = useState<AuthState>({
@@ -34,6 +35,12 @@ export function AuthProvider({ children }: PropsWithChildren) {
   }, []);
   const resolve = useCallback(
     async (session: Session | null) => {
+      if (
+        session &&
+        verifiedUserId.current &&
+        verifiedUserId.current !== session.user.id
+      )
+        clearInvitationContinuation();
       clear();
       const version = generation.current;
       if (!session) {
@@ -154,6 +161,7 @@ export function AuthProvider({ children }: PropsWithChildren) {
   async function logout() {
     if (!supabase || signingOut.current) return;
     signingOut.current = true;
+    clearInvitationContinuation();
     clear();
     setState({ ...anonymous, status: 'loading' });
     try {

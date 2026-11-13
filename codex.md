@@ -1,5 +1,34 @@
 # Estado vigente — cliente aislado y enlaces compactos, 2026-11-12
 
+## Continuidad link-first de invitaciones — 2026-11-12
+
+Implementado exclusivamente en `nuvora-web`: una invitación abierta antes de
+autenticar conserva el contexto suficiente para login/registro por correo y para
+Google OAuth. El callback adopta la sesión y vuelve a `/invitations/accept` en vez
+de enviar al dashboard de creación de workspace. La aceptación continúa siendo
+un POST explícito posterior a mostrar contexto, rol y vencimiento; el portal se
+abre únicamente después de una respuesta exitosa del API.
+
+- `invitationToken.ts` captura y limpia el token de la URL, valida su formato y,
+  solo al iniciar una continuidad desde invitación, usa un sobre
+  `sessionStorage` tab-scoped con TTL de 10 minutos. No usa localStorage/cookies,
+  Query/Mutation cache, analytics, breadcrumbs, logs ni URLs de tracking.
+- `AuthCallbackPage` distingue el flujo normal (vuelve a `/`) del flujo de
+  invitación (vuelve a `/invitations/accept`). Cancelaciones/fallos muestran
+  mensaje, reintento y opción de volver a la invitación mientras el sobre sea
+  vigente. El login normal no escribe el sobre.
+- Aceptar, cancelar definitivamente, logout/cambio explícito de cuenta, estados
+  no pendientes y expiración/410 limpian el contexto. Recargar después del TTL o
+  abrir un token inválido exige el enlace original. El token no se convierte en
+  autorización local: el API sigue inspeccionando y aceptando el bearer link.
+
+**Tradeoff:** `sessionStorage` es el mínimo mecanismo para atravesar la navegación
+completa de OAuth, está limitado a la pestaña y a una ventana breve, pero sigue
+siendo legible por JavaScript de esa pestaña. No reemplaza HTTPS/CSP ni la
+validación del API. `npm run lint` y `npm run build` pasaron; Playwright no se
+ejecutó (requiere autorización expresa) y la integración real/validación visual
+siguen pendientes.
+
 ## Descubrimiento de contexto tras autenticación — 2026-11-12
 
 Implementado únicamente en `nuvora-web`: después de autenticar se consume `GET /api/v1/profile/entities` con Bearer mediante `features/access/api/profileAccessApi.ts` y `hooks/useProfileEntities.ts`. La query está aislada por `userId`, se cancela/limpia con Auth y no convierte roles o permisos en autoridad local.

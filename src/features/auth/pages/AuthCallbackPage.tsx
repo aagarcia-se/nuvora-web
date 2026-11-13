@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/shared/lib/supabase';
 import { InlineAlert } from '@/shared/ui/components/InlineAlert';
+import {
+  clearInvitationToken,
+  hasInvitationContinuation,
+} from '@/features/access/invitationToken';
 
 const SESSION_WAIT_MS = 4000;
 
@@ -55,7 +59,11 @@ export function AuthCallbackPage() {
       const session = await waitForPersistedSession();
       if (session) {
         cleanCallbackUrl();
-        if (activeRef.current) navigate('/', { replace: true });
+        if (activeRef.current)
+          navigate(
+            hasInvitationContinuation() ? '/invitations/accept' : '/',
+            { replace: true },
+          );
         return true;
       }
       return false;
@@ -129,8 +137,22 @@ export function AuthCallbackPage() {
         <>
           <InlineAlert>{error}</InlineAlert>
           <Link className="btn-secondary w-full" to="/login">
-            Volver a iniciar sesión
+            Reintentar acceso
           </Link>
+          {hasInvitationContinuation() && (
+            <>
+              <Link className="auth-link block" to="/invitations/accept">
+                Volver a la invitación
+              </Link>
+              <Link
+                className="auth-link block"
+                to="/login"
+                onClick={clearInvitationToken}
+              >
+                Descartar invitación
+              </Link>
+            </>
+          )}
         </>
       ) : (
         <>

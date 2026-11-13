@@ -48,15 +48,34 @@ Roles: client_owner, client_contributor y client_viewer. La creación/admin exig
 
 ## Aceptación
 
-Se conserva /invitations/accept: limpieza temprana de URL, token únicamente en memoria, formulario de acceso/registro existente y consulta autenticada del estado. No se solicita ni compara correo de invitación; se muestra la cuenta actual solo para que el usuario sepa con cuál acepta. La confirmación explícita presenta workspace/entity (identificadores devueltos, sin inventar nombres), rol y vencimiento. Ver una invitación no concede acceso.
+Se conserva /invitations/accept: limpieza temprana de URL, formulario de acceso/registro existente y consulta autenticada del estado. No se solicita ni compara correo de invitación; se muestra la cuenta actual solo para que el usuario sepa con cuál acepta. La confirmación explícita presenta workspace/entity (identificadores devueltos, sin inventar nombres), rol y vencimiento. Ver una invitación no concede acceso.
+
+### Continuidad link-first
+
+Antes de iniciar correo/registro u OAuth, la página de invitación puede escribir un
+único sobre en `sessionStorage` (`nuvora.invitation.continuation.v1`) con el token
+validado y su hora de creación. Es almacenamiento tab-scoped, con TTL de 10 minutos,
+sin datos de usuario, y existe únicamente porque Google navega completamente a
+`/auth/callback`. El callback limpia sus parámetros y vuelve a
+`/invitations/accept` solo cuando hay un sobre vigente; una entrada normal a
+`/login` nunca crea ese contexto. El token se recupera únicamente para consultar la
+invitación después de autenticar y nunca se usa como permiso local.
+
+El sobre se elimina al aceptar, cancelar definitivamente, cerrar sesión, detectar
+estado expirado/revocado/usado o recibir `410`. Un fallo/cancelación de OAuth deja
+una acción clara para reintentar o volver a la invitación mientras el TTL siga
+vigente; el usuario puede reabrir el enlace original cuando el sobre expire. Este
+tradeoff limita la exposición a una pestaña y una ventana breve, pero
+`sessionStorage` sigue siendo accesible a JavaScript de esa pestaña: no sustituye
+HTTPS, CSP ni la validación del bearer token por el API.
 
 Pending permite confirmar; expired/revoked/accepted o POST 410 impiden continuar. 401/403/404/409/410/429/503 y red se tratan con mensajes seguros. Solo POST exitoso redirige al contexto devuelto y las rutas existentes vuelven a comprobar acceso. Sin aceptación automática al iniciar sesión.
 
-Google, recuperación o confirmación de una cuenta que abandonan la visita requieren reabrir el enlace original después; no se persiste token para salvar esa transición. La referencia a confirmación por correo corresponde al registro Auth, no a invitaciones ni a una restricción del destinatario.
+Google regresa automáticamente al callback de invitación. Recuperación o confirmación de correo que abandone la visita puede requerir reabrir el enlace original; la referencia a confirmación por correo corresponde al registro Auth, no a invitaciones ni a una restricción del destinatario.
 
 ## Seguridad y límites conservados
 
-- Token y acceptUrl únicamente en estado local/memoria efímera; nunca Query keys/data/Mutation cache, localStorage/sessionStorage, logs, analytics, errores o estado de navegación.
+- Token y acceptUrl únicamente en estado local/memoria efímera; el token solo usa `sessionStorage` en el sobre temporal de continuidad OAuth descrito arriba. Nunca se coloca en Query keys/data/Mutation cache, localStorage, cookies, logs, analytics, breadcrumbs, errores ni URLs de tracking.
 - Create y share-link usan useAccessAction fuera de mutations de Query, sin retries, con AbortSignal y control de respuesta tardía/cambio de identidad. Membresías conservan keys por usuario/workspace/entity y limpieza al cambiar contexto.
 - acceptUrl se valida: misma origin, HTTPS salvo localhost, callback esperado y un único token permitido. WhatsApp codifica el mensaje y no envía sin acción del usuario; Web Share cancelado no fuerza copia.
 - Advertencia clara: cualquiera con el enlace puede aceptarlo tras autenticarse; compartir solo con la persona a quien se quiere dar acceso. La aceptación concede el rol solo a esa entity, no administración del despacho.
@@ -71,9 +90,12 @@ Google, recuperación o confirmación de una cuenta que abandonan la visita requ
 - src/features/access/components/EntityAccessPanel.tsx
 - src/features/access/components/ShareInvitation.tsx
 - src/features/access/pages/InvitationPage.tsx
+- src/features/access/invitationToken.ts: captura temprana, validación, TTL y continuidad OAuth tab-scoped
+- src/features/auth/pages/AuthCallbackPage.tsx: retorno condicional a la invitación y cancelación/reintento
+- src/features/auth/pages/LoginPage.tsx y RegisterPage.tsx: preparación explícita de continuidad solo desde invitación
 - src/features/access/access.module.css: retirada regla de entrega obsoleta y ajuste de wrapping de IDs, sin nuevos colores/tokens.
 - tests/auth/access.spec.ts: mocks sin destinatario/delivery, URL inmediata sin rotación, roles, cualquier cuenta autenticada, confirmación explícita y ausencia de datos sensibles en almacenamiento/caché.
 
 ## Verificación
 
-**Lint y build aprobados (salida 0)**. También aprobó la comprobación de tipos con `npx --no-install tsc --noEmit --module esnext --moduleResolution bundler --target es2022 --lib ES2022,DOM --types node --skipLibCheck tests/auth/access.spec.ts tests/auth/access.fixture.ts`. JS 678,06 kB / 196,86 kB gzip; CSS 43,31 kB / 9,11 kB gzip. Aviso de chunk superior a 500 kB conservado; Playwright NO ejecutado. Las pruebas preparadas no se declaran aprobadas. Pendiente validación visual y uso real con el API desplegado; no se realizaron operaciones remotas, migraciones o envíos reales. Tras este cambio detener el trabajo y esperar otra indicación.
+**Verificación de esta corrección:** `npm run lint` y `npm run build` aprobados (salida 0). El build conserva el aviso de chunk principal superior a 500 kB. Las pruebas mockeadas Playwright existentes/adaptadas permanecen sin ejecutar por autorización explícita; no se ejecutó Playwright, no hubo validación visual ni uso real del API. No se realizaron operaciones remotas, migraciones, cambios backend, env, secretos o Git.

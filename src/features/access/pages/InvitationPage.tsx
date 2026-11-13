@@ -15,6 +15,7 @@ import {
 import { acceptInvitation, inspectInvitation } from '../api/accessApi';
 import { useAccessAction } from '../hooks/useAccess';
 import {
+  clearPendingInvitationMemory,
   clearInvitationToken,
   pendingInvitationToken,
 } from '../invitationToken';
@@ -33,7 +34,7 @@ export function InvitationPage() {
       mounted.current = false;
       queueMicrotask(() => {
         if (!mounted.current) {
-          clearInvitationToken();
+           clearPendingInvitationMemory();
         }
       });
     };
@@ -78,9 +79,9 @@ export function InvitationPage() {
           </p>
         </div>
         <p className={styles.hint}>
-          Si usas Google, recuperas tu contraseña o confirmas un registro por
-          correo, vuelve a abrir después el enlace original. No guardamos su
-          token entre visitas.
+           Si usas Google, el contexto se conserva solo durante unos minutos en
+           esta pestaña para volver aquí. Si cancelas o cambias de cuenta,
+           vuelve a abrir el enlace original.
         </p>
         {registering ? (
           <RegisterPage onLogin={() => setRegistering(false)} />
@@ -121,7 +122,10 @@ function InvitationSession({
     void inspectRun((id, signal) => inspectInvitation(id, token, signal)).then(
       (result) => {
         if (!active) return;
-        if (result) setInspection(result);
+         if (result) {
+           setInspection(result);
+           if (result.status !== 'pending') clearInvitationToken();
+         }
         setLoaded(true);
       },
     );
@@ -129,11 +133,17 @@ function InvitationSession({
       active = false;
     };
   }, [token, retry, inspectRun]);
+  useEffect(() => {
+    if (errorStatus(inspect.error) === 410) clearInvitationToken();
+  }, [inspect.error]);
   async function acceptNow() {
     const result = await accept.run((id, signal) =>
       acceptInvitation(id, token, signal),
     );
-    if (!result) return;
+    if (!result) {
+      if (errorStatus(accept.error) === 410) clearInvitationToken();
+      return;
+    }
     onConsumed();
     if (user)
       client.setQueryData(
@@ -143,6 +153,10 @@ function InvitationSession({
     navigate(clientEntityPath(result.entityId, result.workspaceId), {
       replace: true,
     });
+  }
+  async function leaveInvitation() {
+    onConsumed();
+    await logout();
   }
   const unavailable =
     (inspection && inspection.status !== 'pending') ||
@@ -237,7 +251,7 @@ function InvitationSession({
           type="button"
           variant="secondary"
           disabled={accept.pending}
-          onClick={() => void logout()}
+           onClick={() => void leaveInvitation()}
         >
           Usar otra cuenta
         </Button>

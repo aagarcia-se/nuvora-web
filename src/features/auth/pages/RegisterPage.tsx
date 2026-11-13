@@ -12,6 +12,7 @@ import { GoogleMark } from '../components/GoogleMark';
 import { useAuth } from '../store/authStore';
 
 import { passwordRules } from '../types/passwordRules';
+import { persistInvitationContinuation } from '@/features/access/invitationToken';
 
 export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
   const auth = useAuth();
@@ -59,6 +60,7 @@ export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
     }
     setPending(true);
     try {
+      persistInvitationContinuation();
       const signedIn = await auth.register(email.trim(), password);
       if (signedIn) return;
       setSuccess(true);
@@ -74,6 +76,7 @@ export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
     if (googlePending || pending || !authConfigured) return;
     setGooglePending(true);
     setGoogleError(null);
+    persistInvitationContinuation();
     const controller = new AbortController();
     try {
       const url = await getGoogleOAuthUrl(controller.signal);

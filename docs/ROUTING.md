@@ -17,7 +17,7 @@ La ruta `/` resuelve el contexto después de autenticar con `GET /api/v1/profile
 
 Criterio UI/UX: jerarquía Espacios → Clientes → Detalle, enlaces reales con historial nativo, un encabezado principal por vista, contexto del workspace visible y foco en main al cambiar ruta. Se consultó la skill local UI/UX Pro Max para breadcrumbs y jerarquía de encabezados. No se rediseñaron marca, PWA ni splash.
 
-Acceso: UUID inválido no monta queries del recurso; el detalle del workspace confirma autorización antes del Outlet. El API sigue autorizando cada consulta/escritura. Datos financieros no se almacenan en historial. La edición directa usa la identidad de query del detalle; respuestas de mutaciones descartadas si cambia el contexto o se limpia caché. La navegación por correo/contraseña permite volver a rutas internas conocidas; OAuth conserva retorno al inicio.
+Acceso: UUID inválido no monta queries del recurso; el detalle del workspace confirma autorización antes del Outlet. El API sigue autorizando cada consulta/escritura. Datos financieros no se almacenan en historial. La edición directa usa la identidad de query del detalle; respuestas de mutaciones descartadas si cambia el contexto o se limpia caché. La navegación por correo/contraseña permite volver a rutas internas conocidas. OAuth conserva el retorno al inicio normalmente y vuelve a `/invitations/accept` cuando existe el sobre temporal de una invitación.
 
 ## Verificación y límites
 
@@ -33,7 +33,7 @@ Implementado lateral de escritorio y panel móvil/PWA sobre las rutas existentes
 
 ## Fase de accesos al cliente — 2026-11-12
 
-Integradas invitaciones, consulta/revocación de membresías y compartir enlaces; callback `/invitations/accept` con token efímero. Entidades y diseño conservados. Estado/contratos/límites en [ACCESS.md](ACCESS.md) y [codex.md](../codex.md). Playwright no ejecutado; integración real y visual pendientes.
+Integradas invitaciones, consulta/revocación de membresías y compartir enlaces; callback `/invitations/accept` con token efímero. El flujo link-first conserva durante 10 minutos el token validado en `sessionStorage` tab-scoped solo para atravesar OAuth, limpia la URL y vuelve automáticamente a la invitación; el flujo normal de login no cambia. Entidades y diseño conservados. Estado/contratos/límites en [ACCESS.md](ACCESS.md) y [codex.md](../codex.md). Playwright no ejecutado; integración real y visual pendientes.
 
 
 ## Cliente aislado — 2026-11-12

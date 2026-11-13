@@ -193,6 +193,117 @@ el comportamiento real del bloqueo de navegación o la sesión en navegador.
 
 ## Portal de clientes
 
+### Última entrega — retorno visible y consulta compacta, 2026-11-13
+
+Tras el reporte del propietario de no encontrar cómo regresar, se ajustó la
+navegación del detalle con emil-design-eng. El detalle permanece como pantalla
+propia; no se transformó en modal ni se expanden facturas completas en el listado.
+Portal del contador sin cambios.
+
+| Antes                                         | Después                                                       | Motivo                                               |
+| --------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------- |
+| Volver como enlace gris discreto              | Botón secundario visible encima del título                    | Encontrar el retorno inmediatamente                  |
+| Único retorno arriba                          | Volver a comprobantes repetido al final                       | Salir sin volver a subir tras leer                   |
+| Ver detalle con borde de botón de formulario  | Enlace compacto azul con flecha y área táctil mínima de 44 px | Reducir peso visual en listas sin dificultar tocarlo |
+| Filtro y foco se perdían al salir de la lista | Filtro en el coordinador y punto de retorno en memoria        | Continuar revisando desde el mismo registro          |
+
+Al abrir un detalle desde el listado se conserva ID de fila y posición vertical.
+Al regresar y terminar la consulta de lista se restituye foco en Ver detalle y
+scroll, sin animación, si el registro sigue visible bajo el filtro. Si dejó de
+estar disponible no se intenta enfocar otra fila. El estado está limitado al
+usuario/workspace/entity montado, sin storage, URL nueva ni datos fiscales en
+historial. Recargar el documento o abrirlo directamente no recupera ese contexto:
+Volver lleva al listado por defecto. Entrar al registro manual limpia el punto
+de retorno. El filtro puede conservarse mientras el coordinador siga montado.
+Abrir enlace en otra pestaña no captura el punto de retorno en la pestaña actual.
+
+Cambios en PurchaseDocuments, PurchaseDocumentList, PurchaseDocumentRow,
+PurchaseDocumentDetail y client.module.css. Estados hover para ratón, foco visible
+y disabled conservados. Sin cambios de API/permisos, backend/SQL, env, Git o
+nuevas dependencias. Casos Demo adaptados para ambos retornos, filtro/foco y
+recarga; Playwright NO ejecutado. Lint sin errores/avisos y build salida 0.
+Visual e integración real pendientes; aviso de bundle >500 kB conservado.
+
+### Entrega anterior — consulta completa de comprobantes, 2026-11-13
+
+Autorizada e implementada la vista de detalle tanto de borradores como enviados a
+revisión, aplicando emil-design-eng. Portal del contador sin cambios. Cada fila
+del listado ofrece Ver detalle, incluida una cuenta con capacidad solo de lectura.
+Es una pantalla propia con enlace Volver a comprobantes, no un modal o formulario
+deshabilitado. La confirmación de envío también permite abrir el detalle.
+
+| Antes                                        | Después                                                        | Motivo                               |
+| -------------------------------------------- | -------------------------------------------------------------- | ------------------------------------ |
+| Listado con emisor, fecha, categoría y total | Ver detalle con toda la captura guardada                       | Consultar sin entrar a editar        |
+| Enviados sin vista completa                  | Consulta de borradores y pending_review                        | Mantener acceso al contenido enviado |
+| Datos al mismo nivel                         | Cabecera con estado, emisor/receptor, compra y total destacado | Facilitar lectura y comprobación     |
+| Registro técnico en contenido principal      | Identificador y fechas en disclosure                           | Conservar trazabilidad sin saturar   |
+
+Ruta canónica: /client/entities/:entityId?workspaceId=:workspaceId&document=:documentId.
+UUID validado; document no se combina con draft o view. La whitelist de retorno
+al autenticar admite esta variante. Comprobantes permanece como sección activa;
+la carga de detalle no necesita consultar previamente el listado. Se reutiliza
+GET del comprobante existente, usePurchaseDocument y su parser con comprobación
+de usuario/contexto/ID. La URL y el contenido de la lista no autorizan el detalle.
+Query por usuario/workspace/entity/documento, cancelación y manejo seguro de errores
+conservados. No se inventaron endpoints ni se cambió backend/SQL.
+
+Contenido: tipo, fecha del comprobante, estado, nombre y NIT del emisor (No registrado
+si está ausente), nombre y NIT capturado del receptor, descripción completa con
+saltos de línea, categoría, total exacto y moneda GTQ. Información del registro
+incluye ID, creado y última actualización, con horarios de Guatemala. No se
+muestran impuestos, serie, número o partidas inexistentes en el contrato, ni se
+presenta la captura como una factura fiscal verificada.
+
+Borrador muestra Editar borrador solo con canUpload; pending_review es consulta
+sin edición y explica que revisión no significa aprobación. Estados carga,
+401/403/404/red/servicio, reintento y retorno al listado. Un fallo del GET oculta
+el documento incluso si había datos previos; no se usa la fila como fallback de
+autorización. Foco programático al título tras cargar; enlaces reales, labels,
+contraste por tokens, iconos SVG existentes y distribución móvil de una columna.
+Sin animaciones decorativas ni nuevas dependencias.
+
+Archivos: PurchaseDocumentDetail nuevo; integración en PurchaseDocuments,
+PurchaseDocumentList, PurchaseDocumentRow y ManualPurchaseForm; validación en
+ClientEntityPage y returnPath; estilos locales en client.module.css.
+Casos Demo preparados en tests/auth/client-purchases.spec.ts para ambos estados,
+recarga, retorno, lectura sin edición, errores del GET y respuesta de otra entidad.
+NO Playwright ejecutado. Lint sin errores/avisos y build salida 0; tamaños actuales
+en Verificación y pendientes compartidos. Visual y API/RLS reales pendientes.
+
+### Entrega anterior — composición documental del formulario, 2026-11-13
+
+Propuesta de diseño autorizada e implementada con emil-design-eng. Cambios
+acotados a ManualPurchaseForm.tsx y client.module.css; el portal del contador
+no cambió en esta entrega. Conservados campos, contratos, capacidades, validación,
+guardado, envío, recuperación por ID y protección del borrador.
+
+| Antes                                                   | Después                                                              | Motivo                                               |
+| ------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------- |
+| Grupos con peso visual similar                          | Cabecera documental compacta e iconos discretos en encabezados       | Reconocer la estructura de captura                   |
+| Descripción dentro de Emisor y categoría en Comprobante | Detalle de la compra con descripción y categoría                     | Agrupar datos relacionados                           |
+| Total al inicio como campo común                        | Bloque neutro de importe al cierre, cifras más grandes y GTQ visible | Facilitar comprobación del importe                   |
+| Receptor solo con nombre                                | Nombre y NIT capturado o C/F en resumen, con desplegable             | Revisar el dato sin abrir campos secundarios         |
+| Formulario uniforme                                     | Superficie con sombra existente, separadores y espaciado consistente | Mejorar jerarquía sin introducir colores arbitrarios |
+
+Orden actual: Datos del comprobante → Emisor → Detalle de la compra → Importe →
+Receptor secundario → Guardar borrador / Enviar a revisión. En escritorio,
+descripción y categoría comparten fila y el importe tiene composición en dos
+columnas; en móvil pasan a una columna. Labels, IDs y mensajes por campo
+conservados. No se agregaron campos fiscales, cálculos, numeración ni sellos.
+
+Color: tokens existentes, índigo para acción principal y foco; acento azul discreto
+en identificación del documento y neutros para el bloque de importe. Iconos SVG
+existentes, decorativos y sin sustituir etiquetas. Borrador secundario y envío
+principal con flecha. Hover solo para ratón; estados focus/error/disabled y feedback
+de botones existentes conservados. Sin nuevas animaciones de entrada o escritura.
+El NIT mostrado es dato capturado, no NIT derivado ni verificado de la entidad.
+
+Verificación después del formateo: lint sin errores/avisos y build con salida 0.
+Cifras en Verificación y pendientes compartidos. No se ejecutó Playwright;
+revisión visual en navegador y dispositivos, temas, foco e integración API/RLS
+siguen pendientes. No se declara aceptación visual por compilar correctamente.
+
 ### Entrega y criterio
 
 Reorganizado el portal aislado existente con emil-design-eng. La tarea principal
@@ -275,17 +386,17 @@ contador quedan para contratos/fases posteriores. No se simularon resultados.
 
 ## Verificación y pendientes compartidos
 
-Última verificación de código: cierre de la reorganización del portal de clientes,
-2026-11-13. Esta consolidación posterior solo modifica Markdown y elimina el
-documento temático solicitado; no repitió checks de código.
+Última verificación de código: navegación de retorno y consulta compacta del portal de
+clientes, 2026-11-13. Lint/build ejecutados después de los cambios de presentación.
+La actualización posterior de este archivo no repitió checks de código.
 
 | Comprobación  | Resultado registrado                                              |
 | ------------- | ----------------------------------------------------------------- |
 | npm run lint  | Salida 0, sin errores ni avisos                                   |
 | npm run build | Salida 0; TypeScript, Vite y generación PWA completos             |
-| CSS           | 68,77 kB; 12,86 kB gzip                                           |
-| JS principal  | 787,92 kB; 227,60 kB gzip                                         |
-| PWA           | 21 entradas; 869,86 KiB; generación no certifica instalación real |
+| CSS           | 74,47 kB; 13,68 kB gzip                                           |
+| JS principal  | 796,96 kB; 229,54 kB gzip                                         |
+| PWA           | 21 entradas; 884,25 KiB; generación no certifica instalación real |
 | Bundle        | Aviso de chunk superior a 500 kB pendiente                        |
 | Playwright    | NO ejecutado; test:auth y test:pwa no autorizados                 |
 | Visual        | Pendiente en móvil/escritorio, claro/oscuro, teclado y foco       |
@@ -390,6 +501,141 @@ entity autorizada
 
 No iniciar todavía esta implementación frontend; esta sección registra el
 requisito y el bloqueo exacto para la próxima tarea autorizada.
+
+## Contrato frontend — compras manuales
+
+El backend ya expone estos endpoints para consultar compras de la entity
+autorizada. Todas las rutas usan el prefijo `/api/v1` y Bearer mediante el
+transporte existente; `VITE_API_BASE_URL` contiene únicamente el origen.
+
+```http
+POST  /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents
+GET   /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents
+GET   /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId
+PATCH /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId
+POST  /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/submit-review
+```
+
+### Respuestas
+
+Listado:
+
+```json
+{
+  "documents": [
+    {
+      "id": "uuid",
+      "entity_id": "uuid",
+      "workspace_id": "uuid",
+      "document_type": "invoice",
+      "issue_date": "2026-11-13",
+      "issuer_name": "Proveedor Demo",
+      "issuer_tax_id": null,
+      "receiver_tax_id": "C/F",
+      "receiver_name": "Cliente Demo",
+      "description": "Servicio de energía eléctrica",
+      "category": "servicios",
+      "total": "125.50",
+      "currency": "GTQ",
+      "status": "draft",
+      "created_by": "uuid",
+      "updated_by": "uuid",
+      "submitted_by": null,
+      "submitted_at": null,
+      "created_at": "timestamp",
+      "updated_at": "timestamp",
+      "version": 1
+    }
+  ]
+}
+```
+
+El detalle devuelve el mismo objeto dentro de:
+
+```json
+{ "document": { "...": "..." } }
+```
+
+No convertir `total` a `number` para cálculos financieros; conservarlo como
+string decimal y mostrarlo con formato de moneda únicamente en la interfaz.
+
+### Creación y edición
+
+`POST` requiere:
+
+```json
+{
+  "documentType": "invoice",
+  "issueDate": "2026-11-13",
+  "issuerName": "Proveedor Demo",
+  "receiverName": "Cliente Demo",
+  "description": "Compra de suministros",
+  "category": "suministros",
+  "total": "250.00",
+  "currency": "GTQ"
+}
+```
+
+Tipos permitidos:
+
+```text
+invoice
+receipt
+service_receipt
+payment_proof
+```
+
+`issuerTaxId` y `receiverTaxId` son opcionales. Si `receiverTaxId` falta o
+está vacío, el backend guarda `C/F`. La entity autorizada debe ser el receptor;
+no cambiar `entityId` desde el frontend para seleccionar otra empresa. El
+backend continúa siendo la autoridad y actualmente acepta el NIT enviado por
+el cliente; todavía no lo deriva automáticamente desde la entity.
+
+`PATCH` utiliza los mismos nombres en camelCase, acepta únicamente campos
+modificados y solo permite editar documentos con estado `draft`.
+
+### Estados y permisos
+
+```text
+draft          → borrador editable
+pending_review → enviado al contador; no editable por esta fase
+```
+
+- `client_owner` y `client_contributor` con `can_upload`: crear, editar y
+  enviar borradores a revisión.
+- `client_viewer`: consultar, sin formulario ni acciones de carga.
+- Contador autorizado: consultar compras de la entity; para enviar a revisión
+  requiere `can_review` o `can_manage`.
+- La aprobación, rechazo, observaciones, XML/PDF, IA, pagos y libros todavía no
+  forman parte de este contrato.
+
+Para enviar a revisión:
+
+```http
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/submit-review
+```
+
+Respuesta:
+
+```json
+{ "document": { "status": "pending_review", "...": "..." } }
+```
+
+La transición válida es únicamente `draft → pending_review`. Un segundo envío
+debe mostrar el conflicto seguro del API, no reintentarse automáticamente.
+
+### Reglas frontend
+
+- Query keys aisladas por usuario, workspace y entity.
+- Cancelar lecturas/mutaciones al desmontar, cerrar sesión o cambiar de entity.
+- Invalidar listado y detalle después de crear, editar o enviar a revisión.
+- Mostrar estados de carga, vacío, error, 401, 403, 404, 409 y 503 con reintento
+  explícito.
+- No mostrar una compra como aprobada ni como registrada en libros.
+- No inventar campos de SAT, impuestos, pagos o revisión.
+- `created_by`, `updated_by` y `submitted_by` son identificadores; no asumir que
+  incluyen nombres o correos.
+- Errores del API siguen el formato `{ "error": "CODE", "message": "..." }`.
 
 **Resumen histórico; el estado actual está al inicio de este mismo documento.** El propietario
 dio conformidad a la reorganización y solicitó consolidar la documentación. Esa

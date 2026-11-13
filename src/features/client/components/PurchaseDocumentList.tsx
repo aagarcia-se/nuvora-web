@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/store/authStore';
 import { Button } from '@/shared/ui/components/Button';
@@ -9,18 +9,44 @@ import type { usePurchaseDocuments } from '../api/usePurchaseDocuments';
 import { PurchaseDocumentRow } from './PurchaseDocumentRow';
 import styles from '../client.module.css';
 
+export type PurchaseListPosition = { documentId: string; scrollY: number };
+
 export function PurchaseDocumentList({
   list,
   writer,
   registerPath,
   canUpload,
+  filter,
+  onFilterChange,
+  returnPosition,
 }: {
   list: ReturnType<typeof usePurchaseDocuments>['list'];
   writer: ReturnType<typeof usePurchaseDocuments>['mutate'];
   registerPath: string;
   canUpload: boolean;
+  filter: string;
+  onFilterChange: (value: string) => void;
+  returnPosition: RefObject<PurchaseListPosition | null>;
 }) {
-  const [filter, setFilter] = useState('all');
+  const collection = useRef<HTMLElement>(null);
+  useEffect(() => {
+    if (!list.isSuccess || list.isFetching || !returnPosition.current) return;
+    const frame = requestAnimationFrame(() => {
+      const point = returnPosition.current;
+      if (!point) return;
+      const link = Array.from(
+        collection.current?.querySelectorAll<HTMLAnchorElement>(
+          '[data-document-id]',
+        ) ?? [],
+      ).find((element) => element.dataset.documentId === point.documentId);
+      if (link) {
+        link.focus({ preventScroll: true });
+        window.scrollTo({ top: point.scrollY, behavior: 'instant' });
+      }
+      returnPosition.current = null;
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [list.isSuccess, list.isFetching, returnPosition]);
   const { logout } = useAuth();
   const items = list.data ?? [];
   const filtered = items.filter(
@@ -44,6 +70,7 @@ export function PurchaseDocumentList({
         )}
       </header>
       <section
+        ref={collection}
         className={styles.documentCollection}
         aria-label="Comprobantes de la empresa"
       >
@@ -53,7 +80,7 @@ export function PurchaseDocumentList({
             id="purchase-filter"
             className="input"
             value={filter}
-            onChange={(event) => setFilter(event.target.value)}
+            onChange={(event) => onFilterChange(event.target.value)}
           >
             <option value="all">Todos los estados</option>
             <option value="draft">Borradores</option>
@@ -115,7 +142,7 @@ export function PurchaseDocumentList({
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => setFilter('all')}
+                onClick={() => onFilterChange('all')}
               >
                 Ver todos
               </Button>
@@ -130,6 +157,13 @@ export function PurchaseDocumentList({
                 canUpload={canUpload}
                 writer={writer}
                 editPath={`${registerPath}&draft=${document.id}`}
+                detailPath={`${registerPath}&document=${document.id}`}
+                onOpenDetail={() => {
+                  returnPosition.current = {
+                    documentId: document.id,
+                    scrollY: window.scrollY,
+                  };
+                }}
               />
             ))}
           </ul>

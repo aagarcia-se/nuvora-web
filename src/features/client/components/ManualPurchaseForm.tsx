@@ -106,8 +106,11 @@ export function ManualPurchaseForm({
           <strong>{formatPurchaseTotal(editor.completed.total)}</strong>
         </div>
         <div className={styles.formActions}>
-          <Link to={documentsPath} className="btn-secondary">
-            Ver comprobantes
+          <Link
+            to={`${registerPath}&document=${editor.completed.id}`}
+            className="btn-secondary"
+          >
+            Ver detalle del comprobante
           </Link>
           <Link
             to={registerPath}
@@ -136,6 +139,13 @@ export function ManualPurchaseForm({
           void editor.save(true);
         }}
       >
+        <div className={styles.documentHeader}>
+          <span className={styles.documentLabel}>
+            <Icon name="file" />
+            Comprobante de compra
+          </span>
+          <span className={styles.documentMode}>Captura manual · GTQ</span>
+        </div>
         {Object.values(editor.errors).some(Boolean) && (
           <p className="alert" role="alert">
             Revisa los campos indicados antes de continuar.
@@ -175,7 +185,12 @@ export function ManualPurchaseForm({
           disabled={pending || editor.unavailable}
           className={styles.formGroup}
         >
-          <legend>Datos del comprobante</legend>
+          <legend>
+            <span className={styles.sectionTitle}>
+              <Icon name="file" />
+              Datos del comprobante
+            </span>
+          </legend>
           <div className={styles.formGrid}>
             {field(
               'issueDate',
@@ -189,25 +204,6 @@ export function ManualPurchaseForm({
                   editor.change('issueDate', event.target.value)
                 }
               />,
-            )}
-            {field(
-              'total',
-              'Total',
-              <div className={styles.totalInput}>
-                <input
-                  {...attributes('total')}
-                  type="text"
-                  inputMode="decimal"
-                  required
-                  placeholder="0.00"
-                  value={editor.form.total}
-                  onChange={(event) =>
-                    editor.change('total', event.target.value)
-                  }
-                />
-                <span aria-hidden="true">GTQ</span>
-              </div>,
-              'GTQ · mayor que cero y hasta dos decimales.',
             )}
             {field(
               'documentType',
@@ -229,26 +225,18 @@ export function ManualPurchaseForm({
                 ))}
               </select>,
             )}
-            {field(
-              'category',
-              'Categoría',
-              <input
-                {...attributes('category')}
-                required
-                value={editor.form.category}
-                placeholder="Ej. suministros"
-                onChange={(event) =>
-                  editor.change('category', event.target.value)
-                }
-              />,
-            )}
           </div>
         </fieldset>
         <fieldset
           disabled={pending || editor.unavailable}
           className={styles.formGroup}
         >
-          <legend>Emisor</legend>
+          <legend>
+            <span className={styles.sectionTitle}>
+              <Icon name="id-card" />
+              Emisor
+            </span>
+          </legend>
           <div className={styles.formGrid}>
             {field(
               'issuerName',
@@ -277,6 +265,19 @@ export function ManualPurchaseForm({
               />,
               'Déjalo vacío si el comprobante no lo incluye.',
             )}
+          </div>
+        </fieldset>
+        <fieldset
+          disabled={pending || editor.unavailable}
+          className={styles.formGroup}
+        >
+          <legend>
+            <span className={styles.sectionTitle}>
+              <Icon name="layers" />
+              Detalle de la compra
+            </span>
+          </legend>
+          <div className={`${styles.formGrid} ${styles.purchaseDetailGrid}`}>
             <div className={styles.fullWidth}>
               {field(
                 'description',
@@ -293,6 +294,54 @@ export function ManualPurchaseForm({
                 />,
               )}
             </div>
+            {field(
+              'category',
+              'Categoría',
+              <input
+                {...attributes('category')}
+                required
+                value={editor.form.category}
+                placeholder="Ej. suministros"
+                onChange={(event) =>
+                  editor.change('category', event.target.value)
+                }
+              />,
+            )}
+          </div>
+        </fieldset>
+        <fieldset
+          disabled={pending || editor.unavailable}
+          className={styles.amountSection}
+        >
+          <legend className={styles.amountLegend}>
+            Importe del comprobante
+          </legend>
+          <div className={styles.amountLayout}>
+            <p className={styles.amountHint}>
+              Ingresa el total que aparece en tu comprobante, incluidos los
+              impuestos que indique.
+            </p>
+            <div className={styles.amountField}>
+              {field(
+                'total',
+                'Total',
+                <div className={styles.totalInput}>
+                  <input
+                    {...attributes('total')}
+                    type="text"
+                    inputMode="decimal"
+                    required
+                    placeholder="0.00"
+                    value={editor.form.total}
+                    onChange={(event) =>
+                      editor.change('total', event.target.value)
+                    }
+                  />
+                  <span aria-hidden="true">GTQ</span>
+                </div>,
+                'GTQ · mayor que cero y hasta dos decimales.',
+              )}
+            </div>
           </div>
         </fieldset>
         <details
@@ -302,11 +351,18 @@ export function ManualPurchaseForm({
         >
           <summary>
             <span>
-              <span className={styles.receiverLabel}>Receptor</span>
+              <span className={styles.receiverLabel}>
+                <Icon name="user" />
+                Receptor
+              </span>
               <strong>{editor.form.receiverName || entityName}</strong>
+              <span className={styles.receiverTaxId}>
+                NIT capturado: {editor.form.receiverTaxId?.trim() || 'C/F'}
+              </span>
             </span>
             <span className={styles.receiverAction}>
-              Ver datos <Icon name="chevron-down" />
+              {receiverOpen ? 'Ocultar datos' : 'Ver datos'}{' '}
+              <Icon name="chevron-down" />
             </span>
           </summary>
           <p className={styles.fieldHint}>
@@ -362,6 +418,7 @@ export function ManualPurchaseForm({
               }
               onClick={() => void editor.save(false)}
             >
+              <Icon name="file" />
               Guardar borrador
             </Button>
             <Button
@@ -373,6 +430,7 @@ export function ManualPurchaseForm({
               {editor.sendNeedsCheck && !editor.dirty
                 ? 'Reintentar envío'
                 : 'Enviar a revisión'}
+              <Icon name="arrow-right" />
             </Button>
           </div>
         </footer>

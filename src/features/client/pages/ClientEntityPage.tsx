@@ -16,12 +16,15 @@ export function ClientEntityPage() {
   const { user } = useAuth();
   const draft = search.get('draft');
   const view = search.get('view');
+  const document = search.get('document');
   const valid =
     isUuid(entityId) &&
     isUuid(workspaceId) &&
-    (!draft || isUuid(draft)) &&
-    (!view || view === 'documents') &&
-    !(draft && view);
+    (draft === null || isUuid(draft)) &&
+    (document === null || isUuid(document)) &&
+    (view === null || view === 'documents') &&
+    !(draft && view) &&
+    !(document && (draft || view));
   return (
     <ClientLayout>
       {valid ? (

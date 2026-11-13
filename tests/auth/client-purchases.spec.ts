@@ -10,10 +10,32 @@ async function portal(
     readOnly?: boolean;
     acceptedBeforeFailure?: boolean;
     failSend?: boolean;
+    seedStatus?: 'draft' | 'pending_review';
+    detailStatus?: number;
+    wrongContext?: boolean;
   } = {},
 ) {
   await setup(page);
-  let document: Record<string, unknown> | undefined;
+  let document: Record<string, unknown> | undefined = options.seedStatus
+    ? {
+        id: documentId,
+        workspace_id: workspace.id,
+        entity_id: entity.id,
+        document_type: 'invoice',
+        issue_date: '2026-11-13',
+        issuer_name: 'Proveedor Demo',
+        issuer_tax_id: 'DEMO-EMISOR',
+        receiver_name: 'Receptor Demo',
+        receiver_tax_id: 'C/F',
+        description: 'Compra Demo\nDetalle en segunda línea',
+        category: 'suministros',
+        total: '123.45',
+        currency: 'GTQ',
+        status: options.seedStatus,
+        created_at: '2026-11-13T12:00:00Z',
+        updated_at: '2026-11-13T13:00:00Z',
+      }
+    : undefined;
   const calls = { creates: 0, submits: 0, lists: 0, checks: 0 };
   await page.route('http://api.demo.test/api/v1/**', async (route) => {
     const url = new URL(route.request().url());
@@ -71,7 +93,18 @@ async function portal(
     }
     if (url.pathname === `${base}/${documentId}` && method === 'GET') {
       calls.checks++;
-      return route.fulfill({ json: { document } });
+      if (options.detailStatus)
+        return route.fulfill({
+          status: options.detailStatus,
+          json: { error: 'DEMO_DETAIL_ERROR' },
+        });
+      return route.fulfill({
+        json: {
+          document: options.wrongContext
+            ? { ...document, entity_id: '66666666-6666-4666-8666-666666666666' }
+            : document,
+        },
+      });
     }
     if (url.pathname === `${base}/${documentId}/submit-review`) {
       calls.submits++;
@@ -179,4 +212,101 @@ test('Demo: capacidad de lectura no muestra captura ni permite crear', async ({
     page.getByLabel('Nombre del emisor', { exact: true }),
   ).toHaveCount(0);
   expect(calls.creates).toBe(0);
+});
+
+for (const status of ['draft', 'pending_review'] as const) {
+  test(`Demo: detalle completo ${status}, recarga y edición según estado`, async ({
+    page,
+  }) => {
+    const calls = await portal(page, { seedStatus: status });
+    await page.getByRole('link', { name: 'Comprobantes', exact: true }).click();
+    await page.getByLabel('Mostrar', { exact: true }).selectOption(status);
+    await page
+      .getByRole('link', { name: 'Ver detalle de Proveedor Demo' })
+      .click();
+    await expect(page).toHaveURL(`${path}&document=${documentId}`);
+    const invoice = page.getByRole('article', {
+      name: 'Datos del comprobante',
+    });
+    await expect(invoice).toContainText('DEMO-EMISOR');
+    await expect(invoice).toContainText('Receptor Demo');
+    await expect(invoice).toContainText('C/F');
+    await expect(invoice).toContainText('Detalle en segunda línea');
+    await expect(invoice).toContainText('suministros');
+    await expect(invoice).toContainText('123.45');
+    await expect(invoice).toContainText('GTQ');
+    await expect(
+      page.getByRole('link', { name: 'Editar borrador' }),
+    ).toHaveCount(status === 'draft' ? 1 : 0);
+    expect(calls.creates).toBe(0);
+    expect(calls.submits).toBe(0);
+    await expect(
+      page.getByRole('link', { name: 'Volver a comprobantes' }),
+    ).toHaveCount(2);
+    // Return before reload so the in-memory list context is still available.
+    await page
+      .getByRole('link', { name: 'Volver a comprobantes' })
+      .last()
+      .click();
+    await expect(page.getByLabel('Mostrar', { exact: true })).toHaveValue(
+      status,
+    );
+    await expect(
+      page.getByRole('link', { name: 'Ver detalle de Proveedor Demo' }),
+    ).toBeFocused();
+    await page
+      .getByRole('link', { name: 'Ver detalle de Proveedor Demo' })
+      .click();
+    await page.reload();
+    await expect(
+      page.getByRole('heading', { name: 'Detalle de factura', exact: true }),
+    ).toBeVisible();
+    await page
+      .getByRole('link', { name: 'Volver a comprobantes' })
+      .first()
+      .click();
+    await expect(
+      page.getByRole('heading', { name: 'Comprobantes', exact: true }),
+    ).toBeVisible();
+  });
+}
+
+test('Demo: lectura permite consultar detalle sin ofrecer editar', async ({
+  page,
+}) => {
+  await portal(page, { seedStatus: 'draft', readOnly: true });
+  await page
+    .getByRole('link', { name: 'Ver detalle de Proveedor Demo' })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Detalle de factura' }),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Editar borrador' })).toHaveCount(
+    0,
+  );
+});
+
+for (const detailStatus of [403, 404, 503])
+  test(`Demo: detalle ${detailStatus} no revela datos del listado`, async ({
+    page,
+  }) => {
+    await portal(page, { seedStatus: 'draft', detailStatus });
+    await page.getByRole('link', { name: 'Comprobantes', exact: true }).click();
+    await page
+      .getByRole('link', { name: 'Ver detalle de Proveedor Demo' })
+      .click();
+    await expect(page.getByRole('alert')).toBeVisible();
+    await expect(page.getByRole('article')).toHaveCount(0);
+    await expect(
+      page.getByRole('link', { name: 'Volver a comprobantes' }),
+    ).toBeVisible();
+  });
+
+test('Demo: respuesta de otra entidad no se presenta como factura autorizada', async ({
+  page,
+}) => {
+  await portal(page, { seedStatus: 'draft', wrongContext: true });
+  await page.goto(`${path}&document=${documentId}`);
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByRole('article')).toHaveCount(0);
 });

@@ -6,7 +6,7 @@ export function safeReturnPath(value: unknown): string {
     '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
   if (
     new RegExp(
-      `^/client/entities/${uuid}\\?workspaceId=${uuid}(?:&view=documents|&draft=${uuid})?$`,
+      `^/client/entities/${uuid}\\?workspaceId=${uuid}(?:&view=documents|&draft=${uuid}|&document=${uuid})?$`,
     ).test(value)
   )
     return value;

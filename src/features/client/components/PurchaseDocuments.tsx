@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Button } from '@/shared/ui/components/Button';
 import { errorStatus } from '@/shared/api/authenticatedRequest';
@@ -9,7 +10,11 @@ import {
 } from '../api/usePurchaseDocuments';
 import { purchaseDocumentMessage } from '../api/purchaseDocumentsApi';
 import { ManualPurchaseForm } from './ManualPurchaseForm';
-import { PurchaseDocumentList } from './PurchaseDocumentList';
+import {
+  PurchaseDocumentList,
+  type PurchaseListPosition,
+} from './PurchaseDocumentList';
+import { PurchaseDocumentDetail } from './PurchaseDocumentDetail';
 import styles from '../client.module.css';
 
 export function PurchaseDocuments({
@@ -24,13 +29,21 @@ export function PurchaseDocuments({
   canUpload: boolean;
 }) {
   const [search] = useSearchParams();
+  const [filter, setFilter] = useState('all');
+  const returnPosition = useRef<PurchaseListPosition | null>(null);
+  const documentId = search.get('document');
   const view =
-    canUpload && search.get('view') !== 'documents' ? 'register' : 'documents';
+    canUpload && !documentId && search.get('view') !== 'documents'
+      ? 'register'
+      : 'documents';
   const draftId = search.get('draft');
+  useEffect(() => {
+    if (view === 'register') returnPosition.current = null;
+  }, [view]);
   const { list, mutate } = usePurchaseDocuments(
     workspaceId,
     entityId,
-    view === 'documents',
+    view === 'documents' && !documentId,
   );
   const basePath = clientEntityPath(entityId, workspaceId);
   const documentsPath = `${basePath}&view=documents`;
@@ -57,8 +70,21 @@ export function PurchaseDocuments({
           Comprobantes
         </Link>
       </nav>
-      {view === 'documents' || denied ? (
+      {documentId ? (
+        <PurchaseDocumentDetail
+          key={documentId}
+          workspaceId={workspaceId}
+          entityId={entityId}
+          documentId={documentId}
+          canUpload={canUpload}
+          documentsPath={documentsPath}
+          editPath={`${basePath}&draft=${documentId}`}
+        />
+      ) : view === 'documents' || denied ? (
         <PurchaseDocumentList
+          filter={filter}
+          onFilterChange={setFilter}
+          returnPosition={returnPosition}
           list={list}
           writer={mutate}
           registerPath={basePath}
@@ -131,6 +157,12 @@ function DraftEditor({
       <div className={styles.state}>
         <h1>Este comprobante ya está en revisión</h1>
         <p>Los datos enviados no se pueden editar desde este formulario.</p>
+        <Link
+          className="btn-primary"
+          to={`${props.registerPath}&document=${documentId}`}
+        >
+          Ver detalle del comprobante
+        </Link>
         <Link className="btn-secondary" to={props.documentsPath}>
           Ver comprobantes
         </Link>

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/shared/ui/components/Button';
+import { Icon } from '@/shared/ui/components/Icon';
 import { isRequestCanceled } from '@/shared/api/authenticatedRequest';
 import type { usePurchaseDocuments } from '../api/usePurchaseDocuments';
 import { purchaseDocumentMessage } from '../api/purchaseDocumentsApi';
@@ -18,11 +19,15 @@ export function PurchaseDocumentRow({
   document,
   canUpload,
   editPath,
+  detailPath,
+  onOpenDetail,
   writer,
 }: {
   document: PurchaseDocument;
   canUpload: boolean;
   editPath: string;
+  detailPath: string;
+  onOpenDetail: () => void;
   writer: ReturnType<typeof usePurchaseDocuments>['mutate'];
 }) {
   const [pending, setPending] = useState(false);
@@ -81,29 +86,52 @@ export function PurchaseDocumentRow({
         </div>
         <strong>{formatPurchaseTotal(document.total)}</strong>
       </div>
-      {canUpload && document.status === 'draft' && (
-        <div className={styles.rowActions}>
-          <Link
-            className="btn-secondary"
-            to={editPath}
-            aria-disabled={writer.isPending}
-            onClick={(event) => {
-              if (writer.isPending) event.preventDefault();
-            }}
-          >
-            Continuar borrador
-          </Link>
-          <Button
-            type="button"
-            loading={pending}
-            loadingLabel="Enviando…"
-            disabled={writer.isPending && !pending}
-            onClick={() => void send()}
-          >
-            Enviar a revisión
-          </Button>
-        </div>
-      )}
+      <div className={styles.rowActions}>
+        <Link
+          className={styles.detailAction}
+          to={detailPath}
+          data-document-id={document.id}
+          aria-label={`Ver detalle de ${document.issuerName}`}
+          aria-disabled={pending}
+          onClick={(event) => {
+            if (pending) event.preventDefault();
+            else if (
+              !event.metaKey &&
+              !event.ctrlKey &&
+              !event.shiftKey &&
+              !event.altKey &&
+              event.button === 0
+            )
+              onOpenDetail();
+          }}
+        >
+          Ver detalle
+          <Icon name="arrow-right" />
+        </Link>
+        {canUpload && document.status === 'draft' && (
+          <>
+            <Link
+              className="btn-secondary"
+              to={editPath}
+              aria-disabled={writer.isPending}
+              onClick={(event) => {
+                if (writer.isPending) event.preventDefault();
+              }}
+            >
+              Continuar borrador
+            </Link>
+            <Button
+              type="button"
+              loading={pending}
+              loadingLabel="Enviando…"
+              disabled={writer.isPending && !pending}
+              onClick={() => void send()}
+            >
+              Enviar a revisión
+            </Button>
+          </>
+        )}
+      </div>
       {error && (
         <p className="alert" role="alert">
           {error}

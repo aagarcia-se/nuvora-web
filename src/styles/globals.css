@@ -265,6 +265,16 @@
   .btn-secondary:active {
     @apply bg-surface-2;
   }
+  .btn-danger {
+    @apply inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-60;
+    color: var(--danger);
+    border-color: var(--danger);
+    background: var(--danger-bg);
+  }
+  .btn-danger:hover,
+  .btn-danger:active {
+    filter: brightness(0.96);
+  }
   .input {
     @apply min-h-12 w-full min-w-0 rounded-xl border bg-surface px-3.5 py-3 text-base text-ink placeholder:text-muted;
     border-color: var(--control-border);

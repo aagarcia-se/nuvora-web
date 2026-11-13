@@ -13,6 +13,7 @@ import {
   type ClientRole,
   type Inspection,
   type Invitation,
+  type InvitationRecord,
   type InvitationStatus,
   type Membership,
 } from '../types/access.types';
@@ -32,6 +33,10 @@ const date = (value: unknown): string => {
     throw invalid();
   return value;
 };
+const nullableDate = (value: unknown): string | null =>
+  value === null ? null : date(value);
+const nullableUuid = (value: unknown): string | null =>
+  value === null ? null : uuid(value);
 const role = (value: unknown): ClientRole => {
   if (typeof value !== 'string' || !Object.hasOwn(clientRoles, value))
     throw invalid();
@@ -127,6 +132,47 @@ export function listMemberships(
     });
   });
 }
+export function listInvitations(
+  userId: string,
+  context: AccessContext,
+  signal: AbortSignal,
+): Promise<InvitationRecord[]> {
+  return request(userId, signal, async (headers) => {
+    const { data } = await httpClient.get(
+      `${endpoint(context)}/invitations?limit=100`,
+      { headers, signal },
+    );
+    if (!Array.isArray(data?.invitations)) throw invalid();
+    return data.invitations.map((value: unknown) => {
+      const row = object(value);
+      if (
+        row.workspace_id !== context.workspaceId ||
+        row.entity_id !== context.entityId
+      )
+        throw invalid();
+      return {
+        id: uuid(row.id),
+        workspaceId: uuid(row.workspace_id),
+        entityId: uuid(row.entity_id),
+        role: role(row.role),
+        status: status(row.status),
+        expiresAt: date(row.expires_at),
+        createdAt: date(row.created_at),
+        acceptedAt: nullableDate(row.accepted_at),
+        acceptedBy: nullableUuid(row.accepted_by),
+        revokedAt: nullableDate(row.revoked_at),
+        revocationReason:
+          row.revocation_reason === null
+            ? null
+            : typeof row.revocation_reason === 'string'
+              ? row.revocation_reason
+              : (() => {
+                  throw invalid();
+                })(),
+      };
+    });
+  });
+}
 export function revokeMembership(
   userId: string,
   context: AccessContext,
@@ -137,6 +183,23 @@ export function revokeMembership(
   return request(userId, signal, async (headers) => {
     const { data } = await httpClient.patch(
       `${endpoint(context)}/memberships/${membershipId}/revoke`,
+      {},
+      { headers, signal },
+    );
+    if (data?.revoked !== true) throw invalid();
+    return true;
+  });
+}
+export function revokeInvitation(
+  userId: string,
+  context: AccessContext,
+  invitationId: string,
+  signal: AbortSignal,
+) {
+  if (!isUuid(invitationId)) throw invalid();
+  return request(userId, signal, async (headers) => {
+    const { data } = await httpClient.patch(
+      `${endpoint(context)}/invitations/${invitationId}/revoke`,
       {},
       { headers, signal },
     );

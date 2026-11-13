@@ -7,10 +7,16 @@ import { displayDate } from '@/features/workspace/utils/workspacePresentation';
 import { Button } from '@/shared/ui/components/Button';
 import { Icon } from '@/shared/ui/components/Icon';
 import { errorStatus } from '@/shared/api/authenticatedRequest';
-import { createInvitation, revokeMembership } from '../api/accessApi';
 import {
+  createInvitation,
+  revokeInvitation,
+  revokeMembership,
+} from '../api/accessApi';
+import {
+  invitationKey,
   membershipKey,
   useAccessAction,
+  useInvitations,
   useMemberships,
 } from '../hooks/useAccess';
 import {
@@ -18,6 +24,7 @@ import {
   type AccessContext,
   type ClientRole,
   type Invitation,
+  type InvitationRecord,
   type Membership,
 } from '../types/access.types';
 import { AccessFeedback } from './AccessFeedback';
@@ -63,16 +70,21 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
   const { user } = useAuth();
   const client = useQueryClient();
   const [membersOpen, setMembersOpen] = useState(false);
+  const [invitationsOpen, setInvitationsOpen] = useState(true);
   const members = useMemberships(context, membersOpen);
+  const invitationHistory = useInvitations(context, invitationsOpen);
   const action = useAccessAction(context);
   const [role, setRole] = useState<ClientRole>('client_viewer');
   const [invitations, setInvitations] = useState<
     (Invitation & { role: ClientRole })[]
   >([]);
   const [revoking, setRevoking] = useState<Membership | null>(null);
+  const [revokingInvitation, setRevokingInvitation] =
+    useState<InvitationRecord | null>(null);
   const [notice, setNotice] = useState('');
   const confirmation = useRef<HTMLParagraphElement>(null);
   const revokeTrigger = useRef<HTMLButtonElement | null>(null);
+  const revokeInvitationTrigger = useRef<HTMLButtonElement | null>(null);
   const denied =
     members.isError && [401, 403, 404].includes(errorStatus(members.error));
   async function invite(event: FormEvent<HTMLFormElement>) {
@@ -118,6 +130,24 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
         void client.invalidateQueries({
           queryKey: membershipKey(user.id, context),
         });
+        void client.invalidateQueries({
+          queryKey: invitationKey(user.id, context),
+        });
+      }
+    }
+  }
+  async function revokePendingInvitation() {
+    if (!revokingInvitation) return;
+    const result = await action.run((id, signal) =>
+      revokeInvitation(id, context, revokingInvitation.id, signal),
+    );
+    if (result) {
+      setRevokingInvitation(null);
+      setNotice('Invitación revocada. El historial se conserva.');
+      requestAnimationFrame(() => confirmation.current?.focus());
+      if (user) {
+        await client.invalidateQueries({ queryKey: invitationKey(user.id, context) });
+        await client.invalidateQueries({ queryKey: membershipKey(user.id, context) });
       }
     }
   }
@@ -189,9 +219,89 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
       )}
       <details
         className={styles.block}
+        open={invitationsOpen}
+        onToggle={(event) => setInvitationsOpen(event.currentTarget.open)}
+      >
+        <summary
+          aria-expanded={invitationsOpen}
+          aria-controls="invitation-history-content"
+        >
+          Historial de invitaciones
+        </summary>
+        <div id="invitation-history-content">
+          <p className={styles.hint}>
+            Estados reales del servidor. No se muestran enlaces, tokens ni correos.
+          </p>
+          {invitationHistory.isPending ? (
+            <p role="status">Cargando invitaciones…</p>
+          ) : invitationHistory.isError ? (
+            <>
+              <AccessFeedback error={invitationHistory.error} />
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => void invitationHistory.refetch()}
+              >
+                Reintentar invitaciones
+              </Button>
+            </>
+          ) : invitationHistory.data.length === 0 ? (
+            <p className={styles.empty}>Aún no hay invitaciones para este cliente.</p>
+          ) : (
+            <ul className={styles.invitationList}>
+              {invitationHistory.data.map((invitation) => {
+                const acceptedMember = invitation.acceptedBy
+                  ? members.data?.find(
+                      (member) => member.userId === invitation.acceptedBy,
+                    )
+                  : undefined;
+                const statusLabel = invitationStatusLabel(
+                  invitation,
+                  acceptedMember,
+                );
+                return (
+                  <li key={invitation.id} className={styles.historyItem}>
+                    <div className={styles.memberCopy}>
+                      <strong>{clientRoles[invitation.role]}</strong>
+                      <span>{statusLabel}</span>
+                      <span>
+                        Creada: {displayDate(invitation.createdAt)} · Vence:{' '}
+                        {displayDate(invitation.expiresAt)}
+                      </span>
+                      {invitation.acceptedBy && (
+                        <span>Cuenta que aceptó: {invitation.acceptedBy}</span>
+                      )}
+                      {invitation.revokedAt && (
+                        <span>Revocada: {displayDate(invitation.revokedAt)}</span>
+                      )}
+                    </div>
+                    {invitation.status === 'pending' && (
+                      <Button
+                        type="button"
+                        variant="danger"
+                        disabled={action.pending}
+                        aria-label={`Revocar invitación ${invitation.id}`}
+                        onClick={(event) => {
+                          revokeInvitationTrigger.current = event.currentTarget;
+                          action.clearError();
+                          setRevokingInvitation(invitation);
+                        }}
+                      >
+                        Revocar invitación
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      </details>
+      <details
+        className={styles.block}
         onToggle={(event) => setMembersOpen(event.currentTarget.open)}
       >
-        <summary>Personas con acceso</summary>
+        <summary aria-expanded={membersOpen}>Personas con acceso</summary>
         <p className={styles.hint}>
           Incluye membresías aceptadas, activas y revocadas. Las cuentas se
           identifican por su identificador de usuario; las invitaciones
@@ -242,7 +352,7 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
                 {member.status === 'active' && (
                   <Button
                     type="button"
-                    variant="secondary"
+                    variant="danger"
                     disabled={action.pending}
                     aria-label={`Revocar acceso de ${member.userId}`}
                     onClick={(event) => {
@@ -289,6 +399,7 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
             </Button>
             <Button
               type="button"
+              variant="danger"
               disabled={action.pending}
               onClick={() => void revoke()}
             >
@@ -297,6 +408,61 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
           </div>
         </EntityDialog>
       )}
+      {revokingInvitation && (
+        <EntityDialog
+          title="Revocar invitación"
+          closeLabel="Cancelar revocación de invitación"
+          description="La invitación dejará de poder aceptarse. El historial se conserva y no se muestra ningún enlace nuevo."
+          workspaceName={workspaceName}
+          busy={action.pending}
+          onClose={() => {
+            setRevokingInvitation(null);
+            action.clearError();
+            requestAnimationFrame(() => revokeInvitationTrigger.current?.focus());
+          }}
+        >
+          <p className={styles.context}>
+            Cliente: <strong>{entityName}</strong>
+            <br />
+            Rol: {clientRoles[revokingInvitation.role]}
+            <br />
+            Invitación: {revokingInvitation.id}
+          </p>
+          <AccessFeedback error={action.error} />
+          <div className={styles.actions}>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={action.pending}
+              onClick={() => setRevokingInvitation(null)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="button"
+              variant="danger"
+              disabled={action.pending}
+              onClick={() => void revokePendingInvitation()}
+            >
+              {action.pending ? 'Revocando…' : 'Confirmar revocación'}
+            </Button>
+          </div>
+        </EntityDialog>
+      )}
     </>
   );
+}
+
+function invitationStatusLabel(
+  invitation: InvitationRecord,
+  acceptedMember: Membership | undefined,
+) {
+  if (invitation.status === 'pending') return 'Pendiente · aún no aceptada';
+  if (invitation.status === 'expired') return 'Expirada · no aceptable';
+  if (invitation.status === 'revoked') return 'Revocada · no aceptable';
+  if (acceptedMember?.status === 'active')
+    return 'Invitación aceptada · acceso activo';
+  if (acceptedMember?.status === 'revoked')
+    return 'Invitación aceptada · acceso revocado';
+  return 'Aceptada · membresía no visible en este listado';
 }

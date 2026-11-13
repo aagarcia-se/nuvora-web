@@ -4,11 +4,11 @@ export function Button({
   className = '',
   ...props
 }: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary';
+  variant?: 'primary' | 'secondary' | 'danger';
 }) {
   return (
     <button
-      className={`${variant === 'primary' ? 'btn-primary' : 'btn-secondary'} ${className}`}
+      className={`${variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-danger' : 'btn-secondary'} ${className}`}
       {...props}
     />
   );

@@ -1,4 +1,55 @@
-# Actualización vigente — entrada de cliente aislado
+# Actualización vigente — historial de accesos, 2026-11-12
+
+## Listado y revocación de invitaciones
+
+`EntityAccessPanel` consulta al abrir el panel:
+
+```text
+GET /api/v1/workspaces/:workspaceId/entities/:entityId/invitations?limit=100
+```
+
+La respuesta se valida sin aceptar tokens, `acceptUrl`, correo o hashes. El
+historial muestra `pending`, `accepted`, `expired` y `revoked`, fechas, rol,
+`accepted_by` y datos de revocación. Una invitación pendiente vencida puede
+llegar proyectada por el API como `expired`; la web no muta ese estado.
+
+Las invitaciones pendientes se pueden revocar con:
+
+```text
+PATCH /api/v1/workspaces/:workspaceId/entities/:entityId/invitations/:invitationId/revoke
+```
+
+La acción es roja/danger, requiere confirmación accesible y conserva el
+historial. Tras revocar se invalidan invitaciones y membresías del contexto.
+401/403/404/410/429/503 se muestran mediante mensajes seguros y con reintento
+explícito donde aplica; no hay reintentos automáticos de mutaciones.
+
+La lista histórica usa Query con clave aislada por usuario, workspace, entity y
+límite; se cancela al desmontar/cambiar identidad y el logout limpia la caché.
+Los enlaces recién creados continúan fuera de Query, únicamente en memoria de la
+visita, para que copiar/WhatsApp siga funcionando sin convertir el historial en
+un almacén de secretos.
+
+La interfaz usa disclosures nativos compactos para historial y personas, estados
+de carga/vacío/error/reintento, botones con foco y etiquetas, y tokens actuales
+en claro/oscuro. La invitación aceptada se relaciona visualmente con una
+membresía cuando `accepted_by` coincide con `user_id`; no se inventan nombres ni
+correos. Una invitación aceptada sin una membresía visible se presenta como tal,
+sin afirmar acceso activo.
+
+Archivos principales: `access.types.ts`, `accessApi.ts`, `useAccess.ts`,
+`EntityAccessPanel.tsx`, `access.module.css`, `Button.tsx` y los tokens
+existentes de `globals.css`. Los casos Demo existentes cubren compartir,
+aceptación y revocación; `tests/auth/access.spec.ts` ahora mockea el GET/PATCH
+del historial. No se ejecutó Playwright. La verificación autorizada de
+esta fase queda limitada a lint y build. Resultado real: `npm run lint` y
+`npm run build` finalizaron correctamente; build generó JS de 695.38 kB y
+conserva el aviso existente de chunk superior a 500 kB. No se hizo validación
+visual ni integración real contra el API.
+
+---
+
+# Entrada de cliente aislado
 
 ## Descubrimiento de contexto tras login
 

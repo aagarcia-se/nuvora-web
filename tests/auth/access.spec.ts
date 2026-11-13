@@ -28,6 +28,7 @@ async function admin(
 ) {
   await setup(page, { viewer: options.viewer });
   let revoked = false;
+  let invitationRevoked = false;
   let rotations = 0;
   const writes: unknown[] = [];
   await page.route('http://api.demo.test/api/v1/**', async (route) => {
@@ -41,6 +42,26 @@ async function admin(
               ...member,
               status: revoked ? 'revoked' : 'active',
               revoked_at: revoked ? user.created_at : null,
+            },
+          ],
+        },
+       });
+    if (path === `${base}/invitations` && method === 'GET')
+      return route.fulfill({
+        json: {
+          invitations: [
+            {
+              id: invitationId,
+              workspace_id: workspace.id,
+              entity_id: entity.id,
+              role: 'client_viewer',
+              status: invitationRevoked ? 'revoked' : 'pending',
+              expires_at: expiresAt,
+              created_at: user.created_at,
+              accepted_at: null,
+              accepted_by: null,
+              revoked_at: invitationRevoked ? user.created_at : null,
+              revocation_reason: invitationRevoked ? 'manual' : null,
             },
           ],
         },
@@ -63,6 +84,10 @@ async function admin(
     }
     if (path === `${base}/memberships/${membershipId}/revoke`) {
       revoked = true;
+      return route.fulfill({ json: { revoked: true } });
+    }
+    if (path === `${base}/invitations/${invitationId}/revoke`) {
+      invitationRevoked = true;
       return route.fulfill({ json: { revoked: true } });
     }
     if (path === `${base}/invitations/${invitationId}/share-link`) {
@@ -178,6 +203,22 @@ test('Demo: confirmación y revocación conservan historial', async ({
   await expect(
     page.getByText('Solo lectura · Revocada', { exact: true }),
   ).toBeVisible();
+});
+test('Demo: lista y revocación de invitación pendiente conservan historial', async ({
+  page,
+}) => {
+  await admin(page);
+  await page.getByText('Historial de invitaciones', { exact: true }).click();
+  await page
+    .getByRole('button', { name: `Revocar invitación ${invitationId}` })
+    .click();
+  const dialog = page.getByRole('dialog', {
+    name: 'Revocar invitación',
+    exact: true,
+  });
+  await dialog.getByRole('button', { name: 'Confirmar revocación' }).click();
+  await expect(dialog).not.toBeVisible();
+  await expect(page.getByText('Revocada · no aceptable')).toBeVisible();
 });
 test('Demo: enlace rotado, copiar y WhatsApp sin envío automático', async ({
   page,

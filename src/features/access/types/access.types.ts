@@ -11,6 +11,19 @@ export type Invitation = {
   expiresAt: string;
   acceptUrl: string;
 };
+export type InvitationRecord = {
+  id: string;
+  workspaceId: string;
+  entityId: string;
+  role: ClientRole;
+  status: InvitationStatus;
+  expiresAt: string;
+  createdAt: string;
+  acceptedAt: string | null;
+  acceptedBy: string | null;
+  revokedAt: string | null;
+  revocationReason: string | null;
+};
 export type Inspection = {
   workspaceId: string;
   entityId: string;

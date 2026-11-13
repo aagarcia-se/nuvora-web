@@ -67,6 +67,20 @@
 .memberList {
   list-style: none;
 }
+.invitationList {
+  list-style: none;
+}
+.historyItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-block: 1rem;
+  border-bottom: 1px solid rgb(var(--color-line));
+}
+.historyItem button {
+  flex-shrink: 0;
+}
 .memberList li {
   display: flex;
   align-items: center;
@@ -127,7 +141,8 @@
 }
 @media (max-width: 639px) {
   .heading,
-  .memberList li {
+  .memberList li,
+  .historyItem {
     align-items: stretch;
     flex-direction: column;
   }

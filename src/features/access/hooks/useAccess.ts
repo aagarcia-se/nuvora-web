@@ -3,7 +3,7 @@ import { CanceledError } from 'axios';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/store/authStore';
 import { entityKeys } from '@/features/entities/api/useEntityQueries';
-import { listMemberships } from '../api/accessApi';
+import { listInvitations, listMemberships } from '../api/accessApi';
 import type { AccessContext } from '../types/access.types';
 export const membershipKey = (userId: string, context: AccessContext) =>
   [
@@ -17,6 +17,25 @@ export function useMemberships(context: AccessContext, enabled = true) {
   return useQuery({
     queryKey: membershipKey(user?.id ?? '', context),
     queryFn: ({ signal }) => listMemberships(user!.id, context, signal),
+    enabled: Boolean(user) && enabled,
+    gcTime: 0,
+    staleTime: 0,
+    retry: false,
+  });
+}
+export const invitationKey = (userId: string, context: AccessContext) =>
+  [
+    ...entityKeys.scope(userId, context.workspaceId),
+    'access',
+    context.entityId,
+    'invitations',
+    100,
+  ] as const;
+export function useInvitations(context: AccessContext, enabled = true) {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: invitationKey(user?.id ?? '', context),
+    queryFn: ({ signal }) => listInvitations(user!.id, context, signal),
     enabled: Boolean(user) && enabled,
     gcTime: 0,
     staleTime: 0,

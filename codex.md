@@ -1,3 +1,49 @@
+# Estado vigente — historial de accesos y revocación, 2026-11-12
+
+## Listado completo de invitaciones
+
+Se integró exclusivamente en `nuvora-web` el listado administrativo confirmado
+por backend:
+
+```text
+GET /api/v1/workspaces/:workspaceId/entities/:entityId/invitations?limit=100
+PATCH /api/v1/workspaces/:workspaceId/entities/:entityId/invitations/:invitationId/revoke
+```
+
+El parser acepta únicamente la proyección no sensible (`id`, contexto, rol,
+estado, fechas, `accepted_by` y revocación); nunca agrega tokens, hashes,
+correos o `acceptUrl`. El estado pendiente vencido se muestra como `expired`
+cuando así lo proyecta el servidor, sin escribir en la base de datos.
+
+`useInvitations` mantiene una query con clave por usuario/workspace/entity y
+límite, sin secretos, `gcTime: 0`, sin retries y con `AbortSignal`. El panel la
+monta al abrirse y ofrece loading, vacío, error y retry. Las respuestas se
+invalidan junto con memberships después de revocar una invitación o una
+membresía; Auth y el cambio de contexto mantienen la cancelación/limpieza
+existentes.
+
+La UI usa disclosure accesible para historial y personas, conserva roles/fechas
+y enlaza visualmente `accepted_by` con `user_id` cuando ambos listados lo
+permiten. Distingue invitación aceptada con acceso activo, acceso revocado,
+pendiente, expirada y revocada sin inventar identidades. Revocar cualquiera de
+los dos recursos requiere diálogo/foco y confirmación; las acciones destructivas
+usan el token danger y texto explícito, no solo color. Los links de creación
+siguen siendo memoria efímera fuera de Query/Mutation cache, por lo que no se
+confunden con la historia ni se inventan enlaces históricos.
+
+Diseño aplicado: minimalismo SaaS dashboard, disclosure/lista compacta,
+responsive, dark mode y tokens existentes; sin cards excesivas, gradientes,
+dependencias nuevas ni cambios de arquitectura. Archivos: `src/features/access`
+(tipos/API/hook/panel/CSS), `src/shared/ui/components/Button.tsx` y el token
+danger ya existente en `src/styles/globals.css`. Documentación ampliada también
+en `docs/ACCESS.md`. Se agregaron estados y contratos a la implementación
+existente; no se ejecutó Playwright ni se declara validación visual. Al cierre,
+`npm run lint` y `npm run build` finalizaron correctamente. El build generó un
+chunk JS de 695.38 kB y conserva el aviso superior a 500 kB; no se ejecutó
+Playwright ni se declara validación visual o integración real.
+
+---
+
 # Estado vigente — cliente aislado y enlaces compactos, 2026-11-12
 
 ## Continuidad link-first de invitaciones — 2026-11-12

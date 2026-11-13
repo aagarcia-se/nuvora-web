@@ -20,6 +20,12 @@ La aceptación abre `/client/entities/:entityId?workspaceId=:workspaceId`, sin n
 
 Invitaciones solo por enlace: elegir rol → Crear enlace → copiar/WhatsApp/Web Share. Creación envía únicamente `{ role }` y consume el enlace del API directamente. Cualquier usuario autenticado confirma la aceptación, sin correo de destinatario ni estados de entrega. Si el acceso requiere Google, el contexto se conserva en un sobre tab-scoped de `sessionStorage` durante 10 minutos y vuelve a `/invitations/accept`; correo/registro conservan el mismo flujo sin pasar por el dashboard. El sobre se valida y se elimina al aceptar, cancelar, cerrar sesión o detectar expiración. No se usa `localStorage`, cookies permanentes, Query cache, analytics ni logs. Membresías y revocación con confirmación se conservan. Contratos, archivos, seguridad y límites en [docs/ACCESS.md](docs/ACCESS.md). No ejecutar Playwright.
 
+El panel muestra nombre visible, avatar o iniciales y rol/estado de cada acceso;
+el identificador de usuario queda como trazabilidad secundaria. Las invitaciones
+solo muestran a quien aceptó cuando `accepted_by_profile` existe; estados sin
+aceptación no inventan una persona. Los listados no exponen emails, tokens,
+hashes ni NIT.
+
 ## Estado actual de interfaz
 
 Espacios (`/`), cartera (`/workspaces/:workspaceId/clients`), detalle (`/workspaces/:workspaceId/clients/:entityId`) y perfil (`/account`) están separados por rutas. Navegación lateral desde 1024 px y panel modal en móvil/PWA. Perfil, apariencia y cierre de sesión están en el avatar.

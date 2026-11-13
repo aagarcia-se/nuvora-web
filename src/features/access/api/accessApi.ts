@@ -9,6 +9,7 @@ import { isUuid } from '@/shared/utils/identifiers';
 import {
   clientRoles,
   type AccessContext,
+  type AccessProfile,
   type Acceptance,
   type ClientRole,
   type Inspection,
@@ -37,6 +38,26 @@ const nullableDate = (value: unknown): string | null =>
   value === null ? null : date(value);
 const nullableUuid = (value: unknown): string | null =>
   value === null ? null : uuid(value);
+const nullableText = (value: unknown): string | null =>
+  value === null ? null : typeof value === 'string' ? value : (() => { throw invalid(); })();
+const profile = (value: unknown): AccessProfile | null => {
+  if (value === null) return null;
+  const row = object(value);
+  const avatar = nullableText(row.avatar_url);
+  if (avatar !== null) {
+    try {
+      const url = new URL(avatar);
+      if (!['http:', 'https:'].includes(url.protocol)) throw invalid();
+    } catch {
+      throw invalid();
+    }
+  }
+  return {
+    id: uuid(row.id),
+    displayName: nullableText(row.display_name),
+    avatarUrl: avatar,
+  };
+};
 const role = (value: unknown): ClientRole => {
   if (typeof value !== 'string' || !Object.hasOwn(clientRoles, value))
     throw invalid();
@@ -121,6 +142,8 @@ export function listMemberships(
         typeof row.status !== 'string'
       )
         throw invalid();
+      const user = profile(row.user);
+      if (user !== null && user.id !== uuid(row.user_id)) throw invalid();
       return {
         id: uuid(row.id),
         userId: uuid(row.user_id),
@@ -128,6 +151,7 @@ export function listMemberships(
         status: row.status,
         joinedAt: row.joined_at === null ? null : date(row.joined_at),
         revokedAt: row.revoked_at === null ? null : date(row.revoked_at),
+        user,
       };
     });
   });
@@ -150,6 +174,14 @@ export function listInvitations(
         row.entity_id !== context.entityId
       )
         throw invalid();
+      const acceptedBy = nullableUuid(row.accepted_by);
+      const acceptedByProfile = profile(row.accepted_by_profile);
+      if (
+        (acceptedBy === null && acceptedByProfile !== null) ||
+        (row.status !== 'accepted' && acceptedByProfile !== null) ||
+        (acceptedByProfile !== null && acceptedByProfile.id !== acceptedBy)
+      )
+        throw invalid();
       return {
         id: uuid(row.id),
         workspaceId: uuid(row.workspace_id),
@@ -159,7 +191,8 @@ export function listInvitations(
         expiresAt: date(row.expires_at),
         createdAt: date(row.created_at),
         acceptedAt: nullableDate(row.accepted_at),
-        acceptedBy: nullableUuid(row.accepted_by),
+        acceptedBy,
+        acceptedByProfile,
         revokedAt: nullableDate(row.revoked_at),
         revocationReason:
           row.revocation_reason === null

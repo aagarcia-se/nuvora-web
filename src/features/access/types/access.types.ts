@@ -21,6 +21,7 @@ export type InvitationRecord = {
   createdAt: string;
   acceptedAt: string | null;
   acceptedBy: string | null;
+  acceptedByProfile: AccessProfile | null;
   revokedAt: string | null;
   revocationReason: string | null;
 };
@@ -44,6 +45,12 @@ export type Membership = {
   status: string;
   joinedAt: string | null;
   revokedAt: string | null;
+  user: AccessProfile | null;
+};
+export type AccessProfile = {
+  id: string;
+  displayName: string | null;
+  avatarUrl: string | null;
 };
 export type AccessContext = { workspaceId: string; entityId: string };
 

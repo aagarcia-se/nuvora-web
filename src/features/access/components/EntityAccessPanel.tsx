@@ -26,6 +26,7 @@ import {
   type Invitation,
   type InvitationRecord,
   type Membership,
+  type AccessProfile,
 } from '../types/access.types';
 import { AccessFeedback } from './AccessFeedback';
 import { ShareInvitation } from './ShareInvitation';
@@ -251,9 +252,7 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
             <ul className={styles.invitationList}>
               {invitationHistory.data.map((invitation) => {
                 const acceptedMember = invitation.acceptedBy
-                  ? members.data?.find(
-                      (member) => member.userId === invitation.acceptedBy,
-                    )
+                  ? members.data?.find((member) => member.userId === invitation.acceptedBy)
                   : undefined;
                 const statusLabel = invitationStatusLabel(
                   invitation,
@@ -262,15 +261,32 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
                 return (
                   <li key={invitation.id} className={styles.historyItem}>
                     <div className={styles.memberCopy}>
-                      <strong>{clientRoles[invitation.role]}</strong>
-                      <span>{statusLabel}</span>
+                      <div className={styles.identityLine}>
+                        {invitation.acceptedBy ? (
+                          <ProfileAvatar profile={invitation.acceptedByProfile} />
+                        ) : null}
+                        <div>
+                          <strong>
+                            {invitation.acceptedBy
+                              ? invitation.acceptedByProfile?.displayName?.trim() || 'Usuario sin nombre'
+                              : clientRoles[invitation.role]}
+                          </strong>
+                          {invitation.acceptedBy && (
+                            <span className={styles.secondaryId}>
+                              Usuario: {invitation.acceptedBy}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <span className={styles.statusLine}>
+                        <Icon name={invitation.status === 'accepted' ? 'check' : 'alert'} />
+                        {statusLabel}
+                      </span>
+                      {invitation.acceptedBy && <span>Rol: {clientRoles[invitation.role]}</span>}
                       <span>
                         Creada: {displayDate(invitation.createdAt)} · Vence:{' '}
                         {displayDate(invitation.expiresAt)}
                       </span>
-                      {invitation.acceptedBy && (
-                        <span>Cuenta que aceptó: {invitation.acceptedBy}</span>
-                      )}
                       {invitation.revokedAt && (
                         <span>Revocada: {displayDate(invitation.revokedAt)}</span>
                       )}
@@ -303,9 +319,9 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
       >
         <summary aria-expanded={membersOpen}>Personas con acceso</summary>
         <p className={styles.hint}>
-          Incluye membresías aceptadas, activas y revocadas. Las cuentas se
-          identifican por su identificador de usuario; las invitaciones
-          pendientes solo aparecen mientras fueron creadas en esta visita.
+          Incluye membresías aceptadas, activas y revocadas. Se muestra el nombre
+          visible cuando existe y el identificador queda como trazabilidad; las
+          invitaciones pendientes no representan una persona.
         </p>
         {members.isPending ? (
           <p role="status">Cargando membresías…</p>
@@ -329,8 +345,15 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
             {members.data.map((member) => (
               <li key={member.id}>
                 <div className={styles.memberCopy}>
-                  <strong>Cuenta {member.userId}</strong>
-                  <span>
+                  <div className={styles.identityLine}>
+                    <ProfileAvatar profile={member.user} />
+                    <div>
+                      <strong>{member.user?.displayName?.trim() || 'Usuario sin nombre'}</strong>
+                      <span className={styles.secondaryId}>Usuario: {member.userId}</span>
+                    </div>
+                  </div>
+                  <span className={styles.statusLine}>
+                    <Icon name={member.status === 'active' ? 'check' : 'alert'} />
                     {clientRoles[member.role]} ·{' '}
                     {member.status === 'active'
                       ? member.joinedAt
@@ -465,4 +488,16 @@ function invitationStatusLabel(
   if (acceptedMember?.status === 'revoked')
     return 'Invitación aceptada · acceso revocado';
   return 'Aceptada · membresía no visible en este listado';
+}
+
+function ProfileAvatar({ profile }: { profile: AccessProfile | null }) {
+  const name = profile?.displayName?.trim() || 'Usuario sin nombre';
+  const initials = name === 'Usuario sin nombre'
+    ? 'US'
+    : name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  return (
+    <span className={styles.avatar} aria-hidden="true">
+      {profile?.avatarUrl ? <img src={profile.avatarUrl} alt="" /> : initials}
+    </span>
+  );
 }

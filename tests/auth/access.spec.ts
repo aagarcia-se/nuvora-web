@@ -21,10 +21,20 @@ const member = {
   status: 'active',
   joined_at: user.created_at,
   revoked_at: null,
+  user: {
+    id: user.id,
+    display_name: 'Cliente Demo',
+    avatar_url: 'https://cdn.demo.test/avatar.png',
+  },
 };
 async function admin(
   page: Page,
-  options: { status?: number; viewer?: boolean } = {},
+  options: {
+    status?: number;
+    viewer?: boolean;
+    profile?: 'present' | 'missing' | 'null-fields' | 'invalid-avatar';
+    invitationStatus?: 'pending' | 'accepted';
+  } = {},
 ) {
   await setup(page, { viewer: options.viewer });
   let revoked = false;
@@ -40,6 +50,12 @@ async function admin(
           memberships: [
             {
               ...member,
+              user:
+                options.profile === 'missing'
+                  ? null
+                  : options.profile === 'null-fields' || options.profile === 'invalid-avatar'
+                    ? { id: user.id, display_name: null, avatar_url: null }
+                    : member.user,
               status: revoked ? 'revoked' : 'active',
               revoked_at: revoked ? user.created_at : null,
             },
@@ -55,11 +71,27 @@ async function admin(
               workspace_id: workspace.id,
               entity_id: entity.id,
               role: 'client_viewer',
-              status: invitationRevoked ? 'revoked' : 'pending',
+               status: invitationRevoked
+                 ? 'revoked'
+                 : (options.invitationStatus ?? 'pending'),
               expires_at: expiresAt,
               created_at: user.created_at,
-              accepted_at: null,
-              accepted_by: null,
+              accepted_at:
+                options.invitationStatus === 'accepted' ? user.created_at : null,
+              accepted_by:
+                options.invitationStatus === 'accepted' ? user.id : null,
+              accepted_by_profile:
+                options.invitationStatus === 'accepted'
+                  ? options.profile === 'missing'
+                    ? null
+                    : options.profile === 'null-fields' || options.profile === 'invalid-avatar'
+                      ? { id: user.id, display_name: null, avatar_url: null }
+                      : {
+                          id: user.id,
+                          display_name: 'Cliente Demo',
+                          avatar_url: 'https://cdn.demo.test/avatar.png',
+                        }
+                  : null,
               revoked_at: invitationRevoked ? user.created_at : null,
               revocation_reason: invitationRevoked ? 'manual' : null,
             },
@@ -219,6 +251,29 @@ test('Demo: lista y revocación de invitación pendiente conservan historial', a
   await dialog.getByRole('button', { name: 'Confirmar revocación' }).click();
   await expect(dialog).not.toBeVisible();
   await expect(page.getByText('Revocada · no aceptable')).toBeVisible();
+});
+test('Demo: aceptación muestra perfil visible y UUID secundario', async ({
+  page,
+}) => {
+  await admin(page, { invitationStatus: 'accepted' });
+  await page.getByText('Historial de invitaciones', { exact: true }).click();
+  await expect(page.getByText('Cliente Demo', { exact: true })).toBeVisible();
+  await expect(page.getByText(`Usuario: ${user.id}`, { exact: true })).toBeVisible();
+});
+test('Demo: perfiles ausentes y campos nulos usan fallback seguro', async ({
+  page,
+}) => {
+  await admin(page, { profile: 'missing', invitationStatus: 'accepted' });
+  await page.getByText('Personas con acceso', { exact: true }).click();
+  await expect(page.getByText('Usuario sin nombre', { exact: true })).toBeVisible();
+  await expect(page.getByText(`Usuario: ${user.id}`, { exact: true })).toBeVisible();
+});
+test('Demo: avatar inválido ya normalizado a null conserva iniciales', async ({
+  page,
+}) => {
+  await admin(page, { profile: 'invalid-avatar' });
+  await page.getByText('Personas con acceso', { exact: true }).click();
+  await expect(page.getByText('Usuario sin nombre', { exact: true })).toBeVisible();
 });
 test('Demo: enlace rotado, copiar y WhatsApp sin envío automático', async ({
   page,

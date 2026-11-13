@@ -1,4 +1,34 @@
-# Actualización vigente — historial de accesos, 2026-11-12
+# Actualización vigente — identidad visible en accesos, 2026-11-12
+
+## Identidad visible en membresías e invitaciones
+
+El panel consume las proyecciones visuales nuevas sin usarlas para autorizar:
+
+```text
+GET /api/v1/workspaces/:workspaceId/entities/:entityId/memberships
+→ { memberships: [{ ..., user: { id, display_name, avatar_url } | null }] }
+
+GET /api/v1/workspaces/:workspaceId/entities/:entityId/invitations?limit=100
+→ { invitations: [{ ..., accepted_by, accepted_by_profile: { id, display_name, avatar_url } | null }] }
+```
+
+Los nombres se muestran como encabezado, con avatar o iniciales; cuando faltan
+se usa “Usuario sin nombre” y el UUID queda como dato secundario de trazabilidad.
+Las invitaciones pending/expired/revoked sin aceptación no muestran una persona.
+Para una aceptación con perfil ausente o campos nulos se conserva el identificador
+y se usa el fallback seguro. El parser no conserva emails, tokens, hashes ni NIT.
+El backend normaliza avatares inválidos a `null` y el frontend solo presenta
+URLs HTTP(S).
+
+El panel mantiene roles, estado textual con icono, ingreso y revocación. Las
+acciones de revocación siguen siendo danger, requieren confirmación y restauran
+el foco al botón que las abrió. Diseño compacto, responsive, claro/oscuro y sin
+cards por fila. No se declara validación visual ni integración real.
+
+Los fixtures Demo cubren perfil presente, ausente/nulo, avatar inválido,
+invitación aceptada y pending. No se ejecutó Playwright.
+
+---
 
 ## Listado y revocación de invitaciones
 

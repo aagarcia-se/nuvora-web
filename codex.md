@@ -1,4 +1,26 @@
-# Estado vigente — historial de accesos y revocación, 2026-11-12
+# Estado vigente — identidad visible en accesos, 2026-11-12
+
+## Integración de perfiles en el panel de accesos
+
+`EntityAccessPanel` integra los contratos actualizados: memberships conserva
+`user_id` y proyecta `user`; invitations conserva `accepted_by` y proyecta
+`accepted_by_profile` solo si la invitación fue aceptada. El parser valida la
+proyección no sensible y mantiene la autoridad del API: nombre, avatar e
+identificador nunca deciden permisos.
+
+La jerarquía visual prioriza nombre visible, avatar o iniciales y rol/estado;
+UUID queda como dato secundario. Perfiles ausentes, nombres nulos y avatares
+normalizados como nulos usan “Usuario sin nombre” sin inventar una persona.
+Pending, expired y revoked sin aceptación no muestran identidad aceptante.
+Ingreso y revocación permanecen visibles, y las revocaciones conservan acción
+danger, confirmación y retorno de foco.
+
+Se actualizaron mocks no ejecutados para perfiles presentes, ausentes/nulos,
+avatar inválido, aceptación y pending. `npm run lint` y `npm run build` se
+ejecutarán al cierre; Playwright, validación visual e integración real no forman
+parte de la validación.
+
+---
 
 ## Listado completo de invitaciones
 

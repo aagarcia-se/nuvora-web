@@ -193,8 +193,9 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
       >
         <summary>Personas con acceso</summary>
         <p className={styles.hint}>
-          Incluye accesos activos y revocados. Las cuentas se identifican por su
-          identificador de usuario.
+          Incluye membresías aceptadas, activas y revocadas. Las cuentas se
+          identifican por su identificador de usuario; las invitaciones
+          pendientes solo aparecen mientras fueron creadas en esta visita.
         </p>
         {members.isPending ? (
           <p role="status">Cargando membresías…</p>
@@ -222,9 +223,11 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
                   <span>
                     {clientRoles[member.role]} ·{' '}
                     {member.status === 'active'
-                      ? 'Activa'
+                      ? member.joinedAt
+                        ? 'Invitación aceptada · Acceso activo'
+                        : 'Acceso activo'
                       : member.status === 'revoked'
-                        ? 'Revocada'
+                        ? 'Acceso revocado'
                         : 'Estado no disponible'}
                   </span>
                   <span>

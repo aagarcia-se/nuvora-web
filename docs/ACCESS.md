@@ -81,6 +81,10 @@ Google regresa automáticamente al callback de invitación. Recuperación o conf
 - Advertencia clara: cualquiera con el enlace puede aceptarlo tras autenticarse; compartir solo con la persona a quien se quiere dar acceso. La aceptación concede el rol solo a esa entity, no administración del despacho.
 - El listado de invitaciones sigue limitado a las creadas en esta visita porque no hay contrato de listado. Los enlaces locales se descartan al salir/cerrar el panel. Ocultar un enlace de la vista no lo revoca; reemplazarlo invalida el anterior en el servidor.
 - Membresías siguen mostrando identificadores de cuenta/rol/estado/fechas, sin nombres o correos inventados.
+- El panel del contador distingue `Invitación aceptada · Acceso activo`,
+  `Acceso activo` y `Acceso revocado`, y conserva la acción de revocar con
+  confirmación. El listado sigue siendo de membresías aceptadas; no se presenta
+  una invitación pendiente como aceptada.
 - PWA/referrer/captura temprana ya existentes no se modificaron. Ningún servicio de entrega por correo forma parte de este flujo.
 
 ## Archivos de implementación modificados

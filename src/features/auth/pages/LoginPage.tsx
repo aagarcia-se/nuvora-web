@@ -11,7 +11,7 @@ import {
 } from '../api/authApi';
 import { GoogleMark } from '../components/GoogleMark';
 import { useLogin } from '../api/useLogin';
-export function LoginPage() {
+export function LoginPage({ onRegister }: { onRegister?: () => void } = {}) {
   const auth = useAuth();
   const [show, setShow] = useState(false);
   const { mutateAsync, isPending: pending } = useLogin();
@@ -66,7 +66,9 @@ export function LoginPage() {
     <>
       <div className="auth-heading">
         <p className="auth-eyebrow">Tu espacio contable</p>
-        <h1 className="text-3xl font-semibold tracking-tight">Iniciar sesión</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Iniciar sesión
+        </h1>
         <p className="auth-description">
           Qué gusto tenerte de vuelta. Accede a tu cuenta.
         </p>
@@ -199,9 +201,15 @@ export function LoginPage() {
       <div className="auth-account-prompt">
         <p>
           ¿Aún no tienes cuenta?{' '}
-          <Link className="auth-link" to="/auth/register">
-            Crear cuenta
-          </Link>
+          {onRegister ? (
+            <button type="button" className="auth-link" onClick={onRegister}>
+              Crear cuenta
+            </button>
+          ) : (
+            <Link className="auth-link" to="/auth/register">
+              Crear cuenta
+            </Link>
+          )}
         </p>
       </div>
       <p className="auth-connection-note">

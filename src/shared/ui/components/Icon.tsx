@@ -2,6 +2,10 @@ export function Icon({
   name,
 }: {
   name:
+    | 'file'
+    | 'copy'
+    | 'message'
+    | 'link'
     | 'id-card'
     | 'calendar'
     | 'clock'
@@ -34,6 +38,26 @@ export function Icon({
       strokeLinecap="round"
       strokeLinejoin="round"
     >
+      {name === 'file' && (
+        <>
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+          <path d="M14 2v6h6M8 13h8m-8 4h6" />
+        </>
+      )}
+      {name === 'copy' && (
+        <>
+          <rect x="8" y="8" width="12" height="13" rx="2" />
+          <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+        </>
+      )}
+      {name === 'message' && (
+        <path d="M21 11.5a8.5 8.5 0 0 1-8.5 8.5H4l-3 2 2-6v-4.5a8.5 8.5 0 0 1 17 0Z" />
+      )}
+      {name === 'link' && (
+        <>
+          <path d="m10 13 4-4M8 16l-1 1a4 4 0 0 1-6-6l5-5a4 4 0 0 1 6 0m0 12a4 4 0 0 0 6 0l5-5a4 4 0 0 0-6-6l-1 1" />
+        </>
+      )}
       {name === 'id-card' && (
         <>
           <rect x="3" y="5" width="18" height="14" rx="2" />

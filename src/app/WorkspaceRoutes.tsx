@@ -125,7 +125,7 @@ export function ClientsPage() {
   return <EntityPanel key={context.workspace.id} {...context} />;
 }
 export function ClientPage() {
-  const { workspace } = useOutletContext<Context>();
+  const { workspace, role } = useOutletContext<Context>();
   const { entityId = '' } = useParams();
   if (!isUuid(entityId)) return <InvalidResource />;
   return (
@@ -133,6 +133,7 @@ export function ClientPage() {
       key={`${workspace.id}:${entityId}`}
       workspaceId={workspace.id}
       workspaceName={workspace.name}
+      workspaceRole={role}
       entityId={entityId}
     />
   );

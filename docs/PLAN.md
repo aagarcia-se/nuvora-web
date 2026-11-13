@@ -294,3 +294,24 @@ Corregido contorno de main y rediseñada ficha con padding, cabecera teal y dato
 ## Estado vigente consolidado — ficha minimalista, 2026-11-12
 
 Finalizado rediseño de ficha por filas con iconos y separadores, sin tarjetas por campo ni badge de acceso. Cabecera sin fondo decorativo; acento azul sustituye teal. Se conservan rutas, menú responsive, formularios, permisos y corrección de continuidad de sesión. Lint/build del último cambio aprobados; Playwright y revisión visual pendientes. Estado operativo actual: [codex.md](../codex.md), [ENTITIES.md](ENTITIES.md) y [PALETTE.md](PALETTE.md). Las composiciones anteriores de esta bitácora son históricas.
+
+
+## Fase de accesos al cliente — 2026-11-12
+
+Integradas invitaciones, consulta/revocación de membresías y compartir enlaces; callback `/invitations/accept` con token efímero. Entidades y diseño conservados. Estado/contratos/límites en [ACCESS.md](ACCESS.md) y [codex.md](../codex.md). Playwright no ejecutado; integración real y visual pendientes.
+
+
+Cierre de accesos: lint/build y tipos de mocks aprobados. 24 casos Demo nuevos sin ejecutar; Playwright, visual/API real, SMTP y SQL/RLS pendientes. Detalles en [ACCESS.md](ACCESS.md). No se autoriza otro módulo automáticamente.
+
+
+## Adaptación link-only — 2026-11-12
+
+Finalizado cambio de invitaciones a `{ role }` y acceptUrl inmediato. Sin correo/delivery/mismatch; aceptación explícita por cualquier cuenta autenticada. UI y PWA preservadas, sin nuevas fases. Estado/resultados y límites: [ACCESS.md](ACCESS.md), [codex.md](../codex.md). No Playwright. Las referencias anteriores a entrega SMTP de invitaciones son históricas.
+
+
+## Cliente aislado — 2026-11-12
+
+Ruta `/client/entities/:entityId?workspaceId=:workspaceId` tras aceptar, sin workspace_membership ni shell de contador. Pantalla y compartir compactos implementados; lectura de entity bloqueada por requisito de workspace_membership en getEntity del API. No se modifica backend ni se inventa contrato. Estado, comprobaciones y límites en [CLIENT.md](CLIENT.md). Playwright no ejecutado.
+
+
+Cierre de implementación frontend aislada: lint/build y tipos de mocks aprobados; sin Playwright. El bloqueo de lectura del API continúa: getEntity exige workspace_membership, incompatibilidad documentada en CLIENT.md. No declarar flujo real completo ni añadir esa membresía como atajo.

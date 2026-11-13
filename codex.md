@@ -1,3 +1,64 @@
+# Estado vigente — cliente aislado y enlaces compactos, 2026-11-12
+
+**Entrada y pantalla frontend implementadas; lectura real de entity bloqueada por API.** Tras POST accept exitoso se abre `/client/entities/:entityId?workspaceId=:workspaceId`, con guard y cabecera propios, sin shell de contador, sin GET/lista/detalle de workspaces y sin crear workspace_membership. Contadores conservan sus rutas. Solo se intenta el GET de entity documentado, con IDs y sesión actuales.
+
+**Bloqueo exacto comprobado por inspección:** `nuvora-api/src/modules/entities/entity.service.ts:getEntity` exige findWorkspaceMembership antes de evaluar membresía directa y devuelve 404 ENTITY_NOT_FOUND si no existe. No hay endpoint alternativo documentado para leer entity/rol/despacho solo por entity_membership. No se modificó API ni se eludió ese control. No declarar el acceso de datos del cliente completamente funcional hasta coordinar este contrato. La pantalla muestra rechazo/reintento seguros, sin WORKSPACE_NOT_FOUND del shell ni datos inventados.
+
+POST acceptance conserva únicamente metadata no sensible por usuario/workspace/entity, nunca tokens/enlaces; el rol se etiqueta como rol aceptado, no permiso actual. GET independiente revalida el acceso; nombre solo si devuelve 200. Contexto se limpia/cancela al salir, cerrar sesión o cambiar usuario. Rol/nombre de despacho actuales no se inventan si el API no los devuelve; referencia de despacho solo informativa.
+
+UI/UX Pro Max aplicada: vista moderna mínima con bienvenida, consulta autorizada/error, cuenta y área informativa futura sin documentos implementados. Compartir acceso con selector+Crear enlace inmediato, iconos, Copiar/WhatsApp visibles; opciones y miembros desplegables, estos últimos consultados al abrir. Sin cambiar colores/tokens/tema/splash/PWA ni incorporar dependencias.
+
+Estado, archivos y límites: [docs/CLIENT.md](docs/CLIENT.md), [docs/ACCESS.md](docs/ACCESS.md). **Lint y build aprobados (salida 0)**, TypeScript y generación Vite/PWA completos. Tipos de mocks también aprobados con tsc --noEmit, sin ejecutar Playwright. JS 684,67 kB (198,68 kB gzip); CSS 46,59 kB (9,58 kB gzip); permanece el aviso de chunk superior a 500 kB. Mocks de cliente aislado/destino/errores/logout preparados; revisión visual e integración real pendientes. Sin backend/SQL/env/secretos/Git/commits/push/despliegues. No implementar otros módulos ni crear membresías de workspace como solución.
+
+## Entrega frontend y bloqueo pendiente
+
+**Entregado en nuvora-web:** ruta protegida de cliente aislado, redirección posterior a aceptación, cabecera sin navegación del despacho, consultas/cachés separadas por usuario y entidad, estados seguros y compartir enlaces compacto con iconos. Archivos principales: `src/features/client/`, `src/app/routes.tsx`, `InvitationPage.tsx`, `EntityAccessPanel.tsx`, `ShareInvitation.tsx`, `useAccess.ts`, `WorkspaceAccount.tsx`, `ProtectedRoute.tsx`, `returnPath.ts` e `Icon.tsx`. Mocks adaptados en `tests/auth/client.spec.ts`, `access.spec.ts` y `access.fixture.ts`.
+
+**Bloqueo para coordinar con el responsable del API:**
+
+1. La aceptación crea únicamente `entity_membership`, como corresponde.
+2. El frontend ya no solicita el workspace completo, pero el GET existente `GET /api/v1/workspaces/:workspaceId/entities/:entityId` todavía exige `workspace_membership` en `getEntity`.
+3. Por eso un cliente aceptado puede recibir `404 ENTITY_NOT_FOUND` y la web no puede mostrar el nombre/datos de la empresa. El contrato tampoco proporciona su rol actual ni el nombre del despacho sin ese acceso.
+4. Debe confirmarse un contrato de lectura autorizado por la membresía directa de la entidad, sin conceder acceso al workspace ni a otras entidades. Este documento no autoriza a modificar backend o SQL desde esta tarea.
+5. Cuando exista ese contrato, adaptar el transporte frontend si corresponde y validar aceptación → pantalla cliente, recarga, rol, revocación y denegación de una entidad ajena. No asumir que el bloqueo quedó resuelto por pasar lint/build.
+
+**Estado de verificación:** lint/build y tipos de mocks aprobados en la implementación anterior; Playwright, revisión visual e integración real pendientes. Esta actualización es exclusivamente documental: no volvió a ejecutar checks de código ni modificó la implementación.
+
+Los estados siguientes son históricos y su redirección al área del contador queda reemplazada por esta ruta aislada.
+
+---
+
+# Estado vigente — link-only coherente, 2026-11-12
+
+**Adaptación frontend finalizada:** invitaciones con `{ role }` exclusivamente. Retirados campo de destinatario, delivery/estados de envío y mensajes de coincidencia de email. Create consume acceptUrl de la respuesta del API y lo muestra directamente para copiar/WhatsApp/Web Share, sin paso adicional de generación. Rotación opcional en Opciones del enlace, con advertencia.
+
+Cualquier usuario autenticado puede confirmar explícitamente la aceptación. Inspección muestra workspace/entity/rol/vencimiento; no se acepta automáticamente. Se conservan estados expirado/revocado/usado, errores seguros, permisos, cancelación y limpieza temprana de URL. Tokens/enlaces solo en memoria local, nunca almacenamiento persistente, Query/Mutation cache, analytics o logs. Los datos de correo de Auth identifican la sesión, no un destinatario de invitación.
+
+UI/UX Pro Max aplicada para labels/feedback y un único paso de creación con rol por defecto de solo lectura. No se cambiaron colores, tokens, dark mode, splash, PWA, rutas ni diseño; sin nuevas pantallas/módulos/endpoints. Se eliminaron estilos de entrega ya sin uso y se permite wrapping de IDs de contexto en el callback.
+
+Estado y archivos en [docs/ACCESS.md](docs/ACCESS.md). **Lint y build aprobados (salida 0)**, TypeScript y generación Vite/PWA completos. Tipos de mocks aprobados con tsc --noEmit. JS 678,06 kB (196,86 kB gzip); CSS 43,31 kB (9,11 kB gzip). Permanece el aviso de chunk superior a 500 kB. Mocks actualizados sin ejecutar Playwright; integración real y revisión visual pendientes. Sin API/backend/SQL/env/secretos/Git/commits/push/deploy ni dependencias nuevas. Detenerse aquí y esperar nueva indicación.
+
+Los cierres de implementación anteriores son históricos. Sus referencias al flujo de correo/SMTP o comparación de destinatario quedan reemplazadas por este estado y por la sección Cambio de contrato vigente al final de este archivo.
+
+---
+
+# Estado vigente — invitaciones, membresías y compartir, 2026-11-12
+
+**Implementación frontend finalizada para la fase adicional autorizada por el usuario.** Solo nuvora-web, sin modificar API/SQL/backend/env/secretos/dependencias/Git. Se reutilizaron entidades, rutas, sesión, diseño y colores existentes.
+
+- Administración de accesos en detalle del cliente para owner/admin con canManage: invitación por correo y rol directo, entrega sent/not_configured diferenciada, membresías y revocación con confirmación/historial.
+- Compartir por acción explícita: generación/rotación del enlace, advertencia de invalidación anterior, copiar con feedback/fallback, WhatsApp y Web Share. Sin mensajes automáticos ni enlaces en almacenamiento/caché/analytics/logs.
+- Callback /invitations/accept: token capturado y URL limpiada antes de Router, acceso/registro sin persistirlo, inspección autenticada, estados pending/expired/revoked/accepted, error de correo y aceptación explícita. Redirección al contexto del API solo tras POST exitoso; la ruta vuelve a comprobar permisos.
+- Consultas por usuario/workspace/entity y cancelación/descartes al desmontar o limpiar sesión; operaciones sensibles sin Mutation cache ni retries. Tokens solo en memoria de la visita, errores saneados.
+- UI/UX Pro Max aplicada; ficha minimalista, tokens y temas preservados. Solo ajustes de seguridad PWA: referrer no-referrer y callback fuera del fallback offline; sin rediseño de instalación/splash.
+- Mocks adicionales preparados, **sin ejecutar Playwright**. Las pruebas existentes de entidades reutilizan la fixture extraída; no se rehizo su funcionalidad.
+
+**Límites explícitos:** API no lista invitaciones existentes ni nombres/correos de memberships; UI muestra invitaciones creadas en la vista actual e identificadores de cuenta. Google/confirmación/recarga requieren reabrir enlace original para no persistir token. Enlace devuelto debe corresponder a esta origin y /invitations/accept. Integración real, SMTP, SQL 004/005, RLS y validación visual siguen pendientes; no se tocaron remotamente.
+
+Detalles de contratos, archivos, seguridad y resultados en [docs/ACCESS.md](docs/ACCESS.md). **Lint y build aprobados (salida 0)**, con TypeScript y generación Vite/PWA completados. También aprobó la comprobación de tipos de los mocks mediante tsc --noEmit, sin ejecutar Playwright. JS 679,33 kB / 197,31 kB gzip; CSS 43,49 kB / 9,15 kB gzip. Permanece el aviso de chunk superior a 500 kB. 24 casos Demo nuevos preparados, no ejecutados. No avanzar portal/FEL/libros u otra fase mayor sin indicación. Los apartados históricos que prohíben invitaciones/memberships quedaron sustituidos por la fase adicional autorizada, cuya especificación se conserva al final de este documento.
+
+---
+
 # Estado vigente — ficha minimalista por filas, 2026-11-12
 
 **Documentación sincronizada:** README, AGENTS, docs/ENTITIES, docs/PLAN y docs/PALETTE reflejan rutas, menú, acento azul y ficha por filas. Revisión exclusivamente documental: no se volvieron a ejecutar checks de código ni se modificó la implementación.
@@ -477,3 +538,305 @@ PATCH /api/v1/workspaces/:workspaceId/entities/:entityId
   validación, `401`, `403`, `404`, `409` y `503`.
 - No ejecutar Playwright sin autorización explícita.
 - Ejecutar `npm run lint` y `npm run build`.
+
+## Flujo cliente aislado — frontend implementado; contrato de lectura bloqueado
+
+El modelo vigente separa al contador del cliente:
+
+```text
+Contador → workspace_membership
+Cliente  → entity_membership directa
+```
+
+Después de aceptar una invitación, el cliente **no** debe intentar cargar ni
+seleccionar el workspace completo del contador. Si el frontend llama a:
+
+```text
+GET /api/v1/workspaces/:workspaceId
+```
+
+para el usuario cliente, puede recibir correctamente `404 WORKSPACE_NOT_FOUND`,
+porque no tiene `workspace_membership`. No solucionar esto creando membresías de
+workspace ni modificando el API.
+
+### Flujo esperado
+
+1. El cliente abre `/invitations/accept?token=...`.
+2. Inicia sesión o se registra con cualquier correo/proveedor.
+3. Si OAuth redirige fuera de la página, conservar el flujo seguro para que el
+   usuario pueda volver a abrir el enlace original sin perder la invitación.
+4. El cliente confirma la invitación.
+5. El API crea únicamente `entity_membership`.
+6. El frontend redirige a una pantalla propia de cliente, por ejemplo:
+   `/client/entities/:entityId`.
+7. Esa pantalla carga solo el contexto de la entity autorizada y no muestra la
+   lista general de workspaces del contador.
+
+### Pantalla inicial del cliente
+
+Crear una pantalla protegida y responsive que muestre inicialmente:
+
+- Nombre de la empresa/entity.
+- Rol del usuario en esa entity.
+- Workspace/despacho como contexto informativo mínimo, sin otorgar permisos.
+- Estado de acceso y bienvenida.
+- Área preparada para cargar XML, PDF, imágenes/fotos y gastos en fases futuras.
+- Estados de carga, error, sesión inválida, entity no disponible y reintento.
+
+No implementar todavía procesamiento IA, documentos ni reportes; solo preparar
+la estructura sin inventar datos ni endpoints.
+
+### Reglas de autorización frontend
+
+- No usar `GET /workspaces` para resolver el acceso del cliente.
+- No asumir que el cliente es miembro del workspace.
+- Usar el `workspaceId` y `entityId` devueltos por la aceptación únicamente como
+  contexto; el API sigue siendo la autoridad.
+- No guardar tokens de invitación ni credenciales.
+- Limpiar el token de la URL después de capturarlo/aceptarlo.
+- Si un endpoint existente no permite consultar la entity a un usuario con
+  `entity_membership`, no modificar el API: documentar el bloqueo exacto para
+  revisión posterior.
+- No agregar datos simulados que parezcan clientes, facturas o permisos reales.
+
+### Criterios de aceptación
+
+- Un contador sigue viendo su pantalla de workspaces sin cambios.
+- Un cliente aceptado no ve workspaces del despacho como propios.
+- Un cliente puede llegar a su pantalla de entity sin recibir `WORKSPACE_NOT_FOUND`
+  por intentar cargar el workspace completo.
+- Un usuario sin invitación no puede entrar a la pantalla de cliente.
+- Logout y cambio de usuario limpian el contexto anterior.
+- La pantalla funciona en claro/oscuro y móvil/escritorio usando los tokens
+  existentes.
+
+### Identificación y experiencia del usuario cliente
+
+Un usuario se considera cliente por una fila activa en
+`entity_memberships`, no por su correo, NIT, metadata de Google ni por
+`auth.users` directamente.
+
+```text
+user_id → entity_id → workspace_id → role → status
+```
+
+La interfaz debe distinguir:
+
+- **Miembro del despacho:** tiene `workspace_membership` y puede usar el área
+  de workspaces según su rol.
+- **Cliente de una entity:** tiene `entity_membership` activa y debe entrar al
+  portal de esa entity, sin ser miembro del workspace del contador.
+
+El portal cliente no debe mostrar ni permitir:
+
+- Crear workspaces.
+- Seleccionar o administrar workspaces del despacho.
+- Crear o gestionar otros clientes.
+- Invitar usuarios del despacho.
+- Administrar permisos generales.
+
+El cliente debe entrar directamente a su entity y posteriormente podrá:
+
+- Registrar gastos.
+- Cargar XML, PDF o fotografías de facturas.
+- Consultar el estado de sus documentos.
+- Ver observaciones y reportes autorizados.
+
+Roles actuales de `entity_memberships`:
+
+- `client_owner`: titular/responsable de la entity; no es owner del workspace.
+- `client_contributor`: puede colaborar con información de la entity cuando
+  el endpoint correspondiente lo permita.
+- `client_viewer`: solo consulta información autorizada.
+
+El rol debe venir del API. No convertir un rol de cliente en permisos de
+workspace desde el frontend. Si una acción todavía no tiene endpoint o permiso
+backend, mostrarla como pendiente o no mostrarla; no simularla.
+
+## Fase adicional autorizada: invitaciones y compartir enlace
+
+El backend ya implementó estos contratos. Codex debe integrarlos únicamente en
+`nuvora-web`; no modificar `nuvora-api`, SQL, backend, `.env`, secretos, Git,
+commits, pushes ni despliegues.
+
+### Endpoints de entidades ya disponibles
+
+```text
+GET   /api/v1/workspaces/:workspaceId/entities
+POST  /api/v1/workspaces/:workspaceId/entities
+GET   /api/v1/workspaces/:workspaceId/entities/:entityId
+PATCH /api/v1/workspaces/:workspaceId/entities/:entityId
+```
+
+Crear entity:
+
+```json
+{
+  "legalName": "Cliente Demo, S. A.",
+  "taxId": "1234567-8"
+}
+```
+
+Editar acepta `legalName` y `taxId`; `taxId: null` elimina el NIT si el API
+autoriza la operación. El NIT puede aparecer enmascarado. No reconstruirlo ni
+usarlo como autorización.
+
+### Crear invitación
+
+```http
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/invitations
+```
+
+Body actual:
+
+```json
+{
+  "role": "client_owner"
+}
+```
+
+Roles disponibles:
+
+```text
+client_owner
+client_contributor
+client_viewer
+```
+
+El API verifica permisos, entity y workspace. La invitación no depende de un
+correo destinatario. El frontend no debe crear usuarios ni memberships
+directamente, ni mostrar o guardar tokens en almacenamiento persistente.
+
+### Validar y aceptar invitación
+
+```http
+GET  /api/v1/invitations/:token
+POST /api/v1/invitations/:token/accept
+```
+
+La aceptación requiere sesión Bearer. El usuario autenticado puede utilizar el
+correo que prefiera; el acceso se concede únicamente a la entity de la
+invitación. El frontend debe:
+
+1. Leer el token únicamente de la URL de callback.
+2. Mostrar una pantalla de invitación válida, expirada, revocada o usada.
+3. Pedir iniciar sesión o registrarse si no hay sesión.
+4. Después de autenticarse, llamar a `POST .../accept`.
+5. Limpiar el token de la URL y no guardarlo en localStorage, Query cache,
+   analytics, logs ni errores.
+6. Redirigir al workspace/entity autorizado solo después de una respuesta exitosa.
+
+No asumir que ver una invitación concede acceso: el API debe confirmarlo.
+El enlace es un bearer link: cualquiera que lo posea puede intentar aceptarlo,
+por lo que debe compartirse únicamente con el destinatario correcto.
+
+### Consultar y revocar memberships
+
+```http
+GET   /api/v1/workspaces/:workspaceId/entities/:entityId/memberships
+PATCH /api/v1/workspaces/:workspaceId/entities/:entityId/memberships/:membershipId/revoke
+```
+
+Estas vistas son administrativas. Mostrar solo las acciones que el API permita,
+pero recordar que ocultar botones no sustituye autorización del backend.
+La revocación no debe presentarse como eliminación permanente del historial.
+
+### Generar enlace para compartir
+
+```http
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/invitations/:invitationId/share-link
+```
+
+Uso:
+
+- Acción explícita del contador autorizado.
+- Requiere permiso administrativo/`can_manage` según el API.
+- El API rota el token e invalida el enlace anterior.
+- El enlace se devuelve únicamente en esa respuesta.
+- No guardar el enlace en almacenamiento persistente ni enviarlo a analytics.
+- No mostrarlo en logs ni incluirlo en mensajes de error.
+- Si la invitación está expirada, usada o revocada, mostrar el estado seguro
+  recibido (`410 INVITATION_UNAVAILABLE`).
+
+El frontend puede ofrecer:
+
+1. **Copiar enlace:** Clipboard API y confirmación accesible.
+2. **Compartir por WhatsApp:** abrir una URL externa construida con
+   `https://wa.me/?text=${encodeURIComponent(message + "\\n" + acceptUrl)}`.
+3. **Compartir móvil:** Web Share API cuando esté disponible, con fallback a
+   copiar enlace.
+
+No enviar automáticamente mensajes sin acción del usuario. Advertir que
+cualquiera con el enlace puede intentar iniciar la aceptación y que debe
+compartirse únicamente con el destinatario correcto.
+El backend no usa SMTP ni envía correos; el enlace se genera para copiarlo o
+compartirlo manualmente.
+
+## Cambio de contrato vigente: no usar correo ni SMTP
+
+El flujo anterior basado en email destinatario quedó reemplazado por
+invitaciones link-only. Si existe código frontend que todavía:
+
+- solicite un email para crear la invitación;
+- muestre estados de envío de correo;
+- dependa de Nodemailer, SMTP o entrega por email;
+- compare el email del usuario con un email guardado en la invitación;
+
+debe revertirse o adaptarse para usar únicamente `{ role }`, enlace compartible
+y aceptación por cualquier usuario autenticado. No inventar una alternativa ni
+implementar una nueva fase sin instrucciones posteriores del propietario.
+
+Después de dejar el frontend coherente con este contrato, detener el trabajo y
+esperar la siguiente indicación. No implementar todavía documentos, IA, grants
+adicionales ni nuevas pantallas.
+
+### Estados y seguridad
+
+Manejar de forma segura:
+
+- `401`: iniciar sesión o pedir autenticación.
+- `403`: no tienes permisos.
+- `404`: recurso no disponible.
+- `409`: conflicto de datos o invitación existente.
+- `410`: invitación expirada, revocada o ya utilizada.
+- `429`: demasiadas solicitudes; no reintentar automáticamente compartir.
+- `503`: proveedor no disponible.
+
+No mostrar tokens, NIT completo no autorizado, passwords, Bearer ni datos
+internos del proveedor. No consultar tablas Supabase directamente.
+
+### UX requerida
+
+- Lista y detalle de entidades dentro del workspace confirmado.
+- Acciones de invitar, consultar miembros y compartir solo cuando corresponda.
+- Formularios con labels, validación, foco, teclado y prevención de doble envío.
+- Estados de carga, vacío, éxito, error, expiración y permiso.
+- Confirmación antes de revocar una membresía.
+- Diseño responsive para móvil y escritorio.
+- Mantener exactamente la paleta, tokens, dark mode, splash, PWA y layouts
+  existentes; no crear una nueva identidad visual.
+- Leer y aplicar `.opencode/skills/ui-ux-pro-max/SKILL.md` antes de editar.
+
+### Pruebas frontend
+
+Agregar mocks para:
+
+- Lista/creación/edición/detalle de entities.
+- Crear invitación.
+- Invitación válida, expirada, revocada y usada.
+- Usuario sin sesión y aceptación por cualquier usuario autenticado, sin comparación de email.
+- Aceptación exitosa.
+- Listado y revocación de membership.
+- Generación de share-link y rotación.
+- Copiar enlace, WhatsApp y Web Share con fallback.
+- `401`, `403`, `404`, `409`, `410`, `429` y `503`.
+- Limpieza del token de la URL y ausencia de almacenamiento persistente.
+
+Ejecutar en `nuvora-web`:
+
+```bash
+npm run lint
+npm run build
+```
+
+No ejecutar Playwright sin autorización explícita.

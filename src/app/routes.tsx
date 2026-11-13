@@ -14,10 +14,25 @@ import {
   ClientPage,
   AccountPage,
 } from './WorkspaceRoutes';
+import { ClientEntityPage } from '@/features/client/pages/ClientEntityPage';
+import { InvitationPage } from '@/features/access/pages/InvitationPage';
 import { AuthCallbackPage } from '@/features/auth/pages/AuthCallbackPage';
 function WorkspaceEntry() {
   const { status, user } = useAuth();
   if (status === 'authenticated' && user) return <PrivateShell key={user.id} />;
+  return (
+    <AuthLayout>
+      <ProtectedRoute>
+        <span />
+      </ProtectedRoute>
+    </AuthLayout>
+  );
+}
+
+function ClientEntry() {
+  const { status, user } = useAuth();
+  if (status === 'authenticated' && user)
+    return <ClientEntityPage key={user.id} />;
   return (
     <AuthLayout>
       <ProtectedRoute>
@@ -62,6 +77,7 @@ export function AppRoutes() {
           }
         />
         <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/invitations/accept" element={<InvitationPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route
           path="*"
@@ -75,6 +91,7 @@ export function AppRoutes() {
           }
         />
       </Route>
+      <Route path="/client/entities/:entityId" element={<ClientEntry />} />
       <Route element={<WorkspaceEntry />}>
         <Route path="/" element={<WorkspacePage />} />
         <Route path="/account" element={<AccountPage />} />

@@ -72,3 +72,13 @@ El propietario debe ejecutar manualmente el SQL pendiente del API según sus ins
 ## Actualización — navegación por rutas, 2026-11-12
 
 La fase de separación por rutas autorizada está implementada. La cartera y detalle ya no se incrustan en inicio; el perfil vive en `/account`. Estado actual, decisiones y límites en [ROUTING.md](ROUTING.md). Los resultados de fases anteriores no validan esta navegación.
+
+
+## Fase de accesos al cliente — 2026-11-12
+
+Integradas invitaciones, consulta/revocación de membresías y compartir enlaces; callback `/invitations/accept` con token efímero. Entidades y diseño conservados. Estado/contratos/límites en [ACCESS.md](ACCESS.md) y [codex.md](../codex.md). Playwright no ejecutado; integración real y visual pendientes.
+
+
+## Cliente aislado — 2026-11-12
+
+Ruta `/client/entities/:entityId?workspaceId=:workspaceId` tras aceptar, sin workspace_membership ni shell de contador. Pantalla y compartir compactos implementados; lectura de entity bloqueada por requisito de workspace_membership en getEntity del API. No se modifica backend ni se inventa contrato. Estado, comprobaciones y límites en [CLIENT.md](CLIENT.md). Playwright no ejecutado.

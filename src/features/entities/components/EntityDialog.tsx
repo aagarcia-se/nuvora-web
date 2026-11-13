@@ -8,6 +8,7 @@ export function EntityDialog({
   description,
   workspaceName,
   busy = false,
+  closeLabel = 'Cerrar cliente',
   onClose,
   children,
 }: PropsWithChildren<{
@@ -15,6 +16,7 @@ export function EntityDialog({
   description: string;
   workspaceName: string;
   busy?: boolean;
+  closeLabel?: string;
   onClose: () => void;
 }>) {
   const ref = useRef<HTMLDialogElement>(null);
@@ -46,7 +48,7 @@ export function EntityDialog({
         <button
           type="button"
           className={workspaceStyles.iconButton}
-          aria-label="Cerrar cliente"
+          aria-label={closeLabel}
           disabled={busy}
           onClick={onClose}
         >

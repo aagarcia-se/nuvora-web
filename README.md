@@ -12,6 +12,14 @@ en [docs/PLAN.md](docs/PLAN.md). Perfil/espacios y la fase actual de clientes/en
 está en `../nuvora-api/docs/PLAN.md`. La base de autenticación y seguridad del API
 se conserva; captura, revisión, documentos y módulos financieros siguen pendientes.
 
+## Cliente aislado
+
+La aceptación abre `/client/entities/:entityId?workspaceId=:workspaceId`, sin navegación ni consultas generales del despacho. **Lectura de la empresa pendiente del API:** su GET actual exige workspace_membership antes de consultar acceso directo; no se añade esa membresía como solución. UI de cliente y estados seguros preparados, sin datos simulados. Detalles y límite en [docs/CLIENT.md](docs/CLIENT.md).
+
+## Accesos al cliente
+
+Invitaciones solo por enlace: elegir rol → Crear enlace → copiar/WhatsApp/Web Share. Creación envía únicamente `{ role }` y consume el enlace del API directamente. Cualquier usuario autenticado confirma la aceptación, sin correo de destinatario ni estados de entrega. Membresías y revocación con confirmación se conservan. Tokens efímeros; al recargar o volver de un acceso externo se debe reabrir el enlace original. Contratos, archivos y límites en [docs/ACCESS.md](docs/ACCESS.md). No ejecutar Playwright.
+
 ## Estado actual de interfaz
 
 Espacios (`/`), cartera (`/workspaces/:workspaceId/clients`), detalle (`/workspaces/:workspaceId/clients/:entityId`) y perfil (`/account`) están separados por rutas. Navegación lateral desde 1024 px y panel modal en móvil/PWA. Perfil, apariencia y cierre de sesión están en el avatar.

@@ -9,9 +9,11 @@ import styles from '../workspace.module.css';
 export function WorkspaceAccount({
   name,
   avatar,
+  showProfileLink = true,
 }: {
   name: string;
   avatar?: string | null;
+  showProfileLink?: boolean;
 }) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
@@ -71,13 +73,17 @@ export function WorkspaceAccount({
       <div id={panelId} className={styles.accountPanel} hidden={!open}>
         {open && (
           <>
-            <Link
-              to="/account"
-              className="auth-link"
-              onClick={() => setOpen(false)}
-            >
-              Mi cuenta
-            </Link>
+            {showProfileLink ? (
+              <Link
+                to="/account"
+                className="auth-link"
+                onClick={() => setOpen(false)}
+              >
+                Mi cuenta
+              </Link>
+            ) : (
+              <p className="font-semibold">Mi cuenta</p>
+            )}
             <p className="mt-1 break-words text-sm text-muted">{user?.email}</p>
           </>
         )}

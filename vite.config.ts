@@ -2,7 +2,10 @@ import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import { fileURLToPath, URL } from 'node:url';
-import { pwaBackgroundColor, pwaThemeColor } from './src/shared/config/brand.ts';
+import {
+  pwaBackgroundColor,
+  pwaThemeColor,
+} from './src/shared/config/brand.ts';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
@@ -14,13 +17,19 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'prompt',
         injectRegister: false,
-        includeAssets: ['brand-mark.svg', 'favicon.svg', 'splash-logo.svg', 'theme.js', 'icons/*.png'],
+        includeAssets: [
+          'brand-mark.svg',
+          'favicon.svg',
+          'splash-logo.svg',
+          'theme.js',
+          'icons/*.png',
+        ],
         manifest: {
           id: '/',
           name: appName,
           short_name: appName,
           description:
-             'Documentos FEL y control financiero para tu organización.',
+            'Documentos FEL y control financiero para tu organización.',
           lang: 'es-GT',
           start_url: '/',
           scope: '/',
@@ -56,6 +65,7 @@ export default defineConfig(({ mode }) => {
             /^\/api(?:\/|$)/,
             /^\/health(?:\/|$)/,
             /^\/auth(?:\/|$)/,
+            /^\/invitations(?:\/|$)/,
           ],
           runtimeCaching: [],
           cleanupOutdatedCaches: true,

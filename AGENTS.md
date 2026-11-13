@@ -1,5 +1,20 @@
 # AGENTS.md — Nuvora Web
 
+## Cliente aislado vigente
+
+Tras aceptar abrir /client/entities/:entityId?workspaceId=:workspaceId, guard/shell independiente. No resolver por workspaces ni añadir workspace_membership. Usar GET entity existente y documentar bloqueo: getEntity del API aún exige workspace_membership, por lo que una cuenta solo entity_member recibe 404. No solucionar en backend/SQL ni inventar endpoint/permisos. Solo 200 permite nombre/consulta autorizada; rol del POST es histórico, no autorización. Compartir compacto y miembros desplegables con carga diferida; identidad/PWA conservadas. Estado y comprobaciones en codex.md y docs/CLIENT.md. Playwright prohibido en esta fase.
+
+
+## Contrato vigente — link-only
+
+Crear invitaciones solo con `{ role }`, consumir acceptUrl de esa respuesta y ofrecer copiar/WhatsApp inmediatamente. Sin destinatario ni delivery/envío por correo. Cualquier usuario autenticado confirma explícitamente la aceptación; no comparar emails. Rotación es opcional y advertida. Conservar tokens/enlaces solo en memoria fuera de Query/Mutation cache/storage/logs; mantener permisos/cancelación/estados seguros. Diseño, colores, tokens, dark mode y PWA intactos. Estado/archivos/resultados en codex.md y docs/ACCESS.md. Las referencias históricas a SMTP/mismatch quedan reemplazadas. No avanzar otra fase ni ejecutar Playwright.
+
+
+## Fase vigente — accesos al cliente, 2026-11-12
+
+Invitaciones/membresías/compartir implementados según autorización adicional de codex.md. No reconstruir entidades ni endpoints. Panel en detalle solo owner/admin+canManage; compartir rota enlace por acción explícita y revocar confirma/conserva historial. Callback /invitations/accept limpia token antes de Router; token/enlace solo memoria efímera, nunca Query/Mutation cache/storage/logs. OAuth o recarga requieren reabrir enlace original. No inventar listado de invitaciones ni correos de memberships: esos contratos no existen. Mantener diseño minimalista y paleta actuales. docs/ACCESS.md y codex.md documentan estado/límites. Las prohibiciones históricas de construir estas funcionalidades quedan sustituidas únicamente para esta fase; portal/FEL/libros siguen fuera. Usuario autoriza lint/build, mantiene NO Playwright. Sin Git/env/backend/SQL ni dependencias nuevas.
+
+
 ## Ficha minimalista vigente
 
 Conservar detalle del cliente como filas etiqueta/valor con iconos y separadores, sin cards por dato ni badge de acceso. Cabecera sin panel coloreado; iniciales conservadas. Usuario pidió diseño moderno/minimalista. Estado y límites en codex.md; no restaurar variantes anteriores por descripciones históricas.

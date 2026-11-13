@@ -1,3 +1,5 @@
+import { EntityAccessPanel } from '@/features/access/components/EntityAccessPanel';
+import type { WorkspaceRole } from '@/features/workspace/types/workspace.types';
 import { useRef, useState } from 'react';
 import { Button } from '@/shared/ui/components/Button';
 import { Icon } from '@/shared/ui/components/Icon';
@@ -17,10 +19,12 @@ import styles from '../entities.module.css';
 export function EntityDetailPage({
   workspaceId,
   workspaceName,
+  workspaceRole,
   entityId,
 }: {
   workspaceId: string;
   workspaceName: string;
+  workspaceRole: WorkspaceRole;
   entityId: string;
 }) {
   const detail = useEntity(workspaceId, entityId);
@@ -171,6 +175,15 @@ export function EntityDetailPage({
                 </div>
               </div>
             )}
+            {canEdit &&
+              (workspaceRole === 'owner' || workspaceRole === 'admin') && (
+                <EntityAccessPanel
+                  key={`${workspaceId}:${entityId}`}
+                  context={{ workspaceId, entityId }}
+                  workspaceName={workspaceName}
+                  entityName={entity.legal_name}
+                />
+              )}
           </>
         )
       )}

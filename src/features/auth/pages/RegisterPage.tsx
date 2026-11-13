@@ -13,7 +13,7 @@ import { useAuth } from '../store/authStore';
 
 import { passwordRules } from '../types/passwordRules';
 
-export function RegisterPage() {
+export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
   const auth = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -279,9 +279,19 @@ export function RegisterPage() {
         </Button>
         <p className="text-center text-sm">
           ¿Ya tienes una cuenta?{' '}
-          <Link className="font-semibold underline" to="/login">
-            Inicia sesión
-          </Link>
+          {onLogin ? (
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={onLogin}
+            >
+              Inicia sesión
+            </button>
+          ) : (
+            <Link className="font-semibold underline" to="/login">
+              Inicia sesión
+            </Link>
+          )}
         </p>
       </form>
     </>

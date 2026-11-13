@@ -4,6 +4,10 @@ export function safeReturnPath(value: unknown): string {
   if (value === '/' || value === '/account') return value;
   const uuid =
     '[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}';
+  if (
+    new RegExp(`^/client/entities/${uuid}\\?workspaceId=${uuid}$`).test(value)
+  )
+    return value;
   return new RegExp(`^/workspaces/${uuid}/clients(?:/${uuid})?$`).test(value)
     ? value
     : '/';

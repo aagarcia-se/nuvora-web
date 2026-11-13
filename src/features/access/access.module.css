@@ -1,0 +1,196 @@
+.panel {
+  margin-top: 2rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  background: rgb(var(--color-surface));
+  border-radius: 1.25rem;
+}
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+}
+.heading h2 {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.heading h2 svg {
+  color: rgb(var(--color-accent));
+  flex-shrink: 0;
+}
+.heading p,
+.hint {
+  color: rgb(var(--color-muted));
+  font-size: 0.8125rem;
+  line-height: 1.8;
+  margin-block: 0.625rem;
+}
+.context {
+  margin-block: 1.5rem;
+  font-size: 0.875rem;
+  line-height: 1.8;
+  overflow-wrap: anywhere;
+}
+.block h3 {
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+.block {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(var(--color-line));
+}
+.invitation {
+  margin-top: 1rem;
+  padding-block: 0.875rem;
+  border-bottom: 1px solid rgb(var(--color-line));
+  overflow-wrap: anywhere;
+}
+.share {
+  display: grid;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+  font-size: 0.8125rem;
+  line-height: 1.8;
+}
+
+.memberList {
+  list-style: none;
+}
+.memberList li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-block: 1.25rem;
+  border-bottom: 1px solid rgb(var(--color-line));
+}
+.memberCopy {
+  display: grid;
+  gap: 0.375rem;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: rgb(var(--color-muted));
+}
+.memberCopy strong {
+  color: rgb(var(--color-ink));
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.memberList button {
+  flex-shrink: 0;
+}
+.empty {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: rgb(var(--color-muted));
+}
+.callbackIntro {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--info-bg);
+  color: var(--info);
+  font-size: 0.875rem;
+  line-height: 1.8;
+}
+.callbackIntro svg {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+.invitationDetails {
+  display: grid;
+  gap: 1rem;
+  padding-block: 1.25rem;
+}
+.invitationDetails dt {
+  font-size: 0.75rem;
+  color: rgb(var(--color-muted));
+}
+.invitationDetails dd {
+  overflow-wrap: anywhere;
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+}
+@media (max-width: 639px) {
+  .heading,
+  .memberList li {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .actions > button,
+  .actions > a {
+    flex: 1 1 auto;
+  }
+}
+
+.compactForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+  padding-top: 1.25rem;
+  max-width: 38rem;
+}
+.compactForm label {
+  font-size: 0.75rem;
+}
+.shareResult {
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+.linkRow > svg {
+  flex-shrink: 0;
+  color: rgb(var(--color-accent));
+}
+.linkRow input {
+  min-width: 0;
+  text-overflow: ellipsis;
+  font-size: 0.8125rem;
+}
+.linkHint {
+  font-size: 0.75rem;
+  line-height: 1.7;
+  color: rgb(var(--color-muted));
+}
+.linkOptions summary,
+.block > summary {
+  min-height: 44px;
+  padding-block: 0.625rem;
+  font-size: 0.8125rem;
+  color: rgb(var(--color-muted));
+  cursor: pointer;
+}
+.invitation > strong {
+  font-size: 0.8125rem;
+}
+.invitation > .hint {
+  margin-block: 0.25rem;
+  font-size: 0.75rem;
+}
+@media (max-width: 479px) {
+  .compactForm {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}

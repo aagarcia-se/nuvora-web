@@ -1,3 +1,10 @@
+# Actualización ejecutada — portal del cliente, 2026-11-13
+
+Reorganización de la captura manual existente completada en frontend, sin adelantar
+foto/galería/IA ni libros. Plan y cierre de esta entrega en
+[codex.md — Portal de clientes](../codex.md#portal-de-clientes) y [STATUS.md](STATUS.md).
+Lint/build salida 0; casos Demo preparados sin ejecutar; visual/API/RLS pendientes.
+
 # Plan y continuidad — Nuvora Web
 
 **Lectura prioritaria:** [STATUS.md](STATUS.md) consolida lo implementado, sus
@@ -21,6 +28,7 @@ Implementar los flujos Auth web coordinados: login y registro por correo/contras
 Este es el punto de entrada vigente del plan frontend. La identidad índigo reemplaza las propuestas previas de esmeralda y lima; no restaurarlas. Registro, recuperación y Google están implementados; cartera, libros y portal siguen en el roadmap y no se muestran enlaces a flujos inexistentes.
 
 Referencias:
+
 - [AGENTS.md](../AGENTS.md): reglas permanentes.
 - [README.md](../README.md): desarrollo y PWA.
 - [Plan de producto/API](../../nuvora-api/docs/PLAN.md): roadmap general, no tareas adicionales de esta entrega.
@@ -48,18 +56,18 @@ El agente define componentes, colores complementarios, tipografía y recursos vi
 
 El usuario pidió sustituir lima por una identidad SaaS índigo y después rechazó el panel morado lateral. La dirección actual es centrada, funcional y minimalista, sin bloque de color, tarjeta ni sombra alrededor del formulario. No reconstruir la composición anterior.
 
-| Token | Claro | Oscuro |
-| --- | --- | --- |
-| Marca / acción principal | `#4F46E5` | `#A5B4FC` |
+| Token                     | Claro     | Oscuro    |
+| ------------------------- | --------- | --------- |
+| Marca / acción principal  | `#4F46E5` | `#A5B4FC` |
 | Texto de acción principal | `#FFFFFF` | `#1E1B4B` |
-| Hover principal | `#4338CA` | `#C7D2FE` |
-| Fondo | `#F8FAFC` | `#0F172A` |
-| Superficie | `#FFFFFF` | `#1E293B` |
-| Superficie secundaria | `#EEF2FF` | `#273449` |
-| Texto principal | `#0F172A` | `#F8FAFC` |
-| Texto secundario | `#475569` | `#CBD5E1` |
-| Borde de campo | `#64748B` | `#94A3B8` |
-| Foco | `#4F46E5` | `#A5B4FC` |
+| Hover principal           | `#4338CA` | `#C7D2FE` |
+| Fondo                     | `#F8FAFC` | `#0F172A` |
+| Superficie                | `#FFFFFF` | `#1E293B` |
+| Superficie secundaria     | `#EEF2FF` | `#273449` |
+| Texto principal           | `#0F172A` | `#F8FAFC` |
+| Texto secundario          | `#475569` | `#CBD5E1` |
+| Borde de campo            | `#64748B` | `#94A3B8` |
+| Foco                      | `#4F46E5` | `#A5B4FC` |
 
 - Fuente de colores de interfaz: variables de `src/styles/globals.css`; `tailwind.config.ts` mapea los nombres semánticos. Cambiar solo Tailwind no sincroniza metadatos ni recursos gráficos.
 - Formulario máximo 416px, títulos fluidos, cabecera marca/«Contadores», recuperación junto al campo de contraseña, invitación a registro separada y texto auxiliar de conexión.
@@ -193,13 +201,11 @@ Esta actualización documental no volvió a ejecutar pruebas ni implica publicac
 - Para habilitarlo: activar Google en Supabase Authentication → Providers → Google; registrar el Client ID y Client Secret de Google en Supabase. En local usar `http://localhost:5173/auth/callback`; en el ambiente publicado usar `https://nuvorapil.vercel.app/auth/callback` y configurar el mismo valor en `AUTH_REDIRECT_URL` del backend. La recuperación publicada usa `https://nuvorapil.vercel.app/auth/reset-password` en `PASSWORD_RESET_REDIRECT_URL`. El API publicado está en `https://nuvora-api-pil.onrender.com`; el usuario confirmó registro, Google y recuperación reales después de corregir CORS y redirects.
 - La integración real requiere un proveedor configurado y una cuenta autorizada. No se considera validada por una respuesta simulada del endpoint ni por la compilación.
 
-
 ## 15. Rediseño y accesibilidad — primera revisión del 2026-11-12
 
 Por solicitud del usuario, la identidad índigo sustituye la lima de la sección 13. El banner vigente es superior **en flujo**, no fijo, como dispone AGENTS.md. Se conserva autenticación/PWA y se rediseñan todas las pantallas existentes mediante el shell y componentes compartidos; no se añaden módulos de negocio.
 
 Decisiones, contraste AA de las parejas comprobadas y límites: [UI-ACCESSIBILITY.md](./UI-ACCESSIBILITY.md). Lint/build correctos; 22 pruebas Auth/contraste/responsive y 6 PWA aprobadas con Chrome como alternativa al Chromium local que falla al arrancar. Capturas de escritorio claro y móvil oscuro inspeccionadas. Continúan pendientes instalación real por SO, Safari/iOS y certificación integral de accesibilidad. El build conserva el aviso de bundle superior a 500 kB.
-
 
 <a id="continuidad-agentes"></a>
 
@@ -215,17 +221,17 @@ Decisiones, contraste AA de las parejas comprobadas y límites: [UI-ACCESSIBILIT
 
 ### Archivos para continuar
 
-| Responsabilidad | Archivo |
-| --- | --- |
-| Composición de acceso y cabecera | `src/features/auth/components/AuthLayout.tsx` |
-| Orden de campos, enlaces y mensajes de login | `src/features/auth/pages/LoginPage.tsx` |
-| Tokens, medidas, tipografía y estados | `src/styles/globals.css` |
-| Mapeo de tokens Tailwind 3.4 | `tailwind.config.ts` |
-| Promoción e instalación | `src/shared/pwa/InstallApp.tsx`, `usePwaInstall.ts` |
-| Selector y metadatos de tema | `src/shared/theme/ThemeSelector.tsx`, `themeMeta.ts` |
-| Colores de navegador/arranque | `src/shared/config/brand.ts`, `public/theme.js`, `index.html` |
-| Logo y PNG PWA | SVG de `public/`, `public/icons/`, `scripts/generate-icons.mjs` |
-| Recursos precacheados y manifest | `vite.config.ts` |
+| Responsabilidad                              | Archivo                                                         |
+| -------------------------------------------- | --------------------------------------------------------------- |
+| Composición de acceso y cabecera             | `src/features/auth/components/AuthLayout.tsx`                   |
+| Orden de campos, enlaces y mensajes de login | `src/features/auth/pages/LoginPage.tsx`                         |
+| Tokens, medidas, tipografía y estados        | `src/styles/globals.css`                                        |
+| Mapeo de tokens Tailwind 3.4                 | `tailwind.config.ts`                                            |
+| Promoción e instalación                      | `src/shared/pwa/InstallApp.tsx`, `usePwaInstall.ts`             |
+| Selector y metadatos de tema                 | `src/shared/theme/ThemeSelector.tsx`, `themeMeta.ts`            |
+| Colores de navegador/arranque                | `src/shared/config/brand.ts`, `public/theme.js`, `index.html`   |
+| Logo y PNG PWA                               | SVG de `public/`, `public/icons/`, `scripts/generate-icons.mjs` |
+| Recursos precacheados y manifest             | `vite.config.ts`                                                |
 
 ### Validación y pendientes
 
@@ -236,7 +242,6 @@ Decisiones, contraste AA de las parejas comprobadas y límites: [UI-ACCESSIBILIT
 5. Instalación/splash reales, Safari/iOS, lectores de pantalla, teclado virtual/safe areas y actualización entre despliegues siguen pendientes. Una PWA instalada puede conservar iconos antiguos hasta una actualización o reinstalación tras publicar.
 6. La skill está en `.opencode/skills/ui-ux-pro-max/SKILL.md`. Python se encontró en `C:/Users/agarcia/AppData/Local/Python/pythoncore-3.15-64/python.exe`; es una ruta local orientativa, comprobar disponibilidad sin instalar herramientas automáticamente. Node/npm funcionaron fuera del sandbox; no confundir restricciones de acceso con dependencias ausentes ni eludir aprobaciones.
 7. No hay aprobación visual final del usuario sobre el último refinamiento. Recibir su feedback antes de considerarlo cerrado. No añadir por iniciativa propia módulos de cartera, captura, libros o portal; requieren nueva fase y contratos API confirmados.
-
 
 <a id="workspaces-vigente"></a>
 
@@ -252,9 +257,7 @@ Aceptación implementada en código: perfil con nulos/avatar alternativo; lista/
 
 Playwright no ejecutado: codex.md lo condiciona a autorización expresa. Se dejaron 16 casos nuevos Demo y se adaptaron casos Auth. Pendientes: ejecutar suites cuando se autorice, revisión visual móvil/escritorio y claro/oscuro, integración con API real, SQL/membresías y aislamiento RLS con dos usuarios. No declarar estos puntos completos por pasar lint/build.
 
-
 Verificación final de esta fase: lint y build aprobados. Bundle principal 632,90 kB / 185,52 kB gzip, con advertencia de tamaño; CSS 29,80 kB / 6,87 kB gzip. Playwright no ejecutado. Sin validación visual, integración real ni RLS certificadas; sin cambios de configuración, dependencias, backend o Git.
-
 
 <a id="entities-vigente"></a>
 
@@ -268,57 +271,45 @@ Contrato NIT: respetar permisos/máscara, mantener/cambiar/quitar explícitos; n
 
 Detalles de archivos, cancelación, pruebas y límites: [ENTITIES.md](./ENTITIES.md). Se prepararon 24 casos mockeados sin ejecutar Playwright. Pendientes revisión visual, ejecución autorizada de pruebas, integración real y requisitos manuales SQL/RLS del backend. Grants/portal/documentos/libros no forman parte de esta fase.
 
-
 Cierre de la fase 18: implementación frontend finalizada; lint/build aprobados en revisión final. JS 650,95 kB / 189,88 kB gzip, CSS 33,17 kB / 7,38 kB gzip; aviso de tamaño conservado. 24 casos Demo preparados sin ejecutar Playwright. Sin revisión visual ni validación real del API/RLS certificadas. codex.md actualizado con el cierre y los pendientes; no se autoriza una fase posterior automáticamente.
-
 
 ## Actualización — navegación por rutas, 2026-11-12
 
 La fase de separación por rutas autorizada está implementada. La cartera y detalle ya no se incrustan en inicio; el perfil vive en `/account`. Estado actual, decisiones y límites en [ROUTING.md](ROUTING.md). Los resultados de fases anteriores no validan esta navegación.
 
-
 ## Menú responsive — 2026-11-12
 
 Implementado lateral de escritorio y panel móvil/PWA sobre las rutas existentes. Estado, archivos y límites en [NAVIGATION.md](NAVIGATION.md). No se añadieron módulos futuros.
-
 
 ## Continuidad al recuperar foco — 2026-11-12
 
 Corregido reinicio de auth por eventos repetidos del SDK del mismo usuario verificado. Detalles y límites en [SESSION-CONTINUITY.md](SESSION-CONTINUITY.md).
 
-
 ## Ampliación de paleta — 2026-11-12
 
 Paleta complementaria aplicada y contraste numérico revisado en ambos temas. Decisiones y límites actuales: [PALETTE.md](PALETTE.md), [PALETTE-CONTRAST.md](PALETTE-CONTRAST.md). No se ejecutó revisión visual/Playwright de esta ampliación.
-
 
 ## Foco y ficha de cliente — 2026-11-12
 
 Corregido contorno de main y rediseñada ficha con padding, cabecera teal y datos agrupados. Estado en codex.md y [PALETTE.md](PALETTE.md). Validación visual pendiente.
 
-
 ## Estado vigente consolidado — ficha minimalista, 2026-11-12
 
 Finalizado rediseño de ficha por filas con iconos y separadores, sin tarjetas por campo ni badge de acceso. Cabecera sin fondo decorativo; acento azul sustituye teal. Se conservan rutas, menú responsive, formularios, permisos y corrección de continuidad de sesión. Lint/build del último cambio aprobados; Playwright y revisión visual pendientes. Estado operativo actual: [codex.md](../codex.md), [ENTITIES.md](ENTITIES.md) y [PALETTE.md](PALETTE.md). Las composiciones anteriores de esta bitácora son históricas.
-
 
 ## Fase de accesos al cliente — 2026-11-12
 
 Integradas invitaciones, consulta/revocación de membresías y compartir enlaces; callback `/invitations/accept` con token efímero. Entidades y diseño conservados. Estado/contratos/límites en [ACCESS.md](ACCESS.md) y [codex.md](../codex.md). Playwright no ejecutado; integración real y visual pendientes.
 
-
 Cierre de accesos: lint/build y tipos de mocks aprobados. 24 casos Demo nuevos sin ejecutar; Playwright, visual/API real, SMTP y SQL/RLS pendientes. Detalles en [ACCESS.md](ACCESS.md). No se autoriza otro módulo automáticamente.
-
 
 ## Adaptación link-only — 2026-11-12
 
 Finalizado cambio de invitaciones a `{ role }` y acceptUrl inmediato. Sin correo/delivery/mismatch; aceptación explícita por cualquier cuenta autenticada. UI y PWA preservadas, sin nuevas fases. Estado/resultados y límites: [ACCESS.md](ACCESS.md), [codex.md](../codex.md). No Playwright. Las referencias anteriores a entrega SMTP de invitaciones son históricas.
 
-
 ## Cliente aislado — 2026-11-12
 
 Ruta `/client/entities/:entityId?workspaceId=:workspaceId` tras aceptar, sin workspace_membership ni shell de contador. Pantalla y compartir compactos implementados; lectura de entity bloqueada por requisito de workspace_membership en getEntity del API. No se modifica backend ni se inventa contrato. Estado, comprobaciones y límites en [CLIENT.md](CLIENT.md). Playwright no ejecutado.
-
 
 Cierre histórico de implementación frontend aislada: lint/build y tipos de mocks aprobados; sin Playwright. El bloqueo correspondía al GET anidado getEntity, que exige workspace_membership. La entrada actual usa `/profile/entities`, según CLIENT.md; no se añadió esa membresía como atajo ni se certificó integración real por este cambio de frontend.
 

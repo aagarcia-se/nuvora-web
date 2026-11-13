@@ -112,10 +112,12 @@ test('Demo: aceptar abre cliente aislado sin consultar ni crear workspace member
     new RegExp(`/client/entities/${entity.id}\\?workspaceId=${workspace.id}$`),
   );
   await expect(
-    page.getByRole('heading', { name: entity.legal_name, level: 1 }),
+    page.getByRole('heading', { name: 'Registrar factura', level: 1 }),
   ).toBeVisible();
   await expect(
-    page.getByText('Consulta autorizada', { exact: true }),
+    page
+      .getByLabel('Empresa activa')
+      .getByText(entity.legal_name, { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('navigation', { name: 'Navegación principal' }),
@@ -124,7 +126,7 @@ test('Demo: aceptar abre cliente aislado sin consultar ni crear workspace member
     0,
   );
   await expect(
-    page.getByText('Este espacio seguirá creciendo'),
+    page.getByLabel('Nombre del emisor', { exact: true }),
   ).toBeVisible();
   expect(calls.workspaceReads()).toBe(0);
   expect(calls.writes()).toBe(0);
@@ -167,10 +169,12 @@ test('Demo: recarga aislada revalida entity y no usa rol de URL ni lista de work
   await page.goto(path);
   await page.reload();
   await expect(
-    page.getByRole('heading', { name: entity.legal_name, level: 1 }),
+    page.getByRole('heading', { name: 'Registrar factura', level: 1 }),
   ).toBeVisible();
   await expect(
-    page.getByText('Consulta autorizada', { exact: true }),
+    page
+      .getByLabel('Empresa activa')
+      .getByText(entity.legal_name, { exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole('link', { name: 'Mi cuenta', exact: true }),
@@ -200,7 +204,7 @@ test('Demo: logout elimina el contexto de aceptación y nunca concede membresía
   await page.goto(`/invitations/accept?token=${demoToken}`);
   await page.getByRole('button', { name: 'Aceptar invitación' }).click();
   await expect(
-    page.getByText('Consulta autorizada', { exact: true }),
+    page.getByRole('heading', { name: 'Registrar factura', level: 1 }),
   ).toBeVisible();
   await page.getByRole('button', { name: 'Opciones de cuenta' }).click();
   await page

@@ -1,7 +1,11 @@
+# Referencia histórica — estado consolidado trasladado
+
+El propietario unificó la continuidad en [codex.md](../codex.md), separado en Portal de contadores y Portal de clientes. Usar únicamente ese archivo para determinar lo realizado y los pendientes. El contenido inferior es una instantánea histórica, no una fuente de estado vigente.
+
 # Estado consolidado — Nuvora Web
 
-Actualizado el 2026-11-12 tras la reorganización de la administración de clientes
-y la solicitud del propietario de consolidar la documentación. Este resumen
+Actualizado el 2026-11-13 tras reorganizar el portal del cliente para priorizar
+la captura manual y separar el seguimiento de comprobantes. Este resumen
 describe el código entregado y la evidencia disponible; los cierres anteriores
 de codex.md y del plan conservan valor histórico.
 
@@ -18,35 +22,37 @@ Esto no se registra como prueba visual o funcional del producto en navegador.
 
 ## Funcionalidades entregadas
 
-| Área | Estado del frontend | Evidencia y límites |
-| --- | --- | --- |
-| Autenticación | Login, registro, Google, recuperación, sesión SDK y logout implementados | Hay confirmaciones históricas del propietario sobre flujos reales; no equivalen a una regresión del estado actual |
-| Continuidad de sesión | Eventos repetidos del mismo usuario verificado conservan UI/caché | Caso Demo preparado; validación automatizada actual pendiente |
-| Perfil | Lectura de identidad, avatar/fallback, idioma y zona horaria | No incluye edición de perfil |
-| Workspaces | Lista, búsqueda desde el primer espacio, alta en diálogo y contexto confirmado por API | Seleccionar no autoriza; consultas y datos aislados por contexto |
-| Cartera de clientes | Listado, búsqueda por nombre, filtro local por acceso, alta y detalle | Solo después de confirmar workspace; permisos y NIT dependen del API |
-| Datos del cliente | Cabecera con nombre, ficha por filas y edición de campos cambiados | NIT mantener/cambiar/quitar explícitos; fechas en Información de registro |
-| Protección del borrador | Bloqueo de navegación SPA y aviso nativo al recargar/cerrar | Implementado con data router; comportamiento en navegador pendiente de probar |
-| Personas y accesos | Listado al visitar, búsqueda por nombre/rol, filtro activos/todos/revocados y detalles por registro | Owner/admin del workspace y canManage de entity; revocación con confirmación |
-| Invitaciones | Creación link-only, compartir inmediato, historial por estado y revocación | Enviar solo `{ role }`; aceptación no prueba acceso activo actual |
-| Enlaces sensibles | Estado React efímero, URL controlada por resultado y limpieza al salir/cerrar | Fuera de Query/Mutation cache, logs y storage persistente; excepción OAuth descrita abajo |
-| Entrada por tipo de acceso | Descubrimiento mediante `/profile/entities` y workspaces; elección explícita si hay ambos accesos | Sin accesos conserva el flujo de crear espacio; errores no se convierten en lista vacía |
-| Cliente invitado | Shell separado y consulta autorizada mediante `/profile/entities` | No consulta el workspace general ni crea workspace_membership; integración real actual pendiente |
-| Sistema visual | Paleta índigo/azul/slate, temas, escala común, controles y estados coherentes | Revisión visual actual y auditoría integral de accesibilidad pendientes |
-| PWA | Identidad, instalación, actualización y shell estático existentes conservados | La generación de build funciona; instalación, offline y actualización reales no se volvieron a validar |
+| Área                        | Estado del frontend                                                                                 | Evidencia y límites                                                                                                       |
+| --------------------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Autenticación               | Login, registro, Google, recuperación, sesión SDK y logout implementados                            | Hay confirmaciones históricas del propietario sobre flujos reales; no equivalen a una regresión del estado actual         |
+| Continuidad de sesión       | Eventos repetidos del mismo usuario verificado conservan UI/caché                                   | Caso Demo preparado; validación automatizada actual pendiente                                                             |
+| Perfil                      | Lectura de identidad, avatar/fallback, idioma y zona horaria                                        | No incluye edición de perfil                                                                                              |
+| Workspaces                  | Lista, búsqueda desde el primer espacio, alta en diálogo y contexto confirmado por API              | Seleccionar no autoriza; consultas y datos aislados por contexto                                                          |
+| Cartera de clientes         | Listado, búsqueda por nombre, filtro local por acceso, alta y detalle                               | Solo después de confirmar workspace; permisos y NIT dependen del API                                                      |
+| Datos del cliente           | Cabecera con nombre, ficha por filas y edición de campos cambiados                                  | NIT mantener/cambiar/quitar explícitos; fechas en Información de registro                                                 |
+| Protección del borrador     | Bloqueo de navegación SPA y aviso nativo al recargar/cerrar                                         | Implementado con data router; comportamiento en navegador pendiente de probar                                             |
+| Personas y accesos          | Listado al visitar, búsqueda por nombre/rol, filtro activos/todos/revocados y detalles por registro | Owner/admin del workspace y canManage de entity; revocación con confirmación                                              |
+| Invitaciones                | Creación link-only, compartir inmediato, historial por estado y revocación                          | Enviar solo `{ role }`; aceptación no prueba acceso activo actual                                                         |
+| Enlaces sensibles           | Estado React efímero, URL controlada por resultado y limpieza al salir/cerrar                       | Fuera de Query/Mutation cache, logs y storage persistente; excepción OAuth descrita abajo                                 |
+| Entrada por tipo de acceso  | Descubrimiento mediante `/profile/entities` y workspaces; elección explícita si hay ambos accesos   | Sin accesos conserva el flujo de crear espacio; errores no se convierten en lista vacía                                   |
+| Cliente invitado            | Shell separado y consulta autorizada mediante `/profile/entities`                                   | No consulta el workspace general ni crea workspace_membership; integración real actual pendiente                          |
+| Compras manuales del portal | Lista, creación/edición de borradores y envío explícito a `pending_review`                          | Registro manual primero, listado separado, cuatro tipos y GTQ; capacidades del API; API/RLS e integración real pendientes |
+| Sistema visual              | Paleta índigo/azul/slate, temas, escala común, controles y estados coherentes                       | Revisión visual actual y auditoría integral de accesibilidad pendientes                                                   |
+| PWA                         | Identidad, instalación, actualización y shell estático existentes conservados                       | La generación de build funciona; instalación, offline y actualización reales no se volvieron a validar                    |
 
 ## Organización y rutas actuales
 
-| Ruta | Responsabilidad |
-| --- | --- |
-| `/` | Selección de contexto y espacios |
-| `/workspaces/:workspaceId/clients` | Cartera del workspace confirmado |
-| `/workspaces/:workspaceId/clients/:entityId` | Datos del cliente y edición |
-| `/workspaces/:workspaceId/clients/:entityId/people` | Personas y accesos de esa entity |
-| `/workspaces/:workspaceId/clients/:entityId/invitations` | Invitaciones de esa entity |
-| `/account` | Perfil de lectura |
-| `/client/entities/:entityId?workspaceId=:workspaceId` | Área independiente del cliente invitado |
-| `/invitations/accept` | Validación y aceptación explícita de una invitación |
+| Ruta                                                     | Responsabilidad                                                  |
+| -------------------------------------------------------- | ---------------------------------------------------------------- |
+| `/`                                                      | Selección de contexto y espacios                                 |
+| `/workspaces/:workspaceId/clients`                       | Cartera del workspace confirmado                                 |
+| `/workspaces/:workspaceId/clients/:entityId`             | Datos del cliente y edición                                      |
+| `/workspaces/:workspaceId/clients/:entityId/people`      | Personas y accesos de esa entity                                 |
+| `/workspaces/:workspaceId/clients/:entityId/invitations` | Invitaciones de esa entity                                       |
+| `/account`                                               | Perfil de lectura                                                |
+| `/client/entities/:entityId?workspaceId=:workspaceId`    | Captura manual del cliente; listado si no puede cargar           |
+| Misma ruta con `&view=documents` / `&draft=:documentId`  | Seguimiento de comprobantes / reapertura del borrador autorizado |
+| `/invitations/accept`                                    | Validación y aceptación explícita de una invitación              |
 
 Las rutas Auth existentes se conservan. El callback de invitación captura y
 limpia el token antes del Router. La navegación del contador usa enlaces reales
@@ -89,19 +95,19 @@ real del servidor con dos usuarios.
 
 ## Verificaciones reales
 
-Último cierre de código registrado, después de la administración por secciones:
+Último cierre de código registrado, después del portal de captura manual (2026-11-13):
 
-| Comprobación | Resultado |
-| --- | --- |
-| `npm run lint` | Salida 0, sin errores ni avisos |
-| `npm run build` | Salida 0; TypeScript, Vite y generación PWA completos |
-| CSS generado | 60,39 kB; 11,77 kB gzip |
-| JS principal | 764,33 kB; 221,16 kB gzip |
-| Aviso de bundle | Sigue presente: chunk superior a 500 kB |
-| Casos Demo | Suites adaptadas y cinco casos nuevos de navegación, borrador, viewer y múltiples personas; sin ejecutar |
-| Playwright | No ejecutado; requiere autorización expresa |
-| Revisión visual | Pendiente; el intento del rediseño anterior no produjo una captura válida de la aplicación |
-| API/RLS reales | Sin nueva certificación de integración ni aislamiento con dos usuarios |
+| Comprobación    | Resultado                                                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm run lint`  | Salida 0, sin errores ni avisos                                                                                                           |
+| `npm run build` | Salida 0; TypeScript, Vite y generación PWA completos                                                                                     |
+| CSS generado    | 68,77 kB; 12,86 kB gzip                                                                                                                   |
+| JS principal    | 787,92 kB; 227,60 kB gzip                                                                                                                 |
+| Aviso de bundle | Sigue presente: chunk superior a 500 kB                                                                                                   |
+| Casos Demo      | Suites anteriores adaptadas; nuevos casos de captura, carga diferida, recuperación de envío, validación, borrador y lectura; sin ejecutar |
+| Playwright      | No ejecutado; requiere autorización expresa                                                                                               |
+| Revisión visual | Pendiente; el intento del rediseño anterior no produjo una captura válida de la aplicación                                                |
+| API/RLS reales  | Sin nueva certificación de integración ni aislamiento con dos usuarios                                                                    |
 
 La actualización documental posterior no volvió a ejecutar lint/build ni pruebas.
 Se revisaron consistencia, referencias locales y correspondencia con los archivos
@@ -118,27 +124,28 @@ nueva ejecución motivada por editar Markdown.
 5. Revalidar instalación, actualización y shell offline de la PWA en dispositivos reales.
 6. Evaluar la división del bundle en un trabajo de rendimiento autorizado; no se implementó en esta entrega.
 
-Documentos/facturas XML, PDF, fotografías, captura manual, extracción, clasificación,
-revisión, libros, períodos, exportaciones y módulos financieros siguen pendientes
-de sus fases/contratos. La futura factura pertenecerá a la entity y conservará la
-autoría del colaborador que la cargue; no se construyeron pantallas ni endpoints
-para simular ese flujo.
+La captura manual de compras y el envío a revisión están implementados en frontend
+contra los contratos existentes; la integración real sigue pendiente. XML/PDF,
+fotografías, extracción/IA, clasificación, aprobación, libros, períodos y exportaciones
+siguen pendientes. No se construyó seguimiento por colaborador para el contador.
+El NIT del receptor no se deriva de la entidad: ver el requisito pendiente en codex.md.
 
 ## Mapa documental
 
-| Documento | Uso |
-| --- | --- |
-| [codex.md](../codex.md) | Último cierre e historial de entregas |
-| [PLAN.md](PLAN.md) | Secuencia y fases; sección 19 para el último refactor |
-| [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md) | Submenú, componentes, rutas, borrador y accesos del contador |
-| [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) | Tokens, composición y decisiones de movimiento |
-| [ACCESS.md](ACCESS.md) | Contratos, invitaciones, membresías y enlaces |
-| [ENTITIES.md](ENTITIES.md) | Cartera, NIT y permisos de entidades |
-| [WORKSPACES.md](WORKSPACES.md) | Perfil y contexto de workspace |
-| [ROUTING.md](ROUTING.md) / [NAVIGATION.md](NAVIGATION.md) | Rutas, shell y menú responsive |
-| [CLIENT.md](CLIENT.md) | Shell y descubrimiento del cliente invitado |
-| [PALETTE.md](PALETTE.md) / [PALETTE-CONTRAST.md](PALETTE-CONTRAST.md) | Paleta y cálculos de contraste registrados |
-| [SESSION-CONTINUITY.md](SESSION-CONTINUITY.md) | Continuidad del usuario verificado |
+| Documento                                                             | Uso                                                                                     |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| [codex.md](../codex.md)                                               | Último cierre e historial de entregas                                                   |
+| [PLAN.md](PLAN.md)                                                    | Secuencia y fases; sección 19 para administración; actualización inicial para el portal |
+| [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md)                  | Submenú, componentes, rutas, borrador y accesos del contador                            |
+| [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md)                                  | Tokens, composición y decisiones de movimiento                                          |
+| [ACCESS.md](ACCESS.md)                                                | Contratos, invitaciones, membresías y enlaces                                           |
+| [ENTITIES.md](ENTITIES.md)                                            | Cartera, NIT y permisos de entidades                                                    |
+| [WORKSPACES.md](WORKSPACES.md)                                        | Perfil y contexto de workspace                                                          |
+| [ROUTING.md](ROUTING.md) / [NAVIGATION.md](NAVIGATION.md)             | Rutas, shell y menú responsive                                                          |
+| [CLIENT.md](CLIENT.md)                                                | Shell y descubrimiento del cliente invitado                                             |
+| [codex.md — Portal de clientes](../codex.md#portal-de-clientes)       | Captura manual primero, borradores, recuperación y límites                              |
+| [PALETTE.md](PALETTE.md) / [PALETTE-CONTRAST.md](PALETTE-CONTRAST.md) | Paleta y cálculos de contraste registrados                                              |
+| [SESSION-CONTINUITY.md](SESSION-CONTINUITY.md)                        | Continuidad del usuario verificado                                                      |
 
 Los antecedentes no sustituyen el estado inicial de cada documento ni autorizan
 restaurar diseños anteriores o avanzar fases futuras.

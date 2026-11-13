@@ -445,7 +445,9 @@ test('Demo: aceptación exitosa abre solo el contexto devuelto por API', async (
     new RegExp(`/client/entities/${entity.id}\\?workspaceId=${workspace.id}$`),
   );
   await expect(
-    page.getByRole('heading', { name: entity.legal_name }),
+    page
+      .getByLabel('Empresa activa')
+      .getByText(entity.legal_name, { exact: true }),
   ).toBeVisible();
 });
 test('Demo: cualquier cuenta autenticada confirma la aceptación sin validar destinatario', async ({

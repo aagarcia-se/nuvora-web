@@ -1,3 +1,23 @@
+# Fuente de continuidad — consolidación 2026-11-13
+
+Por instrucción del propietario, usar únicamente [codex.md](codex.md) para determinar lo realizado, el estado y los pendientes. Está separado en Portal de contadores y Portal de clientes. Los documentos temáticos y bloques inferiores son antecedentes; no mantener otra fuente de estado en paralelo. La consolidación solo modificó Markdown; no repitió lint/build ni ejecutó Playwright.
+
+# Continuidad más reciente — portal del cliente, 2026-11-13
+
+Reorganización autorizada e implementada de ClientEntityPage: captura manual como
+entrada principal con canUpload, Comprobantes mediante view=documents y borrador
+mediante draft=UUID; contexto de empresa compacto y acceso secundario. Preservar
+los cinco endpoints purchase-documents existentes y el guard/shell aislado.
+No autorizar por nombre de rol: usar capacidades del API. Conservar ID guardado
+antes de enviar y GET de comprobación en reintento; no repetir creaciones inciertas.
+NIT del receptor sigue como dato de captura C/F, sin derivación fiscal del backend.
+Detalles en [codex.md — Portal de clientes](codex.md#portal-de-clientes). Lint/build salida 0;
+aviso de bundle >500 kB pendiente. Casos Demo preparados, NO Playwright;
+visual/API/RLS pendientes. Mantener sin Git/env/backend/SQL/dependencias nuevas.
+Fotos, galería, IA, aprobaciones y libros siguen fuera de esta entrega.
+Este bloque reemplaza las prohibiciones históricas de captura manual solo para
+la integración frontend existente autorizada, sin abrir otras fases.
+
 # AGENTS.md — Nuvora Web
 
 ## Continuidad vigente — administración del cliente por secciones
@@ -32,31 +52,25 @@ Los bloques históricos inferiores quedan sustituidos en lo que contradigan este
 
 Tras aceptar abrir /client/entities/:entityId?workspaceId=:workspaceId, guard/shell independiente. La entrada actual usa GET /api/v1/profile/entities para consultar entity/rol autorizados, sin resolver por workspaces ni añadir workspace_membership. El 404 del GET anidado getEntity sin workspace_membership es un antecedente documentado; ese GET ya no autoriza la entrada aislada actual. No modificar backend/SQL ni inventar permisos. Rol del POST es histórico, no autorización. Identidad/PWA conservadas; estado y límites en codex.md y docs/CLIENT.md. Playwright prohibido en esta fase.
 
-
 ## Contrato vigente — link-only
 
 Crear invitaciones solo con `{ role }`, consumir acceptUrl de esa respuesta y ofrecer copiar/WhatsApp inmediatamente. Sin destinatario ni delivery/envío por correo. Cualquier usuario autenticado confirma explícitamente la aceptación; no comparar emails. Rotación es opcional y advertida. Conservar tokens/enlaces solo en memoria fuera de Query/Mutation cache, logs y tracking; la única excepción es el sobre de continuidad OAuth en sessionStorage tab-scoped, validado y con TTL corto, que se limpia de inmediato al terminar/cancelar. Mantener permisos/cancelación/estados seguros. Diseño, colores, tokens, dark mode y PWA intactos. Estado/archivos/resultados en codex.md y docs/ACCESS.md. Las referencias históricas a SMTP/mismatch quedan reemplazadas. No avanzar otra fase ni ejecutar Playwright.
-
 
 ## Fase vigente — accesos al cliente, 2026-11-12
 
 Invitaciones/membresías/compartir implementados según autorización adicional de codex.md. No reconstruir entidades ni endpoints. Administración solo owner/admin+canManage; compartir rota enlace por acción explícita y revocar confirma/conserva historial. Callback /invitations/accept limpia token antes de Router; token/enlace no entra en Query/Mutation cache/storage persistente/logs, salvo el sobre tab-scoped de sessionStorage con TTL para atravesar OAuth. OAuth vuelve a la invitación; recarga después del TTL requiere reabrir enlace original. El listado y la revocación de invitaciones ya tienen contratos integrados, documentados en docs/ACCESS.md; no inventar otros contratos ni correos de memberships. Mantener diseño minimalista y paleta actuales. docs/ACCESS.md y codex.md documentan estado/límites. Las prohibiciones históricas de construir estas funcionalidades quedan sustituidas únicamente para esta fase; portal documental/FEL/libros siguen fuera. Usuario autoriza lint/build, mantiene NO Playwright. Sin Git/env/backend/SQL ni dependencias nuevas.
 
-
 ## Ficha minimalista vigente
 
 Conservar detalle del cliente como filas etiqueta/valor con iconos y separadores, sin cards por dato ni badge de acceso. Cabecera sin panel coloreado; iniciales conservadas. Usuario pidió diseño moderno/minimalista. Estado y límites en codex.md; no restaurar variantes anteriores por descripciones históricas.
-
 
 ## Ajuste visual más reciente
 
 Usuario rechazó teal/borde decorativo de ficha. Acento compartido ahora azul #0369A1 claro / #7DD3FC oscuro; cabecera neutra y ficha sin borde exterior/línea superior. Conservar padding y distribución. Esta decisión reemplaza referencias históricas a cabecera teal. Estado y resultados en codex.md.
 
-
 ## Paleta vigente — 2026-11-12
 
 Usuario autorizó ampliar la paleta: índigo de marca conservado, neutros azulados para superficies/navegación, azul de identidad/información y verde de éxito (el teal inicial fue sustituido). Tokens centrales en globals.css y mapeo Tailwind 3.4; no dispersar hex ni usar colores de estado en decoraciones ambiguas. Documentación: docs/PALETTE.md y PALETTE-CONTRAST.md (24 combinaciones verificadas, sin revisión visual/Playwright). Esta autorización reemplaza las restricciones históricas de no cambiar paleta. Mantener arquitectura/rutas/sesión actuales.
-
 
 ## Continuidad vigente — menú responsive, 2026-11-12
 
@@ -242,18 +256,15 @@ npm run test:pwa
 
 Node.js 22.12+ o 24 LTS según README. Playwright requiere Chromium (`npx playwright install chromium`) cuando se ejecuten sus pruebas. `npm run format` modifica archivos; evitar formateo masivo. No existen `npm test`/`typecheck` hasta que se agreguen explícitamente.
 
-
 ## Actualización de continuidad — 2026-11-12, rutas
 
 Separación de navegación autorizada e implementada: `/` espacios, `/workspaces/:workspaceId/clients` cartera, `/workspaces/:workspaceId/clients/:entityId` detalle/edición, `/account` perfil. Preservar esta separación, el shell privado y los diálogos de alta. Detalle anterior como diálogo sustituido por `features/entities/pages/EntityDetailPage.tsx`. La autorización del workspace se confirma antes de montar queries de clientes; edición directa no depende de una lista visitada previamente.
 
 Estado y límites en `codex.md` y `docs/ROUTING.md`: lint/build aprobados; suites adaptadas y nuevos casos Demo sin ejecutar, sin revisión visual ni integración real. Apariencia y logout permanecen en menú de cuenta. No adelantar fases mayores por este cierre.
 
-
 ## Continuidad de sesión — 2026-11-12
 
 Preservar la corrección de AuthProvider: SIGNED_IN repetido/TOKEN_REFRESHED del mismo usuario ya verificado no deben limpiar Query ni desmontar UI. Identidad verificada se invalida en clear; cambios reales de sesión siguen resolviéndose. No desactivar refresh SDK ni revalidación de permisos para ocultar parpadeos. Hallazgo, caso preparado y resultados en `docs/SESSION-CONTINUITY.md`; Playwright no ejecutado.
-
 
 ## Corrección de foco/ficha — 2026-11-12
 

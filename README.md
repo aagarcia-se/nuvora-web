@@ -2,10 +2,9 @@
 
 Base frontend con React, TypeScript, Vite, Tailwind CSS 3.4, Axios y TanStack Query.
 
-**Estado consolidado:** [docs/STATUS.md](docs/STATUS.md), con funcionalidades
-entregadas, arquitectura, verificaciones reales, límites y pendientes. Última
-entrega: administración del cliente por secciones, documentada en
-[docs/CLIENT-ADMINISTRATION.md](docs/CLIENT-ADMINISTRATION.md).
+**Estado y continuidad:** [codex.md](codex.md) es la fuente única para consultar
+lo realizado, verificaciones y pendientes, separado en **Portal de contadores**
+y **Portal de clientes**. La documentación temática conserva antecedentes.
 
 El producto inicial es **Nuvora Contadores**: gestión de cartera de clientes/NIT,
 captura XML/PDF y manual, clasificación con revisión, libros de compras/ventas
@@ -15,7 +14,7 @@ Personal reutilizarán contratos y núcleo de permisos/datos.
 Las reglas del frontend están en [AGENTS.md](AGENTS.md) y su plan de implementación
 en [docs/PLAN.md](docs/PLAN.md). Perfil/espacios y la fase actual de clientes/entidades están definidos en [codex.md](codex.md), [docs/WORKSPACES.md](docs/WORKSPACES.md) y [docs/ENTITIES.md](docs/ENTITIES.md). El plan coordinado
 está en `../nuvora-api/docs/PLAN.md`. La base de autenticación y seguridad del API
-se conserva; captura, revisión, documentos y módulos financieros siguen pendientes.
+se conserva; captura manual de compras y envío a revisión están integrados en frontend; XML/PDF, fotos/IA, aprobación y libros siguen pendientes de sus fases. La integración real del portal no está certificada.
 
 ## Cliente aislado
 
@@ -33,6 +32,16 @@ inventan una persona. Los listados no exponen emails, tokens,
 hashes ni NIT.
 
 ## Estado actual de interfaz
+
+### Compras manuales del portal
+
+El portal cliente consulta compras manuales con los endpoints
+`/workspaces/:workspaceId/entities/:entityId/purchase-documents` y la acción
+`/:documentId/submit-review`. Con `can_upload` se registran Factura, Recibo,
+Recibo de servicio o Comprobante de pago como borrador y se envían explícitamente
+a revisión; `client_viewer` solo consulta. El formulario conserva el total como
+texto decimal, usa GTQ y explica `C/F` (consumidor final). La autorización sigue
+siendo del API y las consultas se aíslan por usuario/workspace/entity.
 
 Espacios (`/`), cartera (`/workspaces/:workspaceId/clients`), cliente y perfil
 (`/account`) están separados por rutas. Cada cliente tiene una cabecera con su

@@ -1,3 +1,13 @@
+# Presentación vigente del portal — 2026-11-13
+
+Registro manual primero, Comprobantes separado e información de acceso secundaria.
+La implementación vigente, componentes, recuperación de borradores y límites están
+en [codex.md — Portal de clientes](../codex.md#portal-de-clientes). CanUpload del API controla la captura;
+lectura sin esa capacidad muestra el listado. Los apartados inferiores conservan
+antecedentes; sus banners de consulta o avisos de módulos futuros no describen
+la presentación actual. La autorización de entrada sigue usando profile/entities.
+Lint/build finales salida 0; NO Playwright; visual e integración real pendientes.
+
 # Cliente aislado por entity_membership — 2026-11-12
 
 Presentación actualizada en el [rediseño integral](DESIGN-SYSTEM.md): ritmo y
@@ -39,6 +49,25 @@ Return path de login por correo incluye el contexto cliente validado por una whi
 - Si el POST ya tuvo éxito, se informa que la invitación fue aceptada aun cuando la lectura posterior falle; esa confirmación no equivale a autorizar datos.
 - IDs inválidos o contexto ausente no montan la query de detalle.
 - Solo con lectura autorizada hay área informativa para XML/PDF/fotografías/gastos de una fase posterior. Sin botón de carga inoperante, registros, documentos, IA o reportes simulados.
+
+## Captura manual de compras — estado vigente
+
+El portal consulta y captura compras manuales en la entity autorizada mediante
+`GET/POST/PATCH /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents`,
+el GET por `documentId` y `POST .../:documentId/submit-review`. La primera UI
+solicita tipo (`invoice`, `receipt`, `service_receipt` o `payment_proof`), fecha,
+emisor, NIT del emisor opcional, receptor/entity, descripción, categoría, total
+decimal y GTQ. El receptor inicia en `C/F` (consumidor final) cuando no hay NIT.
+El API crea `draft`; solo el envío explícito cambia a `pending_review`. No se
+muestran aprobaciones, SAT, libros ni pagos.
+
+La lista muestra estado, fecha, emisor, categoría, total y moneda. `can_upload`
+habilita formulario y edición de borradores; `client_viewer` queda en consulta.
+Queries y mutaciones se aíslan por usuario/workspace/entity, revalidan tras
+crear/editar/enviar, abortan al desmontar y no reintentan mutaciones. Loading,
+vacío, error, 401/403/404/409/503, reintento y doble envío tienen estados seguros.
+La integración real del API, RLS y revisión visual no se certifican por estos
+cambios.
 
 ## Diseño de cliente y compartir
 

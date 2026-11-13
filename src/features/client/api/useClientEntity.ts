@@ -37,7 +37,12 @@ export function useClientEntity(workspaceId: string, entityId: string) {
   const detail = {
     ...discovery,
     data: membership
-      ? { id: membership.entity.id, legalName: membership.entity.legalName, role: membership.role }
+      ? {
+          id: membership.entity.id,
+          legalName: membership.entity.legalName,
+          role: membership.role,
+          permissions: membership.entity.permissions,
+        }
       : undefined,
     isPending: discovery.isPending,
     isError: discovery.isError || (discovery.isSuccess && !membership),

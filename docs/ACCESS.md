@@ -1,5 +1,10 @@
 # Administración por secciones — 2026-11-12
 
+El portal cliente usa los permisos proyectados por `/profile/entities` para la
+captura manual: `can_upload` habilita formulario y edición de borradores;
+`client_viewer` queda en consulta. La UI no trata el permiso local como autoridad:
+cada ruta de compras vuelve a autorizar por Bearer y por workspace/entity.
+
 Estado vigente en [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md). Personas
 y accesos e Invitaciones son destinos separados del submenú del cliente y cargan
 al visitarlos. Sustituyen el panel/disclosures generales descritos más abajo.

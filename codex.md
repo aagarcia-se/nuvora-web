@@ -1,6 +1,397 @@
+# Codex — estado y continuidad de Nuvora Web
+
+Actualizado el 2026-11-13. **Este archivo es la fuente única para determinar qué
+se implementó, qué se verificó y qué falta.** La documentación temática anterior
+queda como referencia histórica; no es necesario consultarla para continuar el
+trabajo. Los bloques de historial al final conservan decisiones y contratos,
+pero no reemplazan las secciones vigentes que siguen.
+
+## Índice vigente
+
+- [Base compartida](#base-compartida)
+- [Portal de contadores](#portal-de-contadores)
+- [Portal de clientes](#portal-de-clientes)
+- [Verificación y pendientes compartidos](#verificación-y-pendientes-compartidos)
+- [Historial y contratos de referencia](#historial-y-contratos-de-referencia)
+
+## Base compartida
+
+Modelo: espacio/workspace → N clientes/entities → N personas por entidad.
+Membresía de entidad no equivale a membresía del despacho; aceptar una invitación
+no prueba acceso activo. Los datos financieros pertenecen a la entity, no a una
+persona o pantalla. No se impone exclusividad de un despacho sobre una entity.
+
+React 19, TypeScript, Vite, React Router, Tailwind 3.4, Axios y TanStack Query
+conservados, sin nuevas dependencias. SDK Supabase gestiona sesión; Query gestiona
+datos remotos. Queries por usuario/contexto con cancelación y limpieza de sesión.
+Eventos repetidos del mismo usuario verificado no deben desmontar la UI ni vaciar
+Query. Data router estable permite useBlocker; no restaurar BrowserRouter sin
+preservar la protección de borradores. No hay loaders remotos nuevos del router.
+
+Autenticación, Google, recuperación, logout, perfil de lectura y PWA conservados.
+Entrada por profile/entities y workspaces: solo cliente entra a su entidad; con
+ambos accesos se elige explícitamente; sin accesos se conserva Crear espacio.
+Errores no se interpretan como listas vacías. Identidad, tokens índigo/azul/slate,
+temas, safe areas y controles de cuenta conservados. Diseño con emil-design-eng
+y guía local UI/UX Pro Max ya leída; no se atribuyen búsquedas a Python ausente.
+
+API es autoridad de permisos. Selección, URL, nombre, avatar, NIT y rol histórico
+no autorizan. Sin cambios de backend, SQL, entornos, secretos, Git ni dependencias.
+No reintentar automáticamente mutaciones: cancelar HTTP no revierte el servidor.
+En futuras entregas actualizar este archivo separando cambios de cada portal,
+resultados reales y pendientes; no crear otro documento de continuidad del portal.
+
+## Portal de contadores
+
+Estado vigente: administración del despacho y sus clientes. Rutas / para espacios,
+/account para perfil de lectura y /workspaces/:workspaceId/clients para cartera.
+Menú lateral desde 1024 px y panel modal nativo en móvil; perfil, apariencia y
+logout permanecen en el avatar. No se incorporan secciones futuras vacías.
+
+Perfil/workspaces incluyen lectura, búsqueda y alta; cartera incluye búsqueda,
+filtro por acceso, alta, detalle y edición. Creación según owner/admin del espacio;
+edición por canManage de entity. Workspace confirmado por API antes de consultar
+cartera. NIT enmascarado no se reconstruye: mantener/cambiar/quitar explícitos,
+PATCH solo de cambios y taxId:null para eliminar. Nunca usar NIT como permiso.
+
+### Modelo y alcance autorizado
+
+La experiencia del contador respeta la jerarquía **workspace → N clientes/entities
+→ N personas por entity**. Una persona accede a la entidad mediante su membresía;
+no se incorpora al equipo del workspace por aceptar una invitación. La entity
+puede estar asociada a varios espacios según el modelo vigente: esta UI no
+impone propiedad exclusiva de un despacho ni convierte el NIT en identidad o permiso.
+
+El propietario autorizó desarrollar la propuesta auditada de emil-design-eng.
+Se conserva la paleta, los tokens, la ficha por filas semánticas, las rutas previas,
+el transporte y los contratos actuales. UI/UX Pro Max se aplica desde su guía
+local ya leída; Python no está disponible y no se instaló. Sin nuevas dependencias,
+backend/SQL/env/Git, endpoints ni indicadores simulados. El portal del contador no incorpora captura o consulta de facturas; el portal de clientes sí incluye captura manual, como se detalla en su sección.
+
+### Experiencia aplicada
+
+| Before                                                            | After                                                                                 | Why                                                                   |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| «Detalle del cliente» como título y nombre en segundo nivel       | Nombre autorizado de la entity como h1 persistente; iniciales y workspace de contexto | Identificar el cliente en cualquier sección                           |
+| Datos, personas e invitaciones en una columna larga               | Submenú de Datos del cliente, Personas y accesos e Invitaciones                       | Un destino por tarea, preparado para crecer                           |
+| Personas e historial dentro de un panel de compartir              | Páginas con URL propia y lectura al visitarlas                                        | Acceso directo, recarga e historial del navegador                     |
+| Invitación aceptada vinculada a membresías cargadas opcionalmente | Invitaciones muestra aceptación; Personas muestra acceso actual                       | No derivar acceso vigente de un hecho histórico                       |
+| UUID y fechas en todas las filas                                  | Nombre/rol/estado primero; detalle desplegable por registro                           | Escanear listas con muchas personas sin perder trazabilidad           |
+| Una operación compartida para crear y revocar                     | Creación, cada resultado compartible y diálogo de revocación con estado propio        | Cargas y errores locales, sin interferencias entre acciones           |
+| URL original en estado padre y copia en hijo                      | URL actual controlada por el propietario del resultado                                | Ocultar, reemplazar y cerrar también eliminan la referencia del padre |
+| Edición sin bloqueo de navegación                                 | Confirmación antes de descartar cambios en enlaces y Atrás/Adelante                   | Evitar pérdida accidental del borrador                                |
+
+#### Datos del cliente
+
+El nombre y las iniciales permanecen en cabecera; la ficha muestra NIT y acceso.
+Las fechas se consultan en Información de registro. Edición contenida en esta
+sección, con `canManage`, PATCH de campos cambiados y NIT mantener/cambiar/quitar
+conservados. No se prefija un NIT enmascarado.
+
+`EntityDraftGuard` usa `useBlocker` de la versión instalada de React Router para
+proteger cambios sin guardar. Se habilitó `createBrowserRouter`/`RouterProvider`
+en lugar del wrapper `BrowserRouter`, conservando `AppRoutes`, las rutas previas
+y los proveedores de Query/Auth. No se modificó el SDK ni el ciclo de sesión.
+La creación del router es estable, fuera del render. No se incorporan loaders ni
+acciones remotas del router: los datos continúan en TanStack Query.
+
+El diálogo permite seguir editando o descartar y continuar. Durante un guardado
+pendiente no ofrece descartar/salir; se puede permanecer y esperar. Recargar o
+cerrar una pestaña con cambios solicita la confirmación nativa mediante
+`beforeunload`, sujeta al comportamiento del navegador. Perder permisos desmonta
+la sección y su guard; no se bloquea la limpieza de sesión por conservar borradores.
+
+#### Personas y accesos
+
+Consulta exclusivamente memberships del contexto confirmado. Filtro inicial de
+activos, opciones todos/revocados y búsqueda local por nombre o rol. Incluye
+perfiles ausentes con fallback seguro, avatar reutilizado con fallback de imagen,
+rol y estado textual. Los identificadores y fechas quedan bajo Detalles del acceso.
+
+Se admiten múltiples personas sin establecer cupos locales. Las cantidades se
+refieren al listado cargado y no a un total comercial del servidor. Un vacío
+ofrece crear una invitación; un filtro sin coincidencias permite ver todos los
+accesos. Revocar identifica cliente, persona y rol, pide confirmación y conserva
+historial. Se revalida el detalle de entity y ambos listados después del éxito.
+
+#### Invitaciones
+
+Formulario corto con rol y Crear enlace. Solo envía `{ role }`. La respuesta
+proporciona copiar y WhatsApp inmediatamente. Enlaces recién creados y registro
+histórico permanecen separados. El historial ordena pendientes primero y ofrece
+filtros por estado; no consulta memberships para reinterpretar una aceptación.
+
+Los enlaces son estado React efímero, fuera de Query/Mutation cache y storage.
+No entran en URLs del submenú, logs ni tracking. Salir de esta sección, cambiar de
+cliente/espacio/usuario o perder autorización desmonta el contenido y cancela sus
+operaciones. La UI indica copiar antes de salir; la invitación del servidor
+sigue existiendo. Cerrar resultado elimina su estado local; Ocultar enlace quita
+la URL también en el padre sin revocarla. Rotación sigue siendo explícita y
+advertida, y nunca reconstruye un enlace del historial.
+
+401/403/404 en el listado reemplazan el contenido por un estado seguro y destruyen
+los resultados anteriores. Revocar una invitación también quita cualquier enlace
+local asociado. Los errores de revocación aparecen solo en su diálogo; los de
+creación solo en el formulario. Se conserva el tratamiento de resultado incierto:
+cancelar HTTP no revierte escrituras ya aceptadas y no dispara reintentos.
+
+### Rutas y permisos
+
+| URL                                                      | Vista              | Condición para consultar                                   |
+| -------------------------------------------------------- | ------------------ | ---------------------------------------------------------- |
+| `/workspaces/:workspaceId/clients`                       | Cartera            | Workspace confirmado por API                               |
+| `/workspaces/:workspaceId/clients/:entityId`             | Datos del cliente  | Entity autorizada por API                                  |
+| `/workspaces/:workspaceId/clients/:entityId/people`      | Personas y accesos | Owner/admin del workspace y `entity.permissions.canManage` |
+| `/workspaces/:workspaceId/clients/:entityId/invitations` | Invitaciones       | La misma condición administrativa                          |
+
+La URL no autoriza. Las entradas directas a subsecciones administrativas sin la
+capacidad requerida muestran un estado de permiso sin montar queries de accesos.
+Una subsección desconocida muestra enlace no disponible. La selección y los
+estados se reinician al cambiar workspace/entity; las claves existentes incluyen
+usuario, workspace y entity. El shell del invitado permanece independiente; su estado actual se describe en Portal de clientes.
+
+### Componentes
+
+- `EntityDetailPage`: consulta y permiso del cliente, coordinación de secciones y escritura.
+- `EntityHeader`: identidad y submenú responsive mediante enlaces y `aria-current`.
+- `EntityDataSection` / `EntityForm`: ficha y edición explícita.
+- `EntityDraftGuard`: protección del borrador y foco al continuar la edición.
+- `EntityMembersPage`: consulta, búsqueda y filtro de memberships.
+- `EntityInvitationsPage`: creación, resultados efímeros y listado de invitaciones.
+- `AccessIdentity`: avatar/nombre compartidos, sin autorizar mediante identidad.
+- `RevokeAccessDialog`: confirmación y operación aislada de revocación.
+- `ShareInvitation`: URL controlada y acciones de compartir/rotar/limpiar.
+- `useRefreshEntityAccess`: invalidación de queries existentes, sin almacenar enlaces.
+
+El antiguo `EntityAccessPanel` se retiró al distribuir sus responsabilidades.
+Se eliminaron sus estilos obsoletos y los de la ficha anterior que ya no se usan.
+No se agregó otro sidebar ni animación de navegación. Se conservan foco visible,
+diálogos nativos, teclado, safe areas y el tratamiento de movimiento reducido.
+Los tres enlaces se adaptan en móvil sin exigir una segunda barra lateral.
+
+### Facturas y aportaciones posteriores
+
+Cuando exista el contrato autorizado, Documentos podrá incorporarse al mismo
+submenú. Las facturas pertenecerán a la entity y el colaborador será su autor o
+cargador trazable; una persona no es un contenedor separado de facturas. Filtros
+por colaborador/período/estado y el vínculo desde una persona se desarrollarán
+solo con los contratos y permisos de esa fase. Revocar acceso no se presentará
+como eliminación de documentos o autoría. No se implementó ni simuló esa fase.
+
+### Verificación histórica de esta fase (2026-11-12)
+
+`npm run lint` terminó sin errores ni avisos; `npm run build` completó TypeScript,
+Vite y generación PWA con salida 0. CSS 60,39 kB (11,77 kB gzip), JS principal
+764,33 kB (221,16 kB gzip). El data router incorpora soporte para bloquear la
+navegación y aumenta el bundle; se conserva el aviso superior a 500 kB.
+Se adaptaron los casos Demo de
+accesos y el helper de apertura de cliente. Casos nuevos preparados para URLs,
+recarga, Atrás, borrador, acceso directo de viewer y múltiples personas con filtros.
+No se ejecutó Playwright por instrucción del propietario. No hay nueva validación
+visual, integración real del API ni certificación de RLS. La compilación no prueba
+el comportamiento real del bloqueo de navegación o la sesión en navegador.
+
+## Portal de clientes
+
+### Entrega y criterio
+
+Reorganizado el portal aislado existente con emil-design-eng. La tarea principal
+es registrar una factura de compra; los comprobantes guardados tienen una vista
+propia y la información del acceso queda en un disclosure secundario. Se conserva
+el nombre autorizado de la empresa junto a la navegación. No se añadieron módulos
+futuros, botones de foto/galería inoperantes ni promesas de extracción con IA.
+
+| Antes                                      | Después                                                         | Motivo                                        |
+| ------------------------------------------ | --------------------------------------------------------------- | --------------------------------------------- |
+| Identidad y acceso dominaban la entrada    | Contexto compacto y formulario como contenido principal         | Empezar la tarea sin buscar la acción         |
+| Formulario y listado en una misma pantalla | Registrar factura / Comprobantes                                | Separar captura y seguimiento                 |
+| Captura en un componente extenso           | Grupos de comprobante, emisor y receptor secundario             | Reducir carga visual conservando los campos   |
+| Error después de guardar y enviar          | Borrador conservado y consulta del mismo ID antes del reintento | Evitar crear otra factura al repetir el envío |
+
+### Rutas y permisos
+
+- `/client/entities/:entityId?workspaceId=:workspaceId`: registro manual cuando
+  `permissions.canUpload` lo permite; consulta de comprobantes en caso contrario.
+- La misma ruta con `&view=documents`: listado, filtros locales de estado y actualización explícita.
+- La misma ruta con `&draft=:documentId`: GET autorizado del borrador y edición.
+- UUIDs y combinaciones de parámetros se validan. El destino de login admite estas
+  variantes canónicas; los IDs no conceden permisos.
+
+La entrada sigue usando `GET /api/v1/profile/entities`; no consulta ni crea una
+membresía del workspace. La capacidad proyectada por el API manda sobre el nombre
+del rol. Las operaciones conservan los cinco endpoints `purchase-documents` ya
+integrados, con queries por usuario/workspace/entity/documento y cancelación.
+El parser rechaza respuestas de otro contexto o ID. No se cambiaron contratos,
+backend, SQL, entornos, dependencias ni Git.
+
+### Captura y recuperación
+
+Factura es el tipo inicial; se conservan recibo, recibo de servicio y comprobante
+de pago. Fecha inicial en America/Guatemala, moneda GTQ, total decimal enviado como
+string y representación mediante enteros/decimales sin cálculos monetarios con float.
+Validación por campo, foco en el primer error al intentar guardar/enviar y bloqueo
+de doble envío durante toda la operación.
+
+Guardar conserva un borrador. Enviar guarda si es necesario y solicita revisión:
+`pending_review` nunca significa aprobado. El ID se conserva antes del segundo
+paso. Si falla el envío, el reintento explícito consulta ese ID: solo vuelve a
+enviar si continúa como borrador. Si ya fue recibido, muestra éxito sin repetir
+el POST; advierte si quedaron cambios posteriores sin guardar. Un guardado con
+resultado incierto bloquea nuevas escrituras y dirige a revisar/actualizar la lista.
+No hay reintentos automáticos de mutaciones ni garantía de idempotencia del servidor.
+
+Los cambios sin guardar y las operaciones pendientes bloquean la navegación SPA;
+recargar/cerrar usa el aviso nativo. Un borrador ya guardado puede reabrirse desde
+Comprobantes. Los enviados no se editan desde este formulario. Carga, vacío, error,
+éxito, sesión inválida y ausencia de permisos tienen respuestas explícitas.
+
+El receptor comienza con el nombre autorizado y C/F. El NIT es dato de captura,
+no derivación autorizada del NIT de la entidad. El requisito coordinado pendiente
+de codex.md sigue vigente: no desenmascarar ni afirmar autocompletado fiscal.
+
+### Componentes
+
+En `src/features/client/`: `ClientEntityPage` valida contexto; `ClientLayout`
+conserva cuenta/PWA; `ClientEntityContext`, `ClientAccessDetails` y
+`ClientAccessState` separan contexto y acceso. `PurchaseDocuments` coordina vistas;
+`ManualPurchaseForm` y `usePurchaseEditor` gestionan captura;
+`PurchaseDocumentList`/`PurchaseDocumentRow` presentan seguimiento y acciones;
+`PurchaseDraftGuard` protege cambios. `purchasePresentation` agrupa validación,
+normalización, fechas y formato monetario. Estilos locales usan tokens existentes,
+foco visible, grupos responsive y estados sin animación decorativa.
+
+### Verificación y límites
+
+Resultados finales de lint/build en Verificación y pendientes compartidos de este documento.
+Casos Demo preparados en `tests/auth/client-purchases.spec.ts`: entrada manual,
+carga diferida, reintento con y sin aceptación previa, validación, bloqueo de
+navegación y lectura sin captura. Se adaptaron selectores de las suites de cliente
+y aceptación. **Playwright no ejecutado** por restricción vigente.
+
+Revisión visual en navegador/dispositivos, teclado y temas e integración API/RLS
+con dos usuarios pendientes. Build no certifica esas pruebas. XML/PDF, cámara,
+galería, IA, aprobaciones, libros y trazabilidad por colaborador en el panel del
+contador quedan para contratos/fases posteriores. No se simularon resultados.
+
+## Verificación y pendientes compartidos
+
+Última verificación de código: cierre de la reorganización del portal de clientes,
+2026-11-13. Esta consolidación posterior solo modifica Markdown y elimina el
+documento temático solicitado; no repitió checks de código.
+
+| Comprobación  | Resultado registrado                                              |
+| ------------- | ----------------------------------------------------------------- |
+| npm run lint  | Salida 0, sin errores ni avisos                                   |
+| npm run build | Salida 0; TypeScript, Vite y generación PWA completos             |
+| CSS           | 68,77 kB; 12,86 kB gzip                                           |
+| JS principal  | 787,92 kB; 227,60 kB gzip                                         |
+| PWA           | 21 entradas; 869,86 KiB; generación no certifica instalación real |
+| Bundle        | Aviso de chunk superior a 500 kB pendiente                        |
+| Playwright    | NO ejecutado; test:auth y test:pwa no autorizados                 |
+| Visual        | Pendiente en móvil/escritorio, claro/oscuro, teclado y foco       |
+| API/RLS       | Integración real y aislamiento con dos usuarios pendientes        |
+
+Casos Demo del contador preparados para rutas directas, recarga, Atrás/Adelante,
+borrador, viewer y múltiples personas. Casos del cliente en
+tests/auth/client-purchases.spec.ts cubren entrada manual, carga diferida,
+reintento con/sin aceptación previa, validación, protección del borrador y lectura
+sin captura; suites de aceptación/cliente adaptadas. Preparados no significa aprobados.
+
+Pendientes del contador: documentos de la entity con autoría y filtros por
+colaborador/período/estado, aprobación y libros, sujetos a contratos autorizados.
+Pendientes del cliente: foto, galería/computadora, extracción/IA y XML/PDF;
+no se implementaron ni se simulan como disponibles. NIT del receptor sigue sin
+derivación segura desde backend; no desenmascararlo ni declarar completado ese
+requisito. No comenzar esa integración solo por estar documentada.
+
+Comprobar navegación, recuperación ante red incierta, sesión/permisos, revocación
+y aislamiento reales cuando se autoricen esas verificaciones. Revalidar instalación,
+actualización y shell offline PWA en dispositivos. Evaluar división de bundle en
+una tarea de rendimiento. El build no certifica ninguno de esos comportamientos.
+
+## Historial y contratos de referencia
+
+Los cierres siguientes se conservan íntegros como antecedentes. Sus títulos
+«vigente», restricciones de fase, cifras y bloqueos describen su momento; las
+secciones anteriores prevalecen para el estado actual. La antigua referencia
+CLIENT-PORTAL fue absorbida aquí y su archivo se eliminó por solicitud del propietario.
+
+# Último cierre — portal del cliente centrado en captura, 2026-11-13
+
+Implementada la reorganización autorizada de ClientEntityPage y sus componentes:
+Registrar factura como entrada principal, Comprobantes como vista independiente,
+empresa activa compacta e información de acceso secundaria. Formulario agrupado,
+borradores reabribles por URL, validaciones por campo y protección de cambios.
+El envío conserva el ID guardado y consulta su estado antes del reintento explícito;
+un guardado incierto exige revisar la lista. Permisos por canUpload del API.
+Se conservaron los cinco endpoints existentes y el aislamiento por contexto.
+No se implementaron fotos, galería, IA, aprobaciones ni funciones del contador.
+El autocompletado fiscal del receptor descrito más abajo continúa pendiente.
+
+Resultado final: npm run lint y npm run build con salida 0. CSS 68,77 kB
+(12,86 gzip); JS principal 787,92 kB (227,60 gzip); PWA generada, 21 entradas,
+869,86 KiB. Persiste el aviso de chunk superior a 500 kB.
+Casos Demo nuevos preparados y selectores anteriores adaptados; Playwright NO
+se ejecutó. Revisión visual e integración API/RLS pendientes. Sin cambios de
+backend/SQL, entornos, dependencias ni Git.
+
+Detalle, decisiones, archivos y límites: [Portal de clientes](#portal-de-clientes).
+Este cierre sustituye las descripciones históricas de la presentación del portal.
+
 # Estado vigente — administración del cliente por secciones, 2026-11-12
 
-**Resumen de todo lo trabajado:** [docs/STATUS.md](docs/STATUS.md). El propietario
+## Captura manual de compras — entrega frontend, 2026-11-12
+
+Integrada exclusivamente en el portal aislado la primera captura manual contra
+los cinco endpoints `purchase-documents`. La pantalla lista `draft` y
+`pending_review`; `can_upload` puede crear/editar borradores y enviar explícitamente
+a revisión, mientras `client_viewer` solo consulta. Campos: tipo, fecha,
+emisor/NIT opcional, receptor/NIT con `C/F` inicial, nombre de entity,
+descripción, categoría, total decimal como string y GTQ. No se incluyen
+aprobación, SAT, libros, pagos ni campos avanzados.
+
+Tipos, parser, API, hooks y componentes viven en `src/features/client/`. Las
+queries se indexan por usuario/workspace/entity; mutaciones no se reintentan,
+abortan al desmontar y revalidan el scope tras guardar/editar/enviar. Se
+ejecutaron `npm run lint` y `npm run build` con salida 0; build conserva el aviso
+de chunk mayor a 500 kB. No se ejecutó Playwright ni se declara validación visual
+o integración real.
+
+## Autocompletado del receptor en compras manuales — pendiente coordinado
+
+La entity del cliente tiene nombre y puede tener NIT en el backend. Sin embargo,
+el contrato actual de `purchase-documents` todavía no deriva el NIT del receptor
+desde `entity_tax_identifiers`: acepta el valor enviado por el cliente y solo
+normaliza un valor vacío a `C/F`. El frontend no debe asumir que puede obtener o
+revelar el NIT completo de una cuenta cliente.
+
+Cuando se autorice la siguiente tarea de integración, el flujo debe ser:
+
+```text
+entity autorizada
+→ nombre de entity para receiver_name
+→ backend busca su NIT autorizado
+→ receiver_tax_id = NIT de la entity o C/F si no existe
+```
+
+### Instrucciones para el futuro trabajo frontend
+
+- Autocompletar `receiver_name` con el nombre autorizado de la entity.
+- Mostrar el NIT como dato informativo enmascarado o `C/F`; no intentar
+  desenmascararlo desde el frontend.
+- No usar el NIT como autorización ni enviarlo como autoridad de permisos.
+- No permitir cambiar el `entityId` para seleccionar otra empresa.
+- Mantener `C/F` cuando la entity no tenga NIT.
+- Si el API continúa aceptando un NIT enviado por el navegador, tratarlo solo
+  como dato de captura; la validación/derivación final debe pertenecer al
+  backend.
+- No declarar este autocompletado completo hasta que el backend derive de forma
+  segura el NIT de la entity receptora y documente el contrato.
+
+No iniciar todavía esta implementación frontend; esta sección registra el
+requisito y el bloqueo exacto para la próxima tarea autorizada.
+
+**Resumen histórico; el estado actual está al inicio de este mismo documento.** El propietario
 dio conformidad a la reorganización y solicitó consolidar la documentación. Esa
 conformidad no se registra como prueba visual/funcional. Esta actualización es
 solo Markdown: no se modificó código ni se repitieron verificaciones; los
@@ -360,16 +751,16 @@ No adelantar otra fase mayor sin indicación del usuario. Los cierres siguientes
 
 ### Archivos principales de esta fase
 
-| Responsabilidad | Ubicación |
-| --- | --- |
-| Contratos, transporte y queries de clientes | `src/features/entities/types/`, `api/` |
-| Cartera, detalle y formularios | `src/features/entities/components/` |
-| Validación y NIT de presentación | `src/features/entities/utils/entityPresentation.ts` |
-| Estilos locales | `src/features/entities/entities.module.css` |
-| Integración con el espacio activo | `src/features/workspace/pages/WorkspacePage.tsx` |
-| Transporte compartido y UUID | `src/shared/api/authenticatedRequest.ts`, `src/shared/utils/identifiers.ts` |
-| Compatibilidad de workspace | `src/features/workspace/api/workspaceApi.ts` |
-| Pruebas nuevas y fixture adaptada | `tests/auth/entities.spec.ts`, `tests/auth/workspace.spec.ts` |
+| Responsabilidad                             | Ubicación                                                                   |
+| ------------------------------------------- | --------------------------------------------------------------------------- |
+| Contratos, transporte y queries de clientes | `src/features/entities/types/`, `api/`                                      |
+| Cartera, detalle y formularios              | `src/features/entities/components/`                                         |
+| Validación y NIT de presentación            | `src/features/entities/utils/entityPresentation.ts`                         |
+| Estilos locales                             | `src/features/entities/entities.module.css`                                 |
+| Integración con el espacio activo           | `src/features/workspace/pages/WorkspacePage.tsx`                            |
+| Transporte compartido y UUID                | `src/shared/api/authenticatedRequest.ts`, `src/shared/utils/identifiers.ts` |
+| Compatibilidad de workspace                 | `src/features/workspace/api/workspaceApi.ts`                                |
+| Pruebas nuevas y fixture adaptada           | `tests/auth/entities.spec.ts`, `tests/auth/workspace.spec.ts`               |
 
 ### Verificación final y estatus
 
@@ -406,19 +797,19 @@ Se preservaron la identidad índigo/lavanda, los tokens, el tema, el splash, Aut
 
 ### Archivos principales
 
-| Responsabilidad | Ubicación |
-| --- | --- |
-| Tipos y contratos | `src/features/workspace/types/workspace.types.ts` |
-| Transporte y errores | `src/features/workspace/api/workspaceApi.ts` |
-| Queries, mutación y límites de caché | `src/features/workspace/api/useWorkspaceQueries.ts` |
-| Pantalla inicial protegida | `src/features/workspace/pages/WorkspacePage.tsx` |
-| Layout, cuenta, perfil, avatar, feedback y diálogo | `src/features/workspace/components/` |
-| Presentación y validación | `src/features/workspace/utils/workspacePresentation.ts` |
-| Estilos locales | `src/features/workspace/workspace.module.css` |
-| Separación de rutas públicas/privadas | `src/app/routes.tsx` |
-| Familia de iconos existente ampliada | `src/shared/ui/components/Icon.tsx` |
-| Casos mockeados nuevos | `tests/auth/workspace.spec.ts` |
-| Regresiones Auth adaptadas | `tests/auth/auth.spec.ts` |
+| Responsabilidad                                    | Ubicación                                               |
+| -------------------------------------------------- | ------------------------------------------------------- |
+| Tipos y contratos                                  | `src/features/workspace/types/workspace.types.ts`       |
+| Transporte y errores                               | `src/features/workspace/api/workspaceApi.ts`            |
+| Queries, mutación y límites de caché               | `src/features/workspace/api/useWorkspaceQueries.ts`     |
+| Pantalla inicial protegida                         | `src/features/workspace/pages/WorkspacePage.tsx`        |
+| Layout, cuenta, perfil, avatar, feedback y diálogo | `src/features/workspace/components/`                    |
+| Presentación y validación                          | `src/features/workspace/utils/workspacePresentation.ts` |
+| Estilos locales                                    | `src/features/workspace/workspace.module.css`           |
+| Separación de rutas públicas/privadas              | `src/app/routes.tsx`                                    |
+| Familia de iconos existente ampliada               | `src/shared/ui/components/Icon.tsx`                     |
+| Casos mockeados nuevos                             | `tests/auth/workspace.spec.ts`                          |
+| Regresiones Auth adaptadas                         | `tests/auth/auth.spec.ts`                               |
 
 ### Verificación realizada y pendientes
 

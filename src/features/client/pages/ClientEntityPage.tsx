@@ -1,15 +1,12 @@
-import { useEffect, useRef } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/store/authStore';
-import { WorkspaceAccount } from '@/features/workspace/components/WorkspaceAccount';
-import { InstallApp } from '@/shared/pwa/InstallApp';
-import { Icon } from '@/shared/ui/components/Icon';
-import { Button } from '@/shared/ui/components/Button';
-import { errorStatus } from '@/shared/api/authenticatedRequest';
 import { isUuid } from '@/shared/utils/identifiers';
-import { clientRoles } from '@/features/access/types/access.types';
-import { initials } from '@/features/workspace/utils/workspacePresentation';
 import { useClientEntity } from '../api/useClientEntity';
+import { ClientLayout } from '../components/ClientLayout';
+import { ClientEntityContext } from '../components/ClientEntityContext';
+import { ClientAccessDetails } from '../components/ClientAccessDetails';
+import { ClientAccessState } from '../components/ClientAccessState';
+import { PurchaseDocuments } from '../components/PurchaseDocuments';
 import styles from '../client.module.css';
 
 export function ClientEntityPage() {
@@ -17,181 +14,70 @@ export function ClientEntityPage() {
   const [search] = useSearchParams();
   const workspaceId = search.get('workspaceId') ?? '';
   const { user } = useAuth();
-  const main = useRef<HTMLElement>(null);
-  useEffect(() => {
-    main.current?.focus({ preventScroll: true });
-  }, [workspaceId, entityId]);
+  const draft = search.get('draft');
+  const view = search.get('view');
+  const valid =
+    isUuid(entityId) &&
+    isUuid(workspaceId) &&
+    (!draft || isUuid(draft)) &&
+    (!view || view === 'documents') &&
+    !(draft && view);
   return (
-    <div className={styles.shell}>
-      <a className="skip-link" href="#client-content">
-        Ir al contenido
-      </a>
-      <header className={styles.topbar}>
-        <div className={styles.brand}>
-          <span className="brand-mark" aria-hidden="true" />
-          <span>Espacio del cliente</span>
-        </div>
-        <WorkspaceAccount
-          name={user?.email || 'Mi cuenta'}
-          showProfileLink={false}
+    <ClientLayout>
+      {valid ? (
+        <ClientEntityContent
+          key={`${user?.id}:${workspaceId}:${entityId}`}
+          workspaceId={workspaceId}
+          entityId={entityId}
         />
-      </header>
-      <div className={styles.install}>
-        <InstallApp />
-      </div>
-      <main
-        ref={main}
-        id="client-content"
-        tabIndex={-1}
-        className={styles.content}
-      >
-        {isUuid(entityId) && isUuid(workspaceId) ? (
-          <ClientEntityContent
-            key={`${user?.id}:${workspaceId}:${entityId}`}
-            entityId={entityId}
-            workspaceId={workspaceId}
-          />
-        ) : (
-          <>
-            <h1>Enlace de acceso incompleto</h1>
-            <p className={styles.intro}>
-              Abre el enlace original compartido por tu contador para continuar.
-            </p>
-          </>
-        )}
-      </main>
-    </div>
+      ) : (
+        <div className={styles.state}>
+          <h1>Enlace de acceso incompleto</h1>
+          <p>
+            Abre el enlace original compartido por tu contador para continuar.
+          </p>
+        </div>
+      )}
+    </ClientLayout>
   );
 }
 function ClientEntityContent({
-  entityId,
   workspaceId,
+  entityId,
 }: {
-  entityId: string;
   workspaceId: string;
+  entityId: string;
 }) {
-  const { logout } = useAuth();
   const { detail, entry } = useClientEntity(workspaceId, entityId);
-  const acceptedHere =
-    entry?.entityId === entityId && entry.workspaceId === workspaceId;
-  const acceptedRole = acceptedHere ? clientRoles[entry.role] : null;
-  const currentRole = detail.data?.role ? clientRoles[detail.data.role] : null;
-  const status = errorStatus(detail.error);
+  if (!detail.isSuccess || !detail.data)
+    return (
+      <ClientAccessState
+        loading={detail.isPending}
+        error={detail.error}
+        onRetry={() => void detail.refetch()}
+      />
+    );
+  const entity = detail.data;
+  const acceptedRole =
+    entry?.entityId === entityId && entry.workspaceId === workspaceId
+      ? entry.role
+      : undefined;
   return (
     <>
-      <p className={styles.eyebrow}>Tu empresa · Tu información</p>
-      <h1>
-        {detail.isSuccess ? detail.data?.legalName : 'Tu espacio de cliente'}
-      </h1>
-      <p className={styles.intro}>
-        {acceptedHere
-          ? 'Tu invitación fue aceptada. Este espacio se limita a la empresa que compartieron contigo.'
-          : 'Consulta únicamente la información autorizada para tu cuenta.'}
-      </p>
-      {(currentRole || acceptedRole) && (
-        <p className={styles.role}>
-          {currentRole
-            ? `Rol actual: ${currentRole}`
-            : `Rol aceptado: ${acceptedRole}`}
-        </p>
-      )}
-      {detail.isPending ? (
-        <div role="status" className={styles.state}>
-          <Icon name="clock" />
-          <p>Comprobando el acceso a la empresa…</p>
-        </div>
-      ) : detail.isError ? (
-        <section className={styles.state} aria-labelledby="client-state-title">
-          <Icon name="alert" />
-          <div>
-            <h2 id="client-state-title">
-              {status === 401
-                ? 'Inicia sesión de nuevo'
-                : status === 403 || status === 404
-                  ? 'La empresa no está disponible para esta cuenta'
-                  : 'No pudimos abrir tu empresa'}
-            </h2>
-            <p role="alert">
-              {status === 401
-                ? 'Tu sesión ya no es válida.'
-                : status === 403 || status === 404
-                  ? 'No podemos confirmar el acceso actual a sus datos. Vuelve a intentarlo o contacta a tu contador.'
-                  : 'Comprueba tu conexión y vuelve a intentarlo.'}
-            </p>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={
-                status === 401
-                  ? () => void logout()
-                  : () => void detail.refetch()
-              }
-            >
-              {status === 401 ? 'Volver a iniciar sesión' : 'Reintentar acceso'}
-            </Button>
-          </div>
-        </section>
-      ) : (
-        <>
-          <section className={styles.company} aria-label="Empresa autorizada">
-            <span className={styles.avatar} aria-hidden="true">
-              {initials(detail.data?.legalName ?? 'Tu empresa')}
-            </span>
-            <div>
-              <p className={styles.access}>
-                <Icon name="check" />
-                Consulta autorizada
-              </p>
-              <h2>Acceso a la empresa</h2>
-              <p>
-                {currentRole ||
-                  acceptedRole ||
-                  'Acceso confirmado para tu cuenta'}
-              </p>
-            </div>
-          </section>
-          <section
-            className={styles.documents}
-            aria-labelledby="client-documents-title"
-          >
-            <Icon name="file" />
-            <div>
-              <h2 id="client-documents-title">
-                Este espacio seguirá creciendo
-              </h2>
-              <p>
-                Por ahora puedes consultar tu acceso. La carga de comprobantes y
-                el registro de gastos aún no están disponibles.
-              </p>
-            </div>
-          </section>
-        </>
-      )}
-      <details className={styles.context}>
-        <summary>Detalles del acceso</summary>
-        <dl>
-          {(currentRole || acceptedRole) && (
-            <div>
-              <dt>
-                {currentRole ? 'Rol actual' : 'Rol de la invitación aceptada'}
-              </dt>
-              <dd>{currentRole || acceptedRole}</dd>
-            </div>
-          )}
-          <div>
-            <dt>Identificador de la empresa</dt>
-            <dd>{entityId}</dd>
-          </div>
-          <div>
-            <dt>Despacho de referencia</dt>
-            <dd>{workspaceId}</dd>
-          </div>
-        </dl>
-        <p>
-          Esta referencia no te incorpora al equipo del despacho ni da acceso a
-          su cartera.
-        </p>
-      </details>
+      <ClientEntityContext name={entity.legalName} />
+      <PurchaseDocuments
+        workspaceId={workspaceId}
+        entityId={entityId}
+        entityName={entity.legalName}
+        canUpload={entity.permissions.canUpload}
+      />
+      <ClientAccessDetails
+        entityName={entity.legalName}
+        workspaceId={workspaceId}
+        entityId={entityId}
+        role={entity.role}
+        acceptedRole={acceptedRole}
+      />
     </>
   );
 }

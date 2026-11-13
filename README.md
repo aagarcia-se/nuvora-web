@@ -2,6 +2,11 @@
 
 Base frontend con React, TypeScript, Vite, Tailwind CSS 3.4, Axios y TanStack Query.
 
+**Estado consolidado:** [docs/STATUS.md](docs/STATUS.md), con funcionalidades
+entregadas, arquitectura, verificaciones reales, límites y pendientes. Última
+entrega: administración del cliente por secciones, documentada en
+[docs/CLIENT-ADMINISTRATION.md](docs/CLIENT-ADMINISTRATION.md).
+
 El producto inicial es **Nuvora Contadores**: gestión de cartera de clientes/NIT,
 captura XML/PDF y manual, clasificación con revisión, libros de compras/ventas
 y portal básico para clientes. La web/PWA precede a la app móvil; Empresas y
@@ -20,15 +25,26 @@ La aceptación abre `/client/entities/:entityId?workspaceId=:workspaceId`, sin n
 
 Invitaciones solo por enlace: elegir rol → Crear enlace → copiar/WhatsApp/Web Share. Creación envía únicamente `{ role }` y consume el enlace del API directamente. Cualquier usuario autenticado confirma la aceptación, sin correo de destinatario ni estados de entrega. Si el acceso requiere Google, el contexto se conserva en un sobre tab-scoped de `sessionStorage` durante 10 minutos y vuelve a `/invitations/accept`; correo/registro conservan el mismo flujo sin pasar por el dashboard. El sobre se valida y se elimina al aceptar, cancelar, cerrar sesión o detectar expiración. No se usa `localStorage`, cookies permanentes, Query cache, analytics ni logs. Membresías y revocación con confirmación se conservan. Contratos, archivos, seguridad y límites en [docs/ACCESS.md](docs/ACCESS.md). No ejecutar Playwright.
 
-El panel muestra nombre visible, avatar o iniciales y rol/estado de cada acceso;
+La sección Personas y accesos muestra nombre visible, avatar o iniciales y rol/estado de cada acceso;
 el identificador de usuario queda como trazabilidad secundaria. Las invitaciones
-solo muestran a quien aceptó cuando `accepted_by_profile` existe; estados sin
-aceptación no inventan una persona. Los listados no exponen emails, tokens,
+muestran a quien aceptó cuando `accepted_by` está presente, con el perfil
+proyectado si existe o un fallback seguro si falta. Estados sin aceptación no
+inventan una persona. Los listados no exponen emails, tokens,
 hashes ni NIT.
 
 ## Estado actual de interfaz
 
-Espacios (`/`), cartera (`/workspaces/:workspaceId/clients`), detalle (`/workspaces/:workspaceId/clients/:entityId`) y perfil (`/account`) están separados por rutas. Navegación lateral desde 1024 px y panel modal en móvil/PWA. Perfil, apariencia y cierre de sesión están en el avatar.
+Espacios (`/`), cartera (`/workspaces/:workspaceId/clients`), cliente y perfil
+(`/account`) están separados por rutas. Cada cliente tiene una cabecera con su
+nombre autorizado y un submenú: Datos del cliente en la ruta base del detalle,
+Personas y accesos en `/people` e Invitaciones en `/invitations`, siempre bajo
+`/workspaces/:workspaceId/clients/:entityId`. Navegación lateral desde 1024 px y
+panel modal en móvil/PWA. Perfil, apariencia y cierre de sesión están en el avatar.
+
+La jerarquía es espacio → múltiples clientes/entities → múltiples personas por
+entidad. La administración de accesos requiere owner/admin del workspace y
+canManage de la entity. Los listados se consultan al visitar su sección y la
+edición protege el borrador mediante el bloqueo de navegación de React Router.
 
 La ficha usa filas etiqueta/valor con iconos y separadores, sin tarjetas por dato. Cabecera limpia, iniciales y padding responsive. Marca índigo, acento azul y verde reservado a éxito; tokens en `src/styles/globals.css`, referenciados por Tailwind 3.4. La recuperación de foco conserva UI/borradores del mismo usuario validado.
 
@@ -36,7 +52,10 @@ Estado y resultados más recientes en [codex.md](codex.md). Guías: [rutas](docs
 
 ## Continuidad para agentes
 
-Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md#entities-vigente) antes de cambiar código. El estado visual vigente y sus límites están en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
+Leer [AGENTS.md](AGENTS.md), [STATUS.md](docs/STATUS.md) y la
+[sección vigente del plan](docs/PLAN.md#client-admin-vigente) antes de cambiar
+código. El sistema visual está en [DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md) y
+los antecedentes de accesibilidad en [UI-ACCESSIBILITY.md](docs/UI-ACCESSIBILITY.md).
 
 **Verificación de la fase actual:** codex.md solicita lint/build y mantiene Playwright condicionado a autorización expresa. No ejecutar test:auth/test:pwa automáticamente. No ejecutar comandos Git ni modificar entornos/claves. Los resultados y pendientes actuales se registran al inicio de codex.md; los resultados de versiones anteriores no prueban esta entrega.
 
@@ -46,7 +65,12 @@ Leer [AGENTS.md](AGENTS.md) y la [sección de continuidad del plan](docs/PLAN.md
 
 Clientes/entidades integrados bajo el espacio confirmado: listado, alta, detalle y edición según permisos. Los NIT enmascarados se respetan y modificar/eliminar el NIT es explícito; solo se envían los campos editados. El API es la autoridad y no fue modificado. La cartera conserva el layout, temas, paleta y PWA. Transporte compartido, caché por contexto y cancelación al cambiar espacio/sesión. Detalles y límites en [docs/ENTITIES.md](docs/ENTITIES.md).
 
-Perfil y workspaces implementados según codex.md: perfil de lectura, lista accesible, creación en diálogo y detalle/rol del espacio seleccionado. La fase siguiente integra clientes/entidades por espacio; no hay documentos, libros ni módulos financieros. Las selecciones no se convierten en permisos locales. La nueva pantalla usa layout propio de ancho completo; el login y su identidad permanecen. Datos vía API con Bearer obtenido del SDK; nada se consulta directamente a tablas Supabase. Detalles y límites en [docs/WORKSPACES.md](docs/WORKSPACES.md).
+Perfil y workspaces implementados según codex.md: perfil de lectura, lista
+accesible, creación en diálogo y detalle/rol del espacio seleccionado. Los clientes,
+sus personas e invitaciones ya están integrados; documentos, libros y módulos
+financieros siguen pendientes. Las selecciones no se convierten en permisos
+locales. Datos vía API con Bearer obtenido del SDK; nada se consulta directamente
+a tablas Supabase. Detalles en [docs/WORKSPACES.md](docs/WORKSPACES.md).
 
 Login por correo/contraseña, sesión, rutas protegidas, bienvenida y logout
 implementados. El usuario confirmó login real funcional después de corregir el
@@ -135,8 +159,11 @@ Lint/build se solicitan en codex.md para esta fase. Los comandos de Playwright (
 npm run lint
 npm run build
 npm run preview
-npm run test:auth
 ```
+
+`test:auth` y `test:pwa` son suites Playwright y no se ejecutaron en la última
+entrega. Ejecutarlas solo con autorización expresa, separadas de los checks
+anteriores. Resultados reales y pendientes: [docs/STATUS.md](docs/STATUS.md).
 
 `npm run format` aplica Prettier. El build genera `dist/`.
 Al desplegar, configurar el hosting para redirigir rutas de la SPA a `index.html`.

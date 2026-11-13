@@ -5,7 +5,11 @@ superficie, búsqueda desde el primer espacio y resumen de resultados; perfil co
 identidad horizontal y atributos alineados. Contratos y descubrimiento de contexto
 sin cambios. Lint/build aprobados; revisión visual del nuevo diseño pendiente.
 
-## Alcance y diseño
+## Estado y antecedentes de la fase perfil/workspaces
+
+El alcance original descrito abajo corresponde a la fase 17. El producto actual
+ya incluye clientes, personas, invitaciones y shell de cliente aislado; documentos
+y módulos financieros siguen pendientes. Estado conjunto: [STATUS.md](STATUS.md).
 
 La entrada inicial comparte un descubrimiento autenticado de entidades mediante `GET /api/v1/profile/entities`: solo workspaces conserva esta pantalla; solo entity entra al portal; ambos accesos requieren elección explícita; sin ninguno conserva «Crear espacio». Los errores 401/503 no se interpretan como lista vacía ni abren creación.
 
@@ -14,10 +18,10 @@ Esta fase implementa la guía [codex.md](../codex.md). El propietario eliminó e
 Dirección UI/UX: una vista de trabajo SaaS minimalista, distinta del formulario de acceso. Se aplicó `.opencode/skills/ui-ux-pro-max/SKILL.md` con búsquedas locales de sistema SaaS/workspaces, estilo minimalista y foco de diálogos. La propuesta genérica de landing/glassmorphism no correspondía al flujo: se adoptó el resultado Minimalism & Swiss Style, conservando los colores existentes y superficies opacas, sin gradientes ni fuentes externas. No se obtuvo una coincidencia verificada de stack para la búsqueda de cancelación; esa implementación sigue los contratos y APIs existentes, no una recomendación inventada de la skill.
 
 - Cabecera de contexto y menú de cuenta: apariencia y cierre de sesión dentro del menú, sin repetir la cabecera del login. El controlador de tema permanece montado para seguir cambios del sistema.
-- Inicio: título, explicación breve y acción «Crear espacio»; lista principal con roles del API y perfil en columna secundaria. Una sola columna en móvil/tablet. Búsqueda local por nombre/identificador cuando hay más de cuatro espacios; no inventa filtros de API.
+- Inicio vigente: título, explicación y acción «Crear espacio»; lista principal con roles del API y búsqueda desde el primer espacio. Perfil separado en `/account`, sin columna de perfil incrustada. No inventa filtros de API.
 - Perfil: nombre, correo de la sesión, avatar HTTPS seguro o iniciales, idioma y zona horaria. Perfil 404 no impide usar la cartera de espacios; no se inventa un perfil remoto. Las imágenes no reciben Bearer, omiten referrer y tienen alternativa si fallan.
 - Crear: diálogo nativo accesible, nombre, identificador generado editable, validación y confirmación. Escape/cancelación desactivados durante el envío; el borrador permanece al cerrar manualmente. Foco nativo al abrir/cerrar, resumen enlazado y errores asociados a campos.
-- Seleccionar: acción explícita y consulta de detalle al servidor; el nombre/rol del contexto solo se muestran como seleccionados después de respuesta correcta. No se promete abrir un módulo que aún no existe. La selección es temporal y se restablece al salir de la página/sesión.
+- Seleccionar: enlace explícito a la cartera del espacio; el detalle del servidor confirma nombre/rol y acceso antes de consultar clientes. La URL conserva el contexto al recargar, pero no autoriza por sí misma.
 - Estados reales de carga, vacío, error, reintento, permisos, conflicto y éxito. Selección acompañada de texto/check y aria-pressed; no depende solo del color.
 
 ## Contratos confirmados

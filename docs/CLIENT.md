@@ -11,7 +11,10 @@ Frontend de entrada aislada implementado; la entrada autenticada consume ahora `
 
 El bloqueo descrito históricamente abajo corresponde al contrato anidado anterior; no bloquea esta nueva entrada porque el frontend utiliza el endpoint de perfil.
 
-## Hallazgo exacto del API (lectura solamente)
+## Hallazgo histórico del GET anidado (lectura solamente)
+
+Este antecedente no describe la consulta usada actualmente por ClientEntityPage.
+La entrada aislada vigente consume `/profile/entities`, según Estado real.
 
 El único endpoint documentado para detalle es `GET /api/v1/workspaces/:workspaceId/entities/:entityId`. En `nuvora-api/src/modules/entities/entity.service.ts`, `getEntity` llama primero a `findWorkspaceMembership(userId, workspaceId)` y responde `404 ENTITY_NOT_FOUND` si no existe; solo después contempla membresías directas en la rama viewer. El router de app.ts solo expone entities bajo workspaces/:workspaceId/entities. No existe un contrato publicado alternativo de consulta del cliente aislado ni un contrato para resolver su rol/nombre del despacho actuales sin workspace_membership.
 

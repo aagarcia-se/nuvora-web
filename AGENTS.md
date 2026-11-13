@@ -1,8 +1,36 @@
 # AGENTS.md — Nuvora Web
 
+## Continuidad vigente — administración del cliente por secciones
+
+Estado consolidado de todo lo entregado en [docs/STATUS.md](docs/STATUS.md);
+último cierre y evidencias en [codex.md](codex.md). El propietario autorizó y dio
+conformidad a la reorganización: espacio → N clientes/entities → N personas por
+entidad. Esa conformidad no certifica revisión visual ni integración real.
+
+Detalle con nombre autorizado como cabecera y submenú Datos del cliente,
+Personas y accesos (`/people`) e Invitaciones (`/invitations`) bajo la ruta de la
+entity. Sustituye el panel único y los disclosures generales de accesos; los
+detalles por registro sí son desplegables. Listados cargan al visitar la sección.
+Accesos solo owner/admin del workspace + canManage de entity; aceptación de una
+invitación no prueba membresía activa. Contratos link-only y confirmaciones intactos.
+
+`EntityAccessPanel` fue retirado; componentes y decisiones en
+[docs/CLIENT-ADMINISTRATION.md](docs/CLIENT-ADMINISTRATION.md). Data router de la
+dependencia existente permite `useBlocker` para borradores, incluidos Atrás y
+Adelante; Auth SDK y Query siguen gestionando sesión/datos. No restaurar el wrapper
+BrowserRouter sin preservar esa protección. El enlace compartible tiene una única
+referencia controlada en estado React; cerrar resultado o salir de Invitaciones
+limpia el estado local sin revocar por ello la invitación remota.
+
+Último código: lint sin errores/avisos y build con salida 0; aviso del bundle
+superior a 500 kB pendiente. Playwright no ejecutado, visual/API/RLS pendientes.
+La actualización posterior de Markdown no repitió checks. Mantener NO Playwright,
+sin Git/env/backend/SQL/dependencias ni implementación de facturas en esta fase.
+Los bloques históricos inferiores quedan sustituidos en lo que contradigan este estado.
+
 ## Cliente aislado vigente
 
-Tras aceptar abrir /client/entities/:entityId?workspaceId=:workspaceId, guard/shell independiente. No resolver por workspaces ni añadir workspace_membership. Usar GET entity existente y documentar bloqueo: getEntity del API aún exige workspace_membership, por lo que una cuenta solo entity_member recibe 404. No solucionar en backend/SQL ni inventar endpoint/permisos. Solo 200 permite nombre/consulta autorizada; rol del POST es histórico, no autorización. Compartir compacto y miembros desplegables con carga diferida; identidad/PWA conservadas. Estado y comprobaciones en codex.md y docs/CLIENT.md. Playwright prohibido en esta fase.
+Tras aceptar abrir /client/entities/:entityId?workspaceId=:workspaceId, guard/shell independiente. La entrada actual usa GET /api/v1/profile/entities para consultar entity/rol autorizados, sin resolver por workspaces ni añadir workspace_membership. El 404 del GET anidado getEntity sin workspace_membership es un antecedente documentado; ese GET ya no autoriza la entrada aislada actual. No modificar backend/SQL ni inventar permisos. Rol del POST es histórico, no autorización. Identidad/PWA conservadas; estado y límites en codex.md y docs/CLIENT.md. Playwright prohibido en esta fase.
 
 
 ## Contrato vigente — link-only
@@ -12,7 +40,7 @@ Crear invitaciones solo con `{ role }`, consumir acceptUrl de esa respuesta y of
 
 ## Fase vigente — accesos al cliente, 2026-11-12
 
-Invitaciones/membresías/compartir implementados según autorización adicional de codex.md. No reconstruir entidades ni endpoints. Panel en detalle solo owner/admin+canManage; compartir rota enlace por acción explícita y revocar confirma/conserva historial. Callback /invitations/accept limpia token antes de Router; token/enlace no entra en Query/Mutation cache/storage persistente/logs, salvo el sobre tab-scoped de sessionStorage con TTL para atravesar OAuth. OAuth vuelve a la invitación; recarga después del TTL requiere reabrir enlace original. No inventar listado de invitaciones ni correos de memberships: esos contratos no existen. Mantener diseño minimalista y paleta actuales. docs/ACCESS.md y codex.md documentan estado/límites. Las prohibiciones históricas de construir estas funcionalidades quedan sustituidas únicamente para esta fase; portal/FEL/libros siguen fuera. Usuario autoriza lint/build, mantiene NO Playwright. Sin Git/env/backend/SQL ni dependencias nuevas.
+Invitaciones/membresías/compartir implementados según autorización adicional de codex.md. No reconstruir entidades ni endpoints. Administración solo owner/admin+canManage; compartir rota enlace por acción explícita y revocar confirma/conserva historial. Callback /invitations/accept limpia token antes de Router; token/enlace no entra en Query/Mutation cache/storage persistente/logs, salvo el sobre tab-scoped de sessionStorage con TTL para atravesar OAuth. OAuth vuelve a la invitación; recarga después del TTL requiere reabrir enlace original. El listado y la revocación de invitaciones ya tienen contratos integrados, documentados en docs/ACCESS.md; no inventar otros contratos ni correos de memberships. Mantener diseño minimalista y paleta actuales. docs/ACCESS.md y codex.md documentan estado/límites. Las prohibiciones históricas de construir estas funcionalidades quedan sustituidas únicamente para esta fase; portal documental/FEL/libros siguen fuera. Usuario autoriza lint/build, mantiene NO Playwright. Sin Git/env/backend/SQL ni dependencias nuevas.
 
 
 ## Ficha minimalista vigente

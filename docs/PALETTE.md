@@ -1,5 +1,13 @@
 # Composición vigente — detalle minimalista
 
+Organización actual de la ficha y accesos en
+[CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md); sistema de tokens en
+[DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) y estado general en [STATUS.md](STATUS.md).
+La paleta vigente se conserva: índigo/lavanda, slate, azul de identidad/información
+y verde de éxito. Teal y las composiciones antiguas de cabecera descritas más
+abajo son antecedentes. Los cálculos de contraste existentes no equivalen a una
+nueva validación visual del rediseño.
+
 Usuario solicita eliminar tarjetas por dato. Ficha con una superficie, cabecera limpia, filas de lista de definición con iconos y separadores; labels/valores en dos columnas en escritorio y apilados en móvil. Sin badge para acceso ni sombra decorativa. Iniciales y color azul aprobados conservados, sin nueva paleta. Skill UI/UX Pro Max: minimalism-and-swiss-style, adaptado a la app operativa. Archivos: EntityDetailPage.tsx, entities.module.css y shared/ui/components/Icon.tsx. Resultados de checks y límites en codex.md; sin Playwright/revisión visual ejecutados.
 
 ---

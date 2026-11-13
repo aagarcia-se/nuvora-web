@@ -1,5 +1,13 @@
 # Identidad y revisión de accesibilidad — 2026-11-12
 
+**Actualización de continuidad:** el sistema visual actual se describe en
+[DESIGN-SYSTEM.md](DESIGN-SYSTEM.md) y la administración de clientes en
+[CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md). [STATUS.md](STATUS.md)
+separa implementación y verificaciones. Las escalas y variantes de las primeras
+entregas documentadas abajo son antecedentes; no deben restaurarse por ser más
+antiguas. No se realizó una nueva auditoría integral de accesibilidad ni revisión
+visual con el último refactor.
+
 **Estado vigente:** acceso centrado y minimalista, sin panel lateral ni tarjeta/sombra; monograma geométrico N, cabecera temática sin placa, splash e iconos lavanda sobre fondo uniforme #0F172A. Formulario máximo 416px, recuperación junto a contraseña, registro separado, promoción PWA y selector sol/luna discretos. El último apartado de refinamiento describe la composición actual.
 
 **Verificación de fase vigente codex.md:** lint/build aprobados; Playwright no ejecutado por su restricción específica. Los checks y capturas de la primera revisión son históricos y no validan los cambios actuales. Quedan pendientes inspección en navegador y validación funcional/visual de perfil/workspaces, así como la aceptación del usuario.

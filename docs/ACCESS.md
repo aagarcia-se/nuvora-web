@@ -1,4 +1,17 @@
-# Rediseño de experiencia — 2026-11-12
+# Administración por secciones — 2026-11-12
+
+Estado vigente en [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md). Personas
+y accesos e Invitaciones son destinos separados del submenú del cliente y cargan
+al visitarlos. Sustituyen el panel/disclosures generales descritos más abajo.
+Historial por estado, personas con búsqueda/filtros, trazabilidad desplegable y
+revocaciones con confirmación. Invitación aceptada no implica membresía activa.
+Crear envía solo `{ role }`; resultado compartible inmediato. URL controlada por
+un único propietario en memoria; cerrar resultado, salir de Invitaciones o perder
+el contexto destruye enlaces locales sin revocar por ello el registro remoto.
+
+---
+
+# Estado anterior — rediseño de experiencia, 2026-11-12
 
 Ver [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Compartir sigue visible de entrada;
 cerrar el panel desmonta los enlaces efímeros como antes. Historial y personas

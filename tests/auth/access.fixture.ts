@@ -90,7 +90,7 @@ async function setup(page: Page, options: Options = {}) {
             updated_at: user.created_at,
           },
         },
-       });
+      });
     if (path === '/api/v1/profile/entities')
       return route.fulfill({ json: { entity_memberships: [] } });
     if (path === '/api/v1/workspaces')
@@ -200,7 +200,11 @@ async function openClient(page: Page) {
     .getByRole('link', { name: 'Ver cliente Cliente Demo, S. A.' })
     .click();
   await expect(
-    page.getByRole('heading', { name: 'Detalle del cliente', exact: true }),
+    page.getByRole('heading', {
+      name: entity.legal_name,
+      exact: true,
+      level: 1,
+    }),
   ).toBeVisible();
 }
 

@@ -115,18 +115,6 @@
   font-size: 0.875rem;
   color: rgb(var(--color-muted));
 }
-.detailBody {
-  margin-top: 1.5rem;
-  padding: clamp(1.25rem, 3vw, 2rem);
-  background: rgb(var(--color-surface));
-}
-.clientName {
-  font-size: 1.25rem;
-  font-weight: 600;
-  line-height: 1.5;
-  letter-spacing: -0.025em;
-  overflow-wrap: anywhere;
-}
 .details {
   margin-block: 0.5rem 1.5rem;
 }
@@ -247,9 +235,123 @@
   max-width: 60rem;
   margin-inline: auto;
 }
-.detailPage .detailBody {
-  border: 0;
+.entityHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+.entityIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.entityIdentity > div {
+  min-width: 0;
+}
+.entityIdentity h1 {
+  font-size: var(--text-title);
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+.entityHeader > a {
+  flex-shrink: 0;
+}
+.entityNavigation {
+  display: flex;
+  gap: var(--space-6);
+  border-bottom: 1px solid rgb(var(--color-line));
+  margin-bottom: var(--space-6);
+}
+.entityNavigation a {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0.75rem 0.25rem;
+  margin-bottom: -1px;
+  border-bottom: 2px solid transparent;
+  color: rgb(var(--color-muted));
+  font-size: var(--text-body);
+  font-weight: 500;
+  text-decoration: none;
+}
+.entityNavigation a[aria-current='page'] {
+  color: rgb(var(--color-brand));
+  border-color: rgb(var(--color-brand));
+}
+.dataSection {
+  padding: clamp(1.25rem, 3vw, 2rem);
   border-radius: var(--radius-surface);
+  background: rgb(var(--color-surface));
+}
+.sectionHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+.sectionHeading h2 {
+  font-size: var(--text-lead);
+  font-weight: 600;
+}
+.sectionHeading p {
+  margin-top: var(--space-2);
+  color: rgb(var(--color-muted));
+  font-size: var(--text-small);
+  line-height: 1.65;
+}
+.sectionHeading button {
+  flex-shrink: 0;
+}
+.registrationDetails {
+  border-top: 1px solid rgb(var(--color-line));
+  font-size: var(--text-small);
+}
+.registrationDetails summary {
+  padding-block: var(--space-3);
+  min-height: 44px;
+  color: rgb(var(--color-muted));
+  cursor: pointer;
+}
+.registrationDetails .details {
+  margin-bottom: 0;
+}
+@media (hover: hover) and (pointer: fine) {
+  .entityNavigation a:hover {
+    color: rgb(var(--color-ink));
+  }
+  .entityNavigation a[aria-current='page']:hover {
+    color: rgb(var(--color-brand));
+  }
+}
+@media (max-width: 639px) {
+  .entityHeader,
+  .sectionHeading {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-4);
+  }
+  .entityIdentity {
+    align-items: flex-start;
+  }
+  .entityHeader > a {
+    align-self: flex-start;
+  }
+  .entityNavigation {
+    gap: var(--space-2);
+  }
+  .entityNavigation a {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+    font-size: var(--text-caption);
+  }
 }
 
 .row {
@@ -263,20 +365,6 @@
   border-color: var(--accent-border);
 }
 
-.detailIdentity {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid rgb(var(--color-line));
-}
-.detailIdentityCopy {
-  min-width: 0;
-  flex: 1;
-}
-.detailIdentity > button {
-  flex-shrink: 0;
-}
 .detailAvatar {
   display: grid;
   place-items: center;
@@ -289,55 +377,11 @@
   font-size: 1rem;
   font-weight: 600;
 }
-.detailKicker {
-  margin-bottom: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: rgb(var(--color-muted));
-}
 .accessValue {
   color: var(--info);
   font-weight: 500;
 }
-.detailActions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgb(var(--color-line));
-}
-.actionHint {
-  max-width: 27rem;
-  color: rgb(var(--color-muted));
-  font-size: 0.8125rem;
-  line-height: 1.75;
-}
-.detailActions > button {
-  flex-shrink: 0;
-}
-.editCard {
-  padding: clamp(1.25rem, 3vw, 2rem);
-  border: 0;
-  border-radius: var(--radius-surface);
-  background: rgb(var(--color-surface));
-}
 @media (max-width: 639px) {
-  .detailActions {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 1rem;
-  }
-  .detailIdentity {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-  .detailIdentityCopy {
-    flex-basis: calc(100% - 4rem);
-  }
-  .detailIdentity > button {
-    width: 100%;
-  }
   .details > div {
     grid-template-columns: minmax(0, 1fr);
   }

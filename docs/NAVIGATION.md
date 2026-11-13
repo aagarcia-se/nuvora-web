@@ -1,5 +1,10 @@
 # Menú responsive — 2026-11-12
 
+Estado consolidado en [STATUS.md](STATUS.md). El menú principal sigue mostrando
+Espacios y Clientes; dentro de una entity, el submenú Datos del cliente, Personas
+y accesos e Invitaciones usa enlaces reales. El data router incorpora protección
+del borrador sin añadir otro sidebar. Detalles: [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md).
+
 Presentación actualizada en el [rediseño integral](DESIGN-SYSTEM.md): monograma
 y marca en el lateral, contexto confirmado en una superficie compacta y menor
 altura de cabecera. Panel móvil con entrada breve solo para puntero y sin
@@ -16,7 +21,7 @@ Solo se muestra navegación disponible. Cuenta, apariencia y logout permanecen e
 
 Skill local UI/UX Pro Max consultada con `drawer focus keyboard navigation --domain ux`: navegación con teclado, foco visible y foco no oculto. Recomendaciones aplicadas con controles HTML y diálogo nativo, sin roles de menú de aplicación para enlaces de navegación.
 
-El panel cierra por Escape, botón, fondo, enlace o cambio al ancho de escritorio. `aria-expanded`, nombre del diálogo y `aria-current` identifican estado/contexto; el fondo es inerte por `showModal()`. Escape/cierre nativo restaura foco al disparador; navegar enfoca main. Mientras está abierto se bloquea scroll del body y se restaura al cerrar/desmontar. Controles de al menos 44 px, texto largo protegido, safe areas y 100dvh. No se añadieron animaciones.
+El panel cierra por Escape, botón, fondo, enlace o cambio al ancho de escritorio. `aria-expanded`, nombre del diálogo y `aria-current` identifican estado/contexto; el fondo es inerte por `showModal()`. Escape/cierre nativo restaura foco al disparador; navegar enfoca main. Mientras está abierto se bloquea scroll del body y se restaura al cerrar/desmontar. Controles de al menos 44 px, texto largo protegido, safe areas y 100dvh. La navegación entre rutas es inmediata; el panel tiene entrada breve solo con puntero y sin movimiento reducido, según DESIGN-SYSTEM.md.
 
 Estilos locales en `src/features/workspace/navigation.module.css`, identidad índigo y tokens semánticos existentes en ambos temas. `WorkspaceNavigation.tsx` reutiliza contenido en lateral y panel; `WorkspaceLayout.tsx` gestiona el diálogo; `WorkspaceRoutes.tsx` comparte la consulta autorizada del workspace. El API sigue siendo autoridad de permisos.
 

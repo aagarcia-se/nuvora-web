@@ -1,4 +1,4 @@
-import { useId, useRef, useState, type FormEvent } from 'react';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { useAuth } from '@/features/auth/store/authStore';
 import {
   errorStatus,
@@ -18,6 +18,7 @@ export function EntityForm({
   onSave,
   onCancel,
   onClearError,
+  onDirtyChange,
 }: {
   entity?: Entity;
   pending: boolean;
@@ -25,6 +26,7 @@ export function EntityForm({
   onSave: (input: EntityDraft) => Promise<void>;
   onCancel: () => void;
   onClearError: () => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }) {
   const { logout } = useAuth();
   const id = useId();
@@ -38,6 +40,9 @@ export function EntityForm({
   const changed =
     !entity || legalName.trim() !== baseName || taxMode !== 'keep';
   const editingTax = !entity || taxMode === 'replace';
+  useEffect(() => {
+    onDirtyChange?.(changed);
+  }, [changed, onDirtyChange]);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy.current || !changed) return;

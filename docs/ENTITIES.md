@@ -1,13 +1,25 @@
 # Clientes y entidades — fase frontend de codex.md
 
+Administración vigente: [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md).
+La entity tiene cabecera persistente con su nombre y submenú de datos, personas
+e invitaciones. Fechas e identificadores quedan en detalles; editar permanece en
+Datos del cliente con protección del borrador. `/people` y `/invitations` son
+rutas frontend dentro del cliente confirmado, sin endpoints ni autorización nueva.
+
 Actualización de UI/UX: [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Búsqueda desde el
 primer cliente, filtro local por acceso y resumen de resultados. El título visible
-es «Clientes»; su nombre accesible incluye el workspace. Editar se sitúa junto a
-la identidad en la ficha. Contratos, permisos y tratamiento de NIT conservados.
+es «Clientes»; su nombre accesible incluye el workspace. Editar se sitúa en la
+cabecera de Datos del cliente. Contratos, permisos y tratamiento de NIT conservados.
 
 ## Estado vigente de presentación
 
-Cartera y detalle separados por rutas (ver [ROUTING.md](ROUTING.md)). Detalle en `src/features/entities/pages/EntityDetailPage.tsx`: una superficie con cabecera limpia e iniciales, lista semántica de NIT/acceso/fechas, iconos SVG y separadores. Etiqueta/valor en columnas en escritorio y apilados en móvil. Sin cards por dato, badge de acceso ni borde decorativo. Edición conserva permisos, formulario y manejo explícito de NIT; altas siguen en diálogos. Tokens índigo/azul/verde según [PALETTE.md](PALETTE.md).
+Cartera y detalle separados por rutas (ver [ROUTING.md](ROUTING.md)).
+`EntityDetailPage` coordina una cabecera con el nombre e iniciales de la entity y
+su submenú. `EntityDataSection` muestra NIT/acceso por filas semánticas; fechas en
+Información de registro. Personas e invitaciones tienen vistas separadas.
+Etiqueta/valor en columnas en escritorio y apilados en móvil. Sin cards por dato,
+badge de acceso ni borde decorativo. Edición conserva permisos, formulario y
+manejo explícito de NIT; altas siguen en diálogos. Tokens según [PALETTE.md](PALETTE.md).
 
 Última verificación de código: lint/build aprobados. Playwright, validación visual del resultado y API/RLS reales pendientes; ver codex.md para resultados. Las secciones siguientes conservan contratos y antecedentes; la descripción inicial de cartera incrustada queda reemplazada por esta sección.
 

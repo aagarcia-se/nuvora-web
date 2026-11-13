@@ -97,7 +97,7 @@ export function AppRoutes() {
         <Route path="/account" element={<AccountPage />} />
         <Route path="/workspaces/:workspaceId" element={<WorkspaceBoundary />}>
           <Route path="clients" element={<ClientsPage />} />
-          <Route path="clients/:entityId" element={<ClientPage />} />
+          <Route path="clients/:entityId/:section?" element={<ClientPage />} />
         </Route>
       </Route>
     </Routes>

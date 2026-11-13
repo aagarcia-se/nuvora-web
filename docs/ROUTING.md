@@ -1,5 +1,10 @@
 # Navegación por rutas — 2026-11-12
 
+Estado vigente de la administración de entities: [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md).
+El detalle incorpora `/people` e `/invitations`; data router habilita protección
+del borrador. Lint/build aprobados en esta entrega; los resultados y límites
+actuales están en codex.md y no se sustituyen por las cifras históricas inferiores.
+
 Objetivo: separar selección de espacio, cartera, detalle y cuenta, manteniendo contexto, permisos y componentes existentes.
 
 ## Implementado
@@ -10,7 +15,9 @@ La ruta `/` resuelve el contexto después de autenticar con `GET /api/v1/profile
 | --- | --- |
 | `/` | Espacios y diálogo de creación |
 | `/workspaces/:workspaceId/clients` | Cartera y diálogo de alta |
-| `/workspaces/:workspaceId/clients/:entityId` | Detalle y edición autorizada |
+| `/workspaces/:workspaceId/clients/:entityId` | Datos del cliente y edición autorizada |
+| `/workspaces/:workspaceId/clients/:entityId/people` | Personas y accesos de la entity |
+| `/workspaces/:workspaceId/clients/:entityId/invitations` | Invitaciones de la entity |
 | `/account` | Perfil |
 
 `src/app/WorkspaceRoutes.tsx` compone shell privado, control de acceso al workspace y páginas. `src/app/routes.tsx` registra rutas. El detalle vive en `src/features/entities/pages/EntityDetailPage.tsx`. El componente de diálogo de detalle anterior se reemplazó por esta página; las altas siguen siendo diálogos.
@@ -39,3 +46,19 @@ Integradas invitaciones, consulta/revocación de membresías y compartir enlaces
 ## Cliente aislado — 2026-11-12
 
 Ruta `/client/entities/:entityId?workspaceId=:workspaceId` tras aceptar, sin workspace_membership ni shell de contador. Pantalla y compartir compactos implementados; lectura de entity bloqueada por requisito de workspace_membership en getEntity del API. No se modifica backend ni se inventa contrato. Estado, comprobaciones y límites en [CLIENT.md](CLIENT.md). Playwright no ejecutado.
+# Actualización — administración del cliente por secciones
+
+Ver [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md). El detalle conserva su
+URL y agrega `/people` y `/invitations` como destinos del submenú de esa entity.
+Se valida la subsección y se mantienen los boundaries del workspace/entity y las
+claves de usuario/contexto. Accesos solo para owner/admin + canManage; una URL
+directa no monta queries administrativas sin esa capacidad.
+
+Para proteger borradores incluso con Atrás/Adelante, la composición utiliza ahora
+createBrowserRouter/RouterProvider con AppRoutes como árbol de pantallas existente.
+Auth/Query no cambian de implementación; no se añaden loaders remotos. El bloqueo
+se limita a la edición de datos del cliente y no persiste el borrador. Rutas Auth,
+callbacks y shell cliente aislado permanecen. Playwright no ejecutado.
+
+---
+

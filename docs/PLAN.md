@@ -1,6 +1,12 @@
 # Plan y continuidad — Nuvora Web
 
-**Lectura prioritaria:** la fase vigente de clientes/entidades está en la sección 18 y en [ENTITIES.md](./ENTITIES.md); perfil/workspaces de la sección 17 se conservan, basada en [codex.md](../codex.md). Las secciones anteriores son historia y no autorizan restaurar el intento de workspaces eliminado por el propietario. Lint/build solicitados para esta fase; Playwright pendiente de autorización expresa.
+**Lectura prioritaria:** [STATUS.md](STATUS.md) consolida lo implementado, sus
+verificaciones y pendientes. La última entrega es la [sección 19](#client-admin-vigente),
+administración del cliente por secciones, detallada en
+[CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md) y [codex.md](../codex.md).
+Las secciones 1–18 y sus cierres son antecedentes; no autorizan restaurar versiones
+anteriores ni avanzar módulos futuros. Último lint/build aprobados; Playwright
+sin ejecutar y condicionado a autorización expresa.
 
 **Estado de autenticación:** login correo/contraseña, sesión, rutas protegidas, bienvenida y logout implementados. El usuario confirmó que el login real funciona tras corregir la URL del API y posteriormente dio conformidad a sus pruebas del banner/interfaz. No especificó navegador, dispositivo ni cada caso ejecutado: esa confirmación no certifica todas las plataformas ni toda la matriz de pruebas.
 
@@ -314,4 +320,41 @@ Finalizado cambio de invitaciones a `{ role }` y acceptUrl inmediato. Sin correo
 Ruta `/client/entities/:entityId?workspaceId=:workspaceId` tras aceptar, sin workspace_membership ni shell de contador. Pantalla y compartir compactos implementados; lectura de entity bloqueada por requisito de workspace_membership en getEntity del API. No se modifica backend ni se inventa contrato. Estado, comprobaciones y límites en [CLIENT.md](CLIENT.md). Playwright no ejecutado.
 
 
-Cierre de implementación frontend aislada: lint/build y tipos de mocks aprobados; sin Playwright. El bloqueo de lectura del API continúa: getEntity exige workspace_membership, incompatibilidad documentada en CLIENT.md. No declarar flujo real completo ni añadir esa membresía como atajo.
+Cierre histórico de implementación frontend aislada: lint/build y tipos de mocks aprobados; sin Playwright. El bloqueo correspondía al GET anidado getEntity, que exige workspace_membership. La entrada actual usa `/profile/entities`, según CLIENT.md; no se añadió esa membresía como atajo ni se certificó integración real por este cambio de frontend.
+
+<a id="client-admin-vigente"></a>
+
+## 19. Rediseño integral y administración del cliente por secciones
+
+Estado: **implementado en frontend, verificaciones de código aprobadas y validación
+visual/funcional real pendiente**. El propietario dio conformidad a la organización
+y pidió consolidar el estado en Markdown. Resumen: [STATUS.md](STATUS.md).
+
+El rediseño con emil-design-eng unificó escala visual, formularios, estados,
+búsqueda, listados y navegación conservando la paleta vigente. La reorganización
+posterior respeta workspace → N clientes/entities → N personas: cabecera por
+entity y destinos Datos del cliente, Personas y accesos e Invitaciones, con URLs
+propias y carga al visitar cada sección. No se implementaron facturas ni documentos.
+
+Se retiró EntityAccessPanel y se separaron cabecera, ficha, guard de borrador,
+personas, invitaciones, identidad y confirmaciones. Personas tiene filtros/búsqueda;
+invitaciones separa enlaces efímeros e historial. La aceptación no equivale a acceso
+activo. Se mantienen roles del API, NIT explícito, revocación confirmada, historial,
+limpieza/cancelación y el contrato link-only. No se agregaron endpoints ni dependencias.
+
+El data router de la versión instalada de React Router habilita useBlocker para
+los datos sin guardar; Auth/Query y rutas anteriores se conservan. El invitado
+mantiene su shell independiente, con lectura desde `/profile/entities` y sin
+workspace_membership. Estado y componentes: [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md).
+
+Último cierre de código: lint sin errores/avisos y build con salida 0; CSS
+60,39 kB (11,77 kB gzip), JS principal 764,33 kB (221,16 kB gzip). Permanece el aviso
+de chunk superior a 500 kB. Casos Demo adaptados y cinco casos nuevos preparados,
+sin ejecutar Playwright. Sin nueva aceptación visual, prueba real de navegación,
+certificación del API/RLS o validación PWA en dispositivos. La edición documental
+posterior no repitió los checks ni modificó código.
+
+Pendientes: revisión móvil/escritorio y claro/oscuro; teclado/foco; rutas directas,
+recarga y bloqueo de borrador; ejecución de suites cuando se autorice; integración
+real con usuarios/entidades separados y evaluación del tamaño del bundle. Ninguno
+de estos pendientes autoriza automáticamente una fase documental o financiera.

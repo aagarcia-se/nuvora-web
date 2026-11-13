@@ -124,7 +124,7 @@ test('Demo: aceptar abre cliente aislado sin consultar ni crear workspace member
     0,
   );
   await expect(
-    page.getByText('Tus comprobantes, en un solo lugar'),
+    page.getByText('Este espacio seguirá creciendo'),
   ).toBeVisible();
   expect(calls.workspaceReads()).toBe(0);
   expect(calls.writes()).toBe(0);

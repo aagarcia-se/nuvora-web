@@ -1,5 +1,10 @@
 # Rediseño de la experiencia — 2026-11-12
 
+La organización posterior de la ficha y accesos se documenta en
+[CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md): submenú de Datos del cliente,
+Personas y accesos e Invitaciones. Reemplaza la distribución anterior en un panel
+único descrita aquí, conservando este sistema visual.
+
 ## Alcance vigente
 
 El propietario autorizó un rediseño integral de las pantallas y flujos existentes.

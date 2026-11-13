@@ -10,14 +10,17 @@ import styles from '../access.module.css';
 export function ShareInvitation({
   context,
   invitationId,
-  initialUrl,
+  url,
+  onUrlChange,
+  onClose,
 }: {
   context: AccessContext;
   invitationId: string;
-  initialUrl: string;
+  url: string | null;
+  onUrlChange: (url: string | null) => void;
+  onClose: () => void;
 }) {
   const action = useAccessAction(context);
-  const [url, setUrl] = useState<string | null>(initialUrl);
   const [notice, setNotice] = useState('');
   const [sharing, setSharing] = useState(false);
   const busy = useRef(false);
@@ -26,13 +29,13 @@ export function ShareInvitation({
     result.current?.querySelector<HTMLButtonElement>('button')?.focus();
   }, []);
   async function generate() {
-    setUrl(null);
+    onUrlChange(null);
     setNotice('');
     const link = await action.run((id, signal) =>
       generateShareLink(id, context, invitationId, signal),
     );
     if (link) {
-      setUrl(link);
+      onUrlChange(link);
       requestAnimationFrame(() =>
         result.current?.querySelector<HTMLButtonElement>('button')?.focus(),
       );
@@ -132,7 +135,7 @@ export function ShareInvitation({
               variant="secondary"
               disabled={sharing}
               onClick={() => {
-                setUrl(null);
+                onUrlChange(null);
                 setNotice(
                   'Enlace oculto de esta vista. El enlace sigue vigente hasta que expire o se reemplace.',
                 );
@@ -161,6 +164,14 @@ export function ShareInvitation({
           {notice}
         </p>
       )}
+      <Button
+        type="button"
+        variant="secondary"
+        disabled={action.pending || sharing}
+        onClick={onClose}
+      >
+        Cerrar resultado
+      </Button>
     </div>
   );
 }

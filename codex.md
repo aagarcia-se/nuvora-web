@@ -1,4 +1,47 @@
-# Estado vigente — rediseño integral de UI/UX, 2026-11-12
+# Estado vigente — administración del cliente por secciones, 2026-11-12
+
+**Resumen de todo lo trabajado:** [docs/STATUS.md](docs/STATUS.md). El propietario
+dio conformidad a la reorganización y solicitó consolidar la documentación. Esa
+conformidad no se registra como prueba visual/funcional. Esta actualización es
+solo Markdown: no se modificó código ni se repitieron verificaciones; los
+resultados siguientes corresponden al último cierre de implementación.
+
+El propietario autorizó implementar la propuesta auditada con la jerarquía
+workspace → N clientes/entities → N personas por entity. `EntityDetailPage`
+coordina cabecera con nombre autorizado y submenú Datos del cliente, Personas y
+accesos e Invitaciones. Se agregan sufijos frontend `/people` y `/invitations` a
+la ruta actual del cliente. No se agregan endpoints, módulos financieros ni
+permisos. Owner/admin + canManage sigue siendo obligatorio para accesos.
+
+Se separaron ficha/edición, personas, invitaciones, identidad y confirmaciones.
+Personas carga al visitar su sección, permite búsqueda/filtros y muestra UUID y
+fechas en detalles. Invitaciones consulta su propia historia al visitarse, prioriza
+pendientes y no equipara aceptación con acceso actual. Crear/compartir/revocar
+tienen estados independientes. Los enlaces siguen fuera de Query/storage/logs;
+cerrar el resultado o salir de Invitaciones elimina las referencias locales.
+
+`EntityDraftGuard` protege datos sin guardar con `useBlocker`; para soportar
+enlaces y Atrás/Adelante se sustituyó el wrapper BrowserRouter por el data router
+de la misma dependencia instalada. AppRoutes, Auth/Query, SDK y rutas anteriores
+se conservan. Los datos remotos siguen en Query, sin loaders del router. Recarga
+usa confirmación nativa `beforeunload`, cuando el navegador la admite.
+
+Skills: emil-design-eng y guía local de UI/UX Pro Max, sin instalar Python.
+Sin Git/env/backend/SQL/dependencias nuevas ni implementación de facturas.
+Detalles, decisiones, archivos y límites: [docs/CLIENT-ADMINISTRATION.md](docs/CLIENT-ADMINISTRATION.md).
+
+Verificación final: `npm run lint` terminó sin errores ni avisos y `npm run build`
+terminó con salida 0 después del refactor y del formateo acotado. TypeScript,
+Vite y generación PWA completos. CSS 60,39 kB (11,77 kB gzip), JS principal
+764,33 kB (221,16 kB gzip). El data router habilita el bloqueo de navegación y
+aumenta el bundle frente al anterior; permanece el aviso superior a 500 kB.
+Casos Demo adaptados y cinco casos nuevos preparados sin ejecutar Playwright.
+Sin revisión visual o integración real certificadas. El build no valida el
+bloqueo, sesiones ni permisos reales en navegador.
+
+---
+
+# Estado anterior — rediseño integral de UI/UX, 2026-11-12
 
 El propietario autorizó modernizar la experiencia de las funcionalidades actuales.
 Se aplicaron emil-design-eng y la guía local de UI/UX Pro Max: sistema de ritmo,

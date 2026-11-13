@@ -34,6 +34,7 @@ async function admin(
     viewer?: boolean;
     profile?: 'present' | 'missing' | 'null-fields' | 'invalid-avatar';
     invitationStatus?: 'pending' | 'accepted';
+    stayOnData?: boolean;
   } = {},
 ) {
   await setup(page, { viewer: options.viewer });
@@ -143,13 +144,21 @@ async function admin(
   });
   await select(page);
   await openClient(page);
+  if (!options.viewer && !options.stayOnData)
+    await openSection(page, 'Invitaciones');
 
   return { writes, rotations: () => rotations };
+}
+async function openSection(page: Page, name: string) {
+  await page
+    .getByRole('navigation', { name: 'Secciones del cliente' })
+    .getByRole('link', { name, exact: true })
+    .click();
 }
 async function invite(page: Page) {
   await page.getByRole('button', { name: 'Crear enlace', exact: true }).click();
 }
-test('Demo: historial y personas solo se consultan al desplegarlos', async ({
+test('Demo: historial y personas solo se consultan al visitar su sección', async ({
   page,
 }) => {
   const reads: string[] = [];
@@ -161,16 +170,14 @@ test('Demo: historial y personas solo se consultan al desplegarlos', async ({
     )
       reads.push(path);
   });
-  await admin(page);
+  await admin(page, { stayOnData: true });
   expect(reads).toEqual([]);
-  await page.getByText('Historial de invitaciones', { exact: true }).click();
-  await expect(
-    page.getByText('Pendiente · aún no aceptada', { exact: true }),
-  ).toBeVisible();
+  await openSection(page, 'Invitaciones');
+  await expect(page.getByText('Pendiente', { exact: true })).toBeVisible();
   expect(reads).toEqual([base + '/invitations']);
-  await page.getByText('Personas con acceso', { exact: true }).click();
+  await openSection(page, 'Personas y accesos');
   await expect(
-    page.getByRole('button', { name: `Revocar acceso de ${user.id}` }),
+    page.getByRole('button', { name: 'Revocar acceso de Cliente Demo' }),
   ).toBeVisible();
   expect(reads).toEqual([base + '/invitations', base + '/memberships']);
 });
@@ -237,7 +244,9 @@ test('Demo: rol explícito enviado al crear enlace', async ({ page }) => {
 test('Demo: viewer no monta administración', async ({ page }) => {
   await admin(page, { viewer: true });
   await expect(
-    page.getByRole('button', { name: 'Administrar accesos' }),
+    page
+      .getByRole('navigation', { name: 'Secciones del cliente' })
+      .getByRole('link', { name: 'Personas y accesos' }),
   ).toHaveCount(0);
 });
 for (const status of [401, 403, 404, 409, 410, 429, 503])
@@ -253,9 +262,9 @@ test('Demo: confirmación y revocación conservan historial', async ({
   page,
 }) => {
   await admin(page);
-  await page.getByText('Personas con acceso', { exact: true }).click();
+  await openSection(page, 'Personas y accesos');
   await page
-    .getByRole('button', { name: `Revocar acceso de ${user.id}` })
+    .getByRole('button', { name: 'Revocar acceso de Cliente Demo' })
     .click();
   const dialog = page.getByRole('dialog', {
     name: 'Revocar acceso',
@@ -264,17 +273,17 @@ test('Demo: confirmación y revocación conservan historial', async ({
   await expect(dialog).toContainText('conserva el historial');
   await dialog.getByRole('button', { name: 'Confirmar revocación' }).click();
   await expect(dialog).not.toBeVisible();
+  await page.getByLabel('Filtrar personas por estado').selectOption('all');
   await expect(
-    page.getByText('Solo lectura · Revocada', { exact: true }),
+    page.getByText('Acceso revocado', { exact: true }),
   ).toBeVisible();
 });
 test('Demo: lista y revocación de invitación pendiente conservan historial', async ({
   page,
 }) => {
   await admin(page);
-  await page.getByText('Historial de invitaciones', { exact: true }).click();
   await page
-    .getByRole('button', { name: `Revocar invitación ${invitationId}` })
+    .getByRole('button', { name: 'Revocar invitación para Solo lectura' })
     .click();
   const dialog = page.getByRole('dialog', {
     name: 'Revocar invitación',
@@ -282,35 +291,32 @@ test('Demo: lista y revocación de invitación pendiente conservan historial', a
   });
   await dialog.getByRole('button', { name: 'Confirmar revocación' }).click();
   await expect(dialog).not.toBeVisible();
-  await expect(page.getByText('Revocada · no aceptable')).toBeVisible();
+  await expect(page.getByText('Revocada', { exact: true })).toBeVisible();
 });
 test('Demo: aceptación muestra perfil visible y UUID secundario', async ({
   page,
 }) => {
   await admin(page, { invitationStatus: 'accepted' });
-  await page.getByText('Historial de invitaciones', { exact: true }).click();
   await expect(page.getByText('Cliente Demo', { exact: true })).toBeVisible();
-  await expect(
-    page.getByText(`Usuario: ${user.id}`, { exact: true }),
-  ).toBeVisible();
+  await page.getByText('Detalles de la invitación', { exact: true }).click();
+  await expect(page.getByText(user.id, { exact: true })).toBeVisible();
 });
 test('Demo: perfiles ausentes y campos nulos usan fallback seguro', async ({
   page,
 }) => {
   await admin(page, { profile: 'missing', invitationStatus: 'accepted' });
-  await page.getByText('Personas con acceso', { exact: true }).click();
+  await openSection(page, 'Personas y accesos');
   await expect(
     page.getByText('Usuario sin nombre', { exact: true }),
   ).toBeVisible();
-  await expect(
-    page.getByText(`Usuario: ${user.id}`, { exact: true }),
-  ).toBeVisible();
+  await page.getByText('Detalles del acceso', { exact: true }).click();
+  await expect(page.getByText(user.id, { exact: true })).toBeVisible();
 });
 test('Demo: avatar inválido ya normalizado a null conserva iniciales', async ({
   page,
 }) => {
   await admin(page, { profile: 'invalid-avatar' });
-  await page.getByText('Personas con acceso', { exact: true }).click();
+  await openSection(page, 'Personas y accesos');
   await expect(
     page.getByText('Usuario sin nombre', { exact: true }),
   ).toBeVisible();
@@ -530,9 +536,9 @@ test('Demo: compartir pendiente bloquea doble envío y salir descarta respuesta'
     .getByRole('button', { name: 'Reemplazar enlace anterior' })
     .click();
   await expect(page.getByRole('button', { name: 'Generando…' })).toBeDisabled();
-  await page.getByRole('button', { name: 'Cerrar accesos' }).click();
+  await openSection(page, 'Datos del cliente');
   release();
-  await page.getByRole('button', { name: 'Administrar accesos' }).click();
+  await openSection(page, 'Invitaciones');
   await expect(page.getByLabel('Enlace de invitación')).toHaveCount(0);
   expect(calls).toBe(1);
 });

@@ -77,7 +77,13 @@ export function PrivateShell() {
         {pathname.match(/clients\//) && (
           <>
             <span aria-hidden="true">/</span>
-            <span aria-current="page">Detalle del cliente</span>
+            <span aria-current="page">
+              {pathname.endsWith('/people')
+                ? 'Personas y accesos'
+                : pathname.endsWith('/invitations')
+                  ? 'Invitaciones'
+                  : 'Datos del cliente'}
+            </span>
           </>
         )}
         {pathname === '/account' && (
@@ -126,8 +132,12 @@ export function ClientsPage() {
 }
 export function ClientPage() {
   const { workspace, role } = useOutletContext<Context>();
-  const { entityId = '' } = useParams();
-  if (!isUuid(entityId)) return <InvalidResource />;
+  const { entityId = '', section } = useParams();
+  if (
+    !isUuid(entityId) ||
+    (section !== undefined && section !== 'people' && section !== 'invitations')
+  )
+    return <InvalidResource />;
   return (
     <EntityDetailPage
       key={`${workspace.id}:${entityId}`}
@@ -135,6 +145,7 @@ export function ClientPage() {
       workspaceName={workspace.name}
       workspaceRole={role}
       entityId={entityId}
+      section={section ?? 'data'}
     />
   );
 }

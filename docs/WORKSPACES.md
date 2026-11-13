@@ -2,6 +2,8 @@
 
 ## Alcance y diseño
 
+La entrada inicial comparte un descubrimiento autenticado de entidades mediante `GET /api/v1/profile/entities`: solo workspaces conserva esta pantalla; solo entity entra al portal; ambos accesos requieren elección explícita; sin ninguno conserva «Crear espacio». Los errores 401/503 no se interpretan como lista vacía ni abren creación.
+
 Esta fase implementa la guía [codex.md](../codex.md). El propietario eliminó el intento anterior; se construyó el dominio de nuevo desde la base presente, sin recuperar aquellos archivos. Se preservaron Auth, PWA, splash, paleta, tokens, controles y rutas públicas. No hay módulos de clientes, entidades fiscales, invitaciones, documentos, libros ni portal.
 
 Dirección UI/UX: una vista de trabajo SaaS minimalista, distinta del formulario de acceso. Se aplicó `.opencode/skills/ui-ux-pro-max/SKILL.md` con búsquedas locales de sistema SaaS/workspaces, estilo minimalista y foco de diálogos. La propuesta genérica de landing/glassmorphism no correspondía al flujo: se adoptó el resultado Minimalism & Swiss Style, conservando los colores existentes y superficies opacas, sin gradientes ni fuentes externas. No se obtuvo una coincidencia verificada de stack para la búsqueda de cancelación; esa implementación sigue los contratos y APIs existentes, no una recomendación inventada de la skill.

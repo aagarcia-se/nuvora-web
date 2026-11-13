@@ -75,20 +75,23 @@ function ClientEntityContent({
   const acceptedHere =
     entry?.entityId === entityId && entry.workspaceId === workspaceId;
   const acceptedRole = acceptedHere ? clientRoles[entry.role] : null;
+  const currentRole = detail.data?.role ? clientRoles[detail.data.role] : null;
   const status = errorStatus(detail.error);
   return (
     <>
       <p className={styles.eyebrow}>Tu empresa · Tu información</p>
       <h1>
-        {detail.isSuccess ? detail.data.legalName : 'Tu espacio de cliente'}
+        {detail.isSuccess ? detail.data?.legalName : 'Tu espacio de cliente'}
       </h1>
       <p className={styles.intro}>
         {acceptedHere
           ? 'Tu invitación fue aceptada. Este espacio se limita a la empresa que compartieron contigo.'
           : 'Consulta únicamente la información autorizada para tu cuenta.'}
       </p>
-      {acceptedRole && (
-        <p className={styles.role}>Rol aceptado: {acceptedRole}</p>
+      {(currentRole || acceptedRole) && (
+        <p className={styles.role}>
+          {currentRole ? `Rol actual: ${currentRole}` : `Rol aceptado: ${acceptedRole}`}
+        </p>
       )}
       {detail.isPending ? (
         <div role="status" className={styles.state}>
@@ -130,7 +133,7 @@ function ClientEntityContent({
         <>
           <section className={styles.company} aria-label="Empresa autorizada">
             <span className={styles.avatar} aria-hidden="true">
-              {initials(detail.data.legalName)}
+              {initials(detail.data?.legalName ?? 'Tu empresa')}
             </span>
             <div>
               <p className={styles.access}>
@@ -138,7 +141,7 @@ function ClientEntityContent({
                 Consulta autorizada
               </p>
               <h2>Acceso a la empresa</h2>
-              <p>{acceptedRole || 'Acceso confirmado para tu cuenta'}</p>
+              <p>{currentRole || acceptedRole || 'Acceso confirmado para tu cuenta'}</p>
             </div>
           </section>
           <section
@@ -161,10 +164,10 @@ function ClientEntityContent({
       <details className={styles.context}>
         <summary>Detalles del acceso</summary>
         <dl>
-          {acceptedRole && (
+          {(currentRole || acceptedRole) && (
             <div>
-              <dt>Rol de la invitación aceptada</dt>
-              <dd>{acceptedRole}</dd>
+              <dt>{currentRole ? 'Rol actual' : 'Rol de la invitación aceptada'}</dt>
+              <dd>{currentRole || acceptedRole}</dd>
             </div>
           )}
           <div>

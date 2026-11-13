@@ -22,6 +22,36 @@ async function clientFixture(page: Page, status = 200) {
         json: { error: 'WORKSPACE_NOT_FOUND' },
       });
     }
+    if (url.pathname === '/api/v1/profile/entities') {
+      entityReads++;
+      return route.fulfill({
+        status,
+        json:
+          status === 200
+            ? {
+                entity_memberships: [
+                  {
+                    workspace_id: workspace.id,
+                    entity_id: entity.id,
+                    role: 'client_viewer',
+                    entity: {
+                      id: entity.id,
+                      kind: 'tax_entity',
+                      legal_name: entity.legal_name,
+                      taxId: '******001',
+                      permissions: {
+                        can_view: true,
+                        can_upload: true,
+                        can_review: false,
+                        can_manage: false,
+                      },
+                    },
+                  },
+                ],
+              }
+            : { error: 'ENTITY_NOT_FOUND' },
+      });
+    }
     if (
       url.pathname ===
       `/api/v1/workspaces/${workspace.id}/entities/${entity.id}`

@@ -2,7 +2,9 @@
 
 ## Estado real
 
-Frontend de entrada aislada implementado; **lectura real de la empresa bloqueada por el contrato actual del API**. No declarar el flujo de datos completo ni probado con cuentas reales. Se cumplió la instrucción de no corregirlo en backend ni crear workspace_membership. Solo nuvora-web; sin API/SQL/env/secretos/Git/migraciones/despliegue ni dependencias nuevas.
+Frontend de entrada aislada implementado; la entrada autenticada consume ahora `GET /api/v1/profile/entities`, que devuelve entity, rol y permisos proyectados por grants activos `can_view`. `ClientEntityPage` usa esa respuesta para el detalle permitido y ya no solicita `GET /api/v1/workspaces/:workspaceId` ni el GET anidado de entity para autorizar al cliente. El endpoint sigue siendo la autoridad en cada consulta y nunca se crea `workspace_membership`.
+
+El bloqueo descrito históricamente abajo corresponde al contrato anidado anterior; no bloquea esta nueva entrada porque el frontend utiliza el endpoint de perfil.
 
 ## Hallazgo exacto del API (lectura solamente)
 

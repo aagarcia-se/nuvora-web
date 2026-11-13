@@ -33,3 +33,25 @@ export type Membership = {
   revokedAt: string | null;
 };
 export type AccessContext = { workspaceId: string; entityId: string };
+
+export type EntityPermissions = {
+  canView: boolean;
+  canUpload: boolean;
+  canReview: boolean;
+  canManage: boolean;
+};
+
+export type ProfileEntity = {
+  id: string;
+  kind: string;
+  legalName: string;
+  taxId?: string;
+  permissions: EntityPermissions;
+};
+
+export type ProfileEntityMembership = {
+  workspaceId: string;
+  entityId: string;
+  role: ClientRole;
+  entity: ProfileEntity;
+};

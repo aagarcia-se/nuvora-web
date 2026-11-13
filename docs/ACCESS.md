@@ -1,5 +1,13 @@
 # Actualización vigente — entrada de cliente aislado
 
+## Descubrimiento de contexto tras login
+
+La aplicación consulta `GET /api/v1/profile/entities` después de autenticar para
+detectar memberships directas activas con `can_view`. Solo workspaces conserva el
+flujo de contador; solo entity entra al portal sin crear workspace; ambos muestran
+una elección explícita; sin ninguno conserva «Crear espacio». 401/503 y respuestas
+vacías tienen estados separados, reintento explícito y limpieza normal de Auth.
+
 POST accept ya redirige a `/client/entities/:entityId?workspaceId=:workspaceId`, sin consultar/workspace_membership ni montar navegación del contador. La consulta de entity está bloqueada para membresía directa por el API actual; detalles exactos y estado real en [CLIENT.md](CLIENT.md). No declarar la lectura real resuelta por pasar build.
 
 Compartir acceso ahora abre selector+Crear enlace de inmediato. Copiar/WhatsApp visibles con iconos; Web Share/ocultar/rotar bajo opciones y membresías en Personas con acceso, consultadas solo al abrir. Colores y seguridad link-only preservados. Las referencias al panel desplegable inicialmente cerrado y a redirección a rutas de contador de la descripción anterior son históricas.

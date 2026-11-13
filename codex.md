@@ -1,5 +1,19 @@
 # Estado vigente — cliente aislado y enlaces compactos, 2026-11-12
 
+## Descubrimiento de contexto tras autenticación — 2026-11-12
+
+Implementado únicamente en `nuvora-web`: después de autenticar se consume `GET /api/v1/profile/entities` con Bearer mediante `features/access/api/profileAccessApi.ts` y `hooks/useProfileEntities.ts`. La query está aislada por `userId`, se cancela/limpia con Auth y no convierte roles o permisos en autoridad local.
+
+- Solo workspaces activos: se conserva la experiencia actual de contador, lista, búsqueda y creación.
+- Solo memberships directas de entity: una entity entra directamente a `/client/entities/:entityId?workspaceId=:workspaceId`; varias se eligen explícitamente. No se muestra crear workspace ni gestión del despacho.
+- Ambos accesos: se exige una elección visible entre área del despacho y portal cliente; no hay redirección silenciosa.
+- Ningún acceso: se conserva el flujo existente de crear workspace.
+- Carga, lista vacía, 401, 503 y red: estados seguros y reintento sin bucles ni redirecciones repetidas.
+
+El portal cliente usa el entity detail devuelto por `/profile/entities` y no autoriza mediante `GET /api/v1/workspaces/:workspaceId` ni el detalle anidado; no crea `workspace_membership`. Mocks/casos Demo en `tests/auth/workspace.spec.ts` cubren contador, cliente, ambos, ninguno y 401/503; logout y cambio de usuario conservan la limpieza existente. Playwright no fue ejecutado.
+
+Verificación: `npm run lint` y `npm run build` aprobados; se conserva el aviso de bundle principal superior a 500 kB. Sin cambios en API, SQL, backend, `.env`, secretos, Git, commits, pushes ni deploys.
+
 **Entrada y pantalla frontend implementadas; lectura real de entity bloqueada por API.** Tras POST accept exitoso se abre `/client/entities/:entityId?workspaceId=:workspaceId`, con guard y cabecera propios, sin shell de contador, sin GET/lista/detalle de workspaces y sin crear workspace_membership. Contadores conservan sus rutas. Solo se intenta el GET de entity documentado, con IDs y sesión actuales.
 
 **Bloqueo exacto comprobado por inspección:** `nuvora-api/src/modules/entities/entity.service.ts:getEntity` exige findWorkspaceMembership antes de evaluar membresía directa y devuelve 404 ENTITY_NOT_FOUND si no existe. No hay endpoint alternativo documentado para leer entity/rol/despacho solo por entity_membership. No se modificó API ni se eludió ese control. No declarar el acceso de datos del cliente completamente funcional hasta coordinar este contrato. La pantalla muestra rechazo/reintento seguros, sin WORKSPACE_NOT_FOUND del shell ni datos inventados.
@@ -652,6 +666,66 @@ Roles actuales de `entity_memberships`:
 El rol debe venir del API. No convertir un rol de cliente en permisos de
 workspace desde el frontend. Si una acción todavía no tiene endpoint o permiso
 backend, mostrarla como pendiente o no mostrarla; no simularla.
+
+## Descubrimiento de acceso al iniciar sesión
+
+El API dispone de este endpoint para detectar clientes sin
+`workspace_membership`:
+
+```http
+GET /api/v1/profile/entities
+```
+
+Requiere Bearer y devuelve únicamente memberships directas activas cruzadas
+con grants activos `can_view`:
+
+```json
+{
+  "entity_memberships": [
+    {
+      "workspace_id": "uuid",
+      "entity_id": "uuid",
+      "role": "client_viewer",
+      "entity": {
+        "id": "uuid",
+        "kind": "tax_entity",
+        "legal_name": "Cliente Demo",
+        "taxId": "*****789",
+        "permissions": {
+          "can_view": true,
+          "can_upload": true,
+          "can_review": false,
+          "can_manage": false
+        }
+      }
+    }
+  ]
+}
+```
+
+### Reglas de entrada
+
+- Consultar este endpoint después de que la sesión esté autenticada.
+- No usar `GET /workspaces` como única forma de decidir el dashboard.
+- Usuario contador: tiene workspaces activos y debe ver el dashboard de
+  workspaces.
+- Usuario cliente: puede no tener workspaces, pero sí memberships en
+  `/profile/entities`; debe entrar directamente a su portal entity y nunca al
+  formulario de crear workspace.
+- Usuario sin workspaces ni entity memberships: puede ver el flujo de crear
+  workspace, si corresponde a la experiencia actual.
+- Usuario con ambos tipos de acceso: no elegir silenciosamente; mostrar una
+  elección clara entre continuar al área de despacho o al portal de cliente.
+- No guardar tokens ni convertir la respuesta en autorización local: el API
+  sigue validando cada petición.
+- Al cerrar sesión, limpiar el contexto y las queries de ambos perfiles.
+
+El endpoint no requiere SQL adicional. Fue validado en backend con usuarios
+con membership, sin membership, acceso revocado, entidad ajena y error de
+proveedor. El backend no debe modificarse para esta integración frontend.
+
+Documentar la decisión y el flujo final en este archivo y en la documentación
+frontend relevante cuando termine la implementación.
 
 ## Fase adicional autorizada: invitaciones y compartir enlace
 

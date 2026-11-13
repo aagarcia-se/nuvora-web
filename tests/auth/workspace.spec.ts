@@ -29,6 +29,23 @@ const profile = {
   created_at: user.created_at,
   updated_at: user.created_at,
 };
+const entityMembership = {
+  workspace_id: '33333333-3333-4333-8333-333333333333',
+  entity_id: '44444444-4444-4444-8444-444444444444',
+  role: 'client_viewer',
+  entity: {
+    id: '44444444-4444-4444-8444-444444444444',
+    kind: 'tax_entity',
+    legal_name: 'Cliente Demo',
+    taxId: '*****789',
+    permissions: {
+      can_view: true,
+      can_upload: false,
+      can_review: false,
+      can_manage: false,
+    },
+  },
+};
 
 async function setup(
   page: Page,
@@ -39,9 +56,13 @@ async function setup(
     listStatus?: number;
     createStatus?: number;
     detailStatus?: number;
+    entities?: boolean;
+    both?: boolean;
+    entitiesStatus?: number;
   } = {},
 ) {
-  let items = options.empty ? [] : [workspace];
+  let items = options.empty || options.entities ? [] : [workspace];
+  if (options.both) items = [workspace];
   let creations = 0;
   await page.route('https://auth.demo.test/auth/v1/**', (route) =>
     route.request().url().includes('/logout')
@@ -77,7 +98,11 @@ async function setup(
                 display_name: options.noName ? null : profile.display_name,
               },
             },
-          });
+           });
+    if (path === '/api/v1/profile/entities')
+      return options.entitiesStatus
+        ? route.fulfill({ status: options.entitiesStatus, json: { error: 'PROFILE_ENTITIES_ERROR' } })
+        : route.fulfill({ json: { entity_memberships: options.entities || options.both ? [entityMembership] : [] } });
     if (path === '/api/v1/workspaces' && route.request().method() === 'GET')
       return options.listStatus
         ? route.fulfill({
@@ -120,9 +145,17 @@ async function setup(
   await page
     .getByRole('button', { name: 'Iniciar sesión', exact: true })
     .click();
-  await expect(
-    page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
-  ).toBeVisible();
+  if (options.entities && !options.both) {
+    await expect(page).toHaveURL(/\/client\/entities\//);
+  } else if (options.both) {
+    await expect(
+      page.getByRole('heading', { name: 'Tienes dos áreas de acceso' }),
+    ).toBeVisible();
+  } else {
+    await expect(
+      page.getByRole('heading', { name: 'Tus espacios de trabajo' }),
+    ).toBeVisible();
+  }
   return { creations: () => creations };
 }
 
@@ -182,6 +215,31 @@ test('Demo: lista vacía muestra creación y no datos ficticios', async ({
     page.getByRole('heading', { name: 'Todo empieza con un espacio.' }),
   ).toBeVisible();
   await expect(page.getByRole('link', { name: /^Abrir / })).toHaveCount(0);
+});
+
+test('Demo: solo membresía de entity entra al portal sin crear workspace', async ({
+  page,
+}) => {
+  await setup(page, { entities: true });
+  await expect(page).toHaveURL(/\/client\/entities\/44444444-4444-4444-8444-444444444444/);
+  await expect(page.getByRole('heading', { name: 'Cliente Demo' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Crear espacio', exact: true })).toHaveCount(0);
+  await expect(page).toHaveURL(/workspaceId=33333333-3333-4333-8333-333333333333/);
+});
+
+test('Demo: ambos accesos muestran elección explícita y no redirigen solos', async ({ page }) => {
+  await setup(page, { both: true });
+  await expect(page.getByRole('heading', { name: 'Tienes dos áreas de acceso' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Área del despacho/ })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Portal cliente/ })).toBeVisible();
+});
+
+test('Demo: error 401/503 del descubrimiento no abre creación', async ({ page }) => {
+  for (const status of [401, 503]) {
+    await setup(page, { entitiesStatus: status });
+    await expect(page.getByRole('heading', { name: 'No pudimos comprobar tus accesos' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Crear espacio', exact: true })).toHaveCount(0);
+  }
 });
 
 test('Demo: creación única, confirmación y detalle autorizado', async ({

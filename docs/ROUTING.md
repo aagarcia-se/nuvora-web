@@ -4,6 +4,8 @@ Objetivo: separar selección de espacio, cartera, detalle y cuenta, manteniendo 
 
 ## Implementado
 
+La ruta `/` resuelve el contexto después de autenticar con `GET /api/v1/profile/entities` y `GET /api/v1/workspaces`. Una sola entity redirige al portal aislado; workspaces + entities muestran elección explícita; únicamente workspaces conserva el selector actual y ambas listas vacías conservan la creación. El portal no consulta el detalle del workspace para autorizar.
+
 | Ruta | Contenido |
 | --- | --- |
 | `/` | Espacios y diálogo de creación |

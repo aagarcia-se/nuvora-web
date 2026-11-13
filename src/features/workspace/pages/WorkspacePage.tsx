@@ -1,9 +1,9 @@
 import { useState } from 'react';
+import { Link, Navigate } from 'react-router-dom';
 import { useAuth } from '@/features/auth/store/authStore';
 import { Button } from '@/shared/ui/components/Button';
 import { Icon } from '@/shared/ui/components/Icon';
 import { useWorkspaceQueries } from '../api/useWorkspaceQueries';
-import { Link } from 'react-router-dom';
 
 import { CreateWorkspaceDialog } from '../components/CreateWorkspaceDialog';
 import {
@@ -14,8 +14,129 @@ import { initials } from '../utils/workspacePresentation';
 import type { Workspace } from '../types/workspace.types';
 import { workspaceRoles } from '../utils/workspacePresentation';
 import styles from '../workspace.module.css';
+import { useProfileEntities } from '@/features/access/hooks/useProfileEntities';
+import { clientRoles, type ProfileEntityMembership } from '@/features/access/types/access.types';
+import { errorStatus } from '@/shared/api/authenticatedRequest';
 
 export function WorkspacePage() {
+  const { logout } = useAuth();
+  const access = useProfileEntities();
+  const { list } = useWorkspaceQueries();
+  const entities = access.data ?? [];
+  const workspaces = list.data ?? [];
+  const [choice, setChoice] = useState<'undecided' | 'workspace'>('undecided');
+
+  if (access.isPending || list.isPending)
+    return (
+      <div role="status" className={styles.entryState}>
+        <h1>Preparando tu espacio</h1>
+        <p>Estamos comprobando tus áreas de acceso…</p>
+      </div>
+    );
+  if (access.isError || list.isError)
+    return (
+      <div className={styles.entryState}>
+        <h1>No pudimos comprobar tus accesos</h1>
+        <p role="alert">
+          {errorStatus(access.error) === 401 || errorStatus(list.error) === 401
+            ? 'Tu sesión ya no es válida. Vuelve a iniciar sesión.'
+            : 'El servicio no está disponible por el momento. Inténtalo de nuevo más tarde.'}
+        </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button
+            type="button"
+            onClick={() => {
+              void access.refetch();
+              void list.refetch();
+            }}
+          >
+            Reintentar
+          </Button>
+          {(errorStatus(access.error) === 401 || errorStatus(list.error) === 401) && (
+            <Button variant="secondary" type="button" onClick={() => void logout()}>
+              Volver a iniciar sesión
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  if (workspaces.length === 0 && entities.length === 1)
+    return (
+      <Navigate
+        replace
+        to={`/client/entities/${entities[0].entityId}?workspaceId=${entities[0].workspaceId}`}
+      />
+    );
+  if (workspaces.length === 0 && entities.length > 1)
+    return <AccessChoice entities={entities} hasWorkspace={false} onWorkspace={() => setChoice('workspace')} />;
+  if (workspaces.length > 0 && entities.length > 0 && choice !== 'workspace')
+    return <AccessChoice entities={entities} hasWorkspace onWorkspace={() => setChoice('workspace')} />;
+  return <WorkspaceHome />;
+}
+
+function AccessChoice({
+  entities,
+  hasWorkspace,
+  onWorkspace,
+}: {
+  entities: ProfileEntityMembership[];
+  hasWorkspace: boolean;
+  onWorkspace: () => void;
+}) {
+  const first = entities.length === 1 ? entities[0] : null;
+  return (
+    <>
+      <header className={styles.pageHeading}>
+        <div>
+          <p className={styles.eyebrow}>Elige dónde continuar</p>
+          <h1>{hasWorkspace ? 'Tienes dos áreas de acceso' : 'Elige tu empresa'}</h1>
+          <p className={styles.intro}>
+            {hasWorkspace
+              ? 'Selecciona el área que quieres abrir. Tu acceso al despacho y al portal cliente se mantienen separados.'
+              : 'Selecciona la empresa cuyo portal quieres abrir.'}
+          </p>
+        </div>
+      </header>
+      <section className={styles.contextChoices} aria-labelledby="access-choice-heading">
+        <h2 id="access-choice-heading" className="sr-only">Áreas disponibles</h2>
+        {hasWorkspace && (
+          <button type="button" className={styles.contextChoice} onClick={onWorkspace}>
+            <Icon name="layers" />
+            <span><strong>Área del despacho</strong><small>Gestiona tus espacios y clientes.</small></span>
+            <Icon name="arrow-right" />
+          </button>
+        )}
+        {first ? (
+          <Link
+            className={styles.contextChoice}
+            to={`/client/entities/${first.entityId}?workspaceId=${first.workspaceId}`}
+          >
+            <Icon name="shield" />
+            <span><strong>Portal cliente</strong><small>{first.entity.legalName} · {clientRoles[first.role]}</small></span>
+            <Icon name="arrow-right" />
+          </Link>
+        ) : (
+          <div className={styles.contextChoiceList}>
+            <p className={styles.choiceLabel}>Portal cliente</p>
+            {entities.map((item) => (
+              <Link
+                className={styles.contextChoice}
+                key={`${item.workspaceId}:${item.entityId}`}
+                to={`/client/entities/${item.entityId}?workspaceId=${item.workspaceId}`}
+              >
+                <Icon name="shield" />
+                <span><strong>{item.entity.legalName}</strong><small>{clientRoles[item.role]}</small></span>
+                <Icon name="arrow-right" />
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+    </>
+  );
+}
+
+function WorkspaceHome() {
   const { user } = useAuth();
 
   const [creating, setCreating] = useState(false);

@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/store/authStore';
-import { getEntity } from '@/features/entities/api/entityApi';
 import type { Acceptance } from '@/features/access/types/access.types';
+import { useProfileEntities } from '@/features/access/hooks/useProfileEntities';
 
 export const clientEntityKeys = {
   scope: (userId: string, workspaceId: string, entityId: string) =>
@@ -30,16 +30,20 @@ export function useClientEntity(workspaceId: string, entityId: string) {
     enabled: false,
     gcTime: 0,
   });
-  const detail = useQuery({
-    queryKey: clientEntityKeys.detail(userId, workspaceId, entityId),
-    queryFn: async ({ signal }) => {
-      const entity = await getEntity(userId, workspaceId, entityId, signal);
-      return { id: entity.id, legalName: entity.legal_name };
-    },
-    enabled: Boolean(userId),
-    gcTime: 0,
-    staleTime: 0,
-    retry: false,
-  });
+  const discovery = useProfileEntities();
+  const membership = discovery.data?.find(
+    (item) => item.workspaceId === workspaceId && item.entityId === entityId,
+  );
+  const detail = {
+    ...discovery,
+    data: membership
+      ? { id: membership.entity.id, legalName: membership.entity.legalName, role: membership.role }
+      : undefined,
+    isPending: discovery.isPending,
+    isError: discovery.isError || (discovery.isSuccess && !membership),
+    error: discovery.error,
+    isSuccess: discovery.isSuccess && Boolean(membership),
+    refetch: discovery.refetch,
+  };
   return { detail, entry: entry.data };
 }

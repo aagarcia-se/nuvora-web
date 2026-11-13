@@ -14,7 +14,7 @@ se conserva; captura, revisión, documentos y módulos financieros siguen pendie
 
 ## Cliente aislado
 
-La aceptación abre `/client/entities/:entityId?workspaceId=:workspaceId`, sin navegación ni consultas generales del despacho. **Lectura de la empresa pendiente del API:** su GET actual exige workspace_membership antes de consultar acceso directo; no se añade esa membresía como solución. UI de cliente y estados seguros preparados, sin datos simulados. Detalles y límite en [docs/CLIENT.md](docs/CLIENT.md).
+La aceptación abre `/client/entities/:entityId?workspaceId=:workspaceId`, sin navegación ni consultas generales del despacho. Tras autenticar, la entrada consulta `GET /api/v1/profile/entities`: solo cliente entra a su entity sin crear workspace; ambos accesos requieren elección explícita; sin accesos se conserva «Crear espacio». El portal usa el detalle permitido por ese endpoint, no autoriza con un workspace del despacho y no crea `workspace_membership`. Detalles y límites en [docs/CLIENT.md](docs/CLIENT.md).
 
 ## Accesos al cliente
 

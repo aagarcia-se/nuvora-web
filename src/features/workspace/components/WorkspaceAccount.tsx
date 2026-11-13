@@ -73,18 +73,21 @@ export function WorkspaceAccount({
       <div id={panelId} className={styles.accountPanel} hidden={!open}>
         {open && (
           <>
+            <div className={styles.accountIdentity}>
+              <p className="text-sm font-semibold">{name}</p>
+              <p className="mt-1 text-xs text-muted">{user?.email}</p>
+            </div>
             {showProfileLink ? (
               <Link
                 to="/account"
-                className="auth-link"
+                className={styles.accountLink}
                 onClick={() => setOpen(false)}
               >
-                Mi cuenta
+                <Icon name="user" /> Mi cuenta
               </Link>
             ) : (
-              <p className="font-semibold">Mi cuenta</p>
+              <p className={styles.accountLink}>Mi cuenta</p>
             )}
-            <p className="mt-1 break-words text-sm text-muted">{user?.email}</p>
           </>
         )}
         <div className={styles.preference}>

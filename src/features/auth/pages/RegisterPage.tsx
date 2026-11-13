@@ -89,13 +89,15 @@ export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
 
   return (
     <>
-      <p className="mb-3 text-sm font-medium text-muted">
-        Empieza con claridad
-      </p>
-      <h1 className="text-3xl font-semibold tracking-tight">Crear tu cuenta</h1>
-      <p className="mb-8 mt-3 text-muted">
-        Configura tu acceso a Nuvora Contadores.
-      </p>
+      <div className="auth-heading">
+        <p className="auth-eyebrow">Empieza con claridad</p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Crear tu cuenta
+        </h1>
+        <p className="auth-description">
+          Configura tu acceso a Nuvora Contadores.
+        </p>
+      </div>
       {!authConfigured && (
         <InlineAlert>
           El acceso aún no está configurado. Contacta al administrador.
@@ -104,7 +106,7 @@ export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
       <form
         onSubmit={submit}
         noValidate
-        className="mt-6 space-y-5"
+        className="auth-login-form"
         aria-busy={pending}
       >
         <div ref={summary} tabIndex={-1}>
@@ -196,11 +198,7 @@ export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
               {showPassword ? 'Ocultar' : 'Mostrar'}
             </button>
           </div>
-          <ul
-            id="password-rules"
-            className="mt-3 space-y-1 text-sm text-muted"
-            aria-live="polite"
-          >
+          <ul id="password-rules" className="password-rules" aria-live="polite">
             {rules.map((rule) => (
               <li
                 key={rule.key}
@@ -255,11 +253,13 @@ export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
         <Button
           type="submit"
           className="w-full"
+          loading={pending}
+          loadingLabel="Creando cuenta…"
           disabled={
             pending || googlePending || !authConfigured || !passwordValid
           }
         >
-          {pending ? 'Creando cuenta…' : 'Crear cuenta'}
+          Crear cuenta
         </Button>
         <div
           className="my-1 flex items-center gap-3 text-xs text-muted"
@@ -274,24 +274,22 @@ export function RegisterPage({ onLogin }: { onLogin?: () => void } = {}) {
           type="button"
           variant="secondary"
           className="w-full"
+          loading={googlePending}
+          loadingLabel="Conectando con Google…"
           disabled={googlePending || pending || !authConfigured}
           onClick={() => void continueWithGoogle()}
         >
           <GoogleMark />
-          {googlePending ? 'Conectando con Google…' : 'Continuar con Google'}
+          Continuar con Google
         </Button>
-        <p className="text-center text-sm">
+        <p className="auth-account-prompt">
           ¿Ya tienes una cuenta?{' '}
           {onLogin ? (
-            <button
-              type="button"
-              className="font-semibold underline"
-              onClick={onLogin}
-            >
+            <button type="button" className="auth-link" onClick={onLogin}>
               Inicia sesión
             </button>
           ) : (
-            <Link className="font-semibold underline" to="/login">
+            <Link className="auth-link" to="/login">
               Inicia sesión
             </Link>
           )}

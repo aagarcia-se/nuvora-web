@@ -1,5 +1,10 @@
 # Cliente aislado por entity_membership — 2026-11-12
 
+Presentación actualizada en el [rediseño integral](DESIGN-SYSTEM.md): ritmo y
+tipografía compartidos, identidad de marca y aviso secundario de funcionalidades
+futuras. Shell, consultas, permisos y continuidad de sesión conservados. Lint/build
+aprobados; revisión visual del nuevo diseño pendiente.
+
 ## Estado real
 
 Frontend de entrada aislada implementado; la entrada autenticada consume ahora `GET /api/v1/profile/entities`, que devuelve entity, rol y permisos proyectados por grants activos `can_view`. `ClientEntityPage` usa esa respuesta para el detalle permitido y ya no solicita `GET /api/v1/workspaces/:workspaceId` ni el GET anidado de entity para autorizar al cliente. El endpoint sigue siendo la autoridad en cada consulta y nunca se crea `workspace_membership`.

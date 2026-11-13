@@ -177,9 +177,11 @@ export function LoginPage({ onRegister }: { onRegister?: () => void } = {}) {
         <Button
           type="submit"
           className="w-full"
+          loading={pending}
+          loadingLabel="Iniciando sesión…"
           disabled={pending || googlePending || !authConfigured}
         >
-          {pending ? 'Iniciando sesión…' : 'Iniciar sesión'}
+          Iniciar sesión
         </Button>
         <div
           className="auth-divider flex items-center gap-3 text-xs text-muted"
@@ -194,11 +196,13 @@ export function LoginPage({ onRegister }: { onRegister?: () => void } = {}) {
           type="button"
           variant="secondary"
           className="w-full"
+          loading={googlePending}
+          loadingLabel="Conectando con Google…"
           disabled={googlePending || pending || !authConfigured}
           onClick={() => void continueWithGoogle()}
         >
           <GoogleMark />
-          {googlePending ? 'Conectando con Google…' : 'Continuar con Google'}
+          Continuar con Google
         </Button>
       </form>
       <div className="auth-account-prompt">

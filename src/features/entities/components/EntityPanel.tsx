@@ -40,13 +40,19 @@ function EntityPortfolio({
 }: Props & { list: ReturnType<typeof useEntities>; denied: boolean }) {
   const [creating, setCreating] = useState(false);
   const [search, setSearch] = useState('');
+  const [accessFilter, setAccessFilter] = useState('all');
   const [success, setSuccess] = useState('');
   const items = list.data ?? [];
   const canCreate = !denied && (role === 'owner' || role === 'admin');
-  const filtered = items.filter((item) =>
-    item.legal_name
-      .toLocaleLowerCase('es')
-      .includes(search.trim().toLocaleLowerCase('es')),
+  const filtered = items.filter(
+    (item) =>
+      (accessFilter === 'all' ||
+        (accessFilter === 'manage'
+          ? item.permissions.canManage
+          : !item.permissions.canManage)) &&
+      item.legal_name
+        .toLocaleLowerCase('es')
+        .includes(search.trim().toLocaleLowerCase('es')),
   );
   return (
     <section
@@ -56,10 +62,13 @@ function EntityPortfolio({
     >
       <div className={styles.heading}>
         <div>
-          <p className={workspaceStyles.eyebrow}>Cartera de clientes</p>
-          <h1 id="clients-heading">Clientes de {workspace.name}</h1>
+          <p className={workspaceStyles.eyebrow}>{workspace.name}</p>
+          <h1 id="clients-heading" aria-label={`Clientes de ${workspace.name}`}>
+            Clientes
+          </h1>
           <p className={styles.description}>
-            Consulta y organiza los clientes disponibles en este espacio.
+            Encuentra un cliente, consulta su información o administra su
+            acceso.
           </p>
         </div>
         {canCreate && (
@@ -90,10 +99,8 @@ function EntityPortfolio({
       <div className={workspaceStyles.spacesCard}>
         <div className={workspaceStyles.cardHeading}>
           <div>
-            <h3>Tus clientes</h3>
-            <p>
-              Espacio activo: <strong>{workspace.name}</strong>
-            </p>
+            <h2>Cartera del espacio</h2>
+            <p>Solo los clientes disponibles para tu cuenta.</p>
           </div>
           {list.isSuccess && (
             <span
@@ -104,19 +111,49 @@ function EntityPortfolio({
             </span>
           )}
         </div>
-        {items.length > 4 && !list.isError && (
-          <div className={workspaceStyles.search}>
-            <Icon name="search" />
-            <label htmlFor="client-search" className="sr-only">
-              Buscar clientes por nombre
-            </label>
-            <input
-              id="client-search"
-              type="search"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar cliente por nombre…"
-            />
+        {items.length > 0 && !list.isError && (
+          <div className={workspaceStyles.listToolbar}>
+            <div className={workspaceStyles.search}>
+              <Icon name="search" />
+              <label htmlFor="client-search" className="sr-only">
+                Buscar clientes por nombre
+              </label>
+              <input
+                id="client-search"
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Buscar cliente por nombre…"
+              />
+              {search && (
+                <button
+                  type="button"
+                  className={workspaceStyles.searchClear}
+                  aria-label="Limpiar búsqueda de clientes"
+                  onClick={() => {
+                    setSearch('');
+                    document.getElementById('client-search')?.focus();
+                  }}
+                >
+                  <Icon name="close" />
+                </button>
+              )}
+            </div>
+            <div className={workspaceStyles.filterControl}>
+              <label htmlFor="client-access-filter" className="sr-only">
+                Filtrar clientes por tu acceso
+              </label>
+              <select
+                id="client-access-filter"
+                className="input"
+                value={accessFilter}
+                onChange={(event) => setAccessFilter(event.target.value)}
+              >
+                <option value="all">Todos los accesos</option>
+                <option value="manage">Con edición</option>
+                <option value="view">Solo consulta</option>
+              </select>
+            </div>
           </div>
         )}
         <div className={workspaceStyles.spacesBody}>
@@ -165,14 +202,21 @@ function EntityPortfolio({
             </div>
           ) : filtered.length === 0 ? (
             <div className={workspaceStyles.empty}>
+              <span className={workspaceStyles.emptyIcon}>
+                <Icon name="search" />
+              </span>
               <h3>No encontramos ese cliente.</h3>
-              <p>Prueba con otro nombre.</p>
+              <p>Prueba con otro nombre o restablece los filtros.</p>
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => setSearch('')}
+                onClick={() => {
+                  setSearch('');
+                  setAccessFilter('all');
+                  document.getElementById('client-search')?.focus();
+                }}
               >
-                Limpiar búsqueda
+                Restablecer filtros
               </Button>
             </div>
           ) : (
@@ -222,6 +266,12 @@ function EntityPortfolio({
             </>
           )}
         </div>
+        {list.isSuccess && items.length > 0 && (
+          <p className={workspaceStyles.listSummary} role="status">
+            {filtered.length} de {items.length}{' '}
+            {items.length === 1 ? 'cliente' : 'clientes'}
+          </p>
+        )}
       </div>
       {!canCreate && !denied && (
         <p className={styles.note}>
@@ -236,6 +286,7 @@ function EntityPortfolio({
           onClose={() => setCreating(false)}
           onCreated={(entity) => {
             setSearch('');
+            setAccessFilter('all');
             setSuccess(`Se creó «${entity.legal_name}» correctamente.`);
           }}
         />

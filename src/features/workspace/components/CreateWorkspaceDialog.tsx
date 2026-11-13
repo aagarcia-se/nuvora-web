@@ -93,10 +93,10 @@ export function CreateWorkspaceDialog({
         </button>
       </div>
       <h2 id="create-workspace-heading" className={styles.dialogTitle}>
-        Un nuevo espacio para tu trabajo.
+        Crear espacio de trabajo
       </h2>
       <p id="create-workspace-description" className={styles.dialogDescription}>
-        Dale un nombre a tu despacho o equipo. Podrás seleccionarlo al terminar.
+        Dale un nombre a tu despacho o equipo para organizar sus clientes.
       </p>
       <form
         onSubmit={submit}
@@ -193,8 +193,8 @@ export function CreateWorkspaceDialog({
             </p>
           ) : (
             <p id="new-slug-hint" className={styles.fieldHint}>
-              Un nombre único, con minúsculas, números y guiones. Ejemplo:
-              despacho-central.
+              Se completa con el nombre del espacio. Puedes ajustarlo con
+              minúsculas, números y guiones.
             </p>
           )}
         </div>
@@ -207,8 +207,13 @@ export function CreateWorkspaceDialog({
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={create.isPending}>
-            {create.isPending ? 'Creando espacio…' : 'Crear espacio'}
+          <Button
+            type="submit"
+            loading={create.isPending}
+            loadingLabel="Creando espacio…"
+            disabled={create.isPending}
+          >
+            Crear espacio
           </Button>
         </div>
       </form>

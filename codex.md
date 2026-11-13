@@ -1,4 +1,38 @@
-# Estado vigente — identidad visible en accesos, 2026-11-12
+# Estado vigente — rediseño integral de UI/UX, 2026-11-12
+
+El propietario autorizó modernizar la experiencia de las funcionalidades actuales.
+Se aplicaron emil-design-eng y la guía local de UI/UX Pro Max: sistema de ritmo,
+tipografía, radios y movimiento centralizado; navegación con marca/contexto,
+listados en una superficie, búsqueda desde el primer registro, filtro local de
+clientes por acceso y resumen de resultados. La ficha pone editar junto a la
+identidad y conserva filas semánticas. Autenticación comparte jerarquía y estados
+de carga estables; perfil y cliente aislado siguen esa misma composición.
+
+Compartir conserva su formulario directo y la opción de cerrar/desmontar los
+enlaces de esta visita; historial/personas son desplegables y de lectura diferida.
+El color de estados depende de `data-state`, no de la forma del SVG. La pulsación
+y entrada de overlays solo tienen movimiento con puntero y sin preferencia de
+movimiento reducido. Teclado, rutas y listas responden sin animación.
+
+La autorización visual actual sustituye las restricciones históricas de no
+reestructurar componentes; se mantienen la paleta vigente, rutas, contratos,
+permisos, sesión/cancelación, tratamiento del NIT y continuidad segura de enlaces.
+Sin backend/SQL/env/Git, dependencias ni módulos financieros nuevos. Python no
+está disponible: se leyó la guía de UI/UX Pro Max directamente, sin atribuir
+resultados al buscador. Documentación completa: [docs/DESIGN-SYSTEM.md](docs/DESIGN-SYSTEM.md).
+
+Verificación final: `npm run lint` y `npm run build` terminaron con salida 0
+después de los cambios y el formateo acotado. TypeScript y generación Vite/PWA
+completos; CSS 57,12 kB (11,40 kB gzip), JS principal 700,82 kB (202,27 kB gzip).
+Permanece el aviso de chunk superior a 500 kB. Se adaptó el selector de rol en los
+casos Demo y se prepararon casos de búsqueda/filtro/restablecimiento y consulta
+diferida de historial/personas; no se ejecutaron. Revisión visual intentada pero
+no completada por indisponibilidad del host de navegador/captura de la aplicación.
+No se ejecutó Playwright; integración real y aceptación visual siguen pendientes.
+
+---
+
+# Estado anterior — identidad visible en accesos, 2026-11-12
 
 ## Integración de perfiles en el panel de accesos
 

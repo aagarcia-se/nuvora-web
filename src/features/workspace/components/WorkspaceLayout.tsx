@@ -80,8 +80,11 @@ export function WorkspaceLayout({
       </a>
       <aside className={navigation.sidebar} aria-label="Panel de navegación">
         <div className={navigation.sidebarHeading}>
-          <Icon name="layers" />
-          <span>Tu espacio de trabajo</span>
+          <span className="brand-mark" aria-hidden="true" />
+          <div>
+            <span className={navigation.brandName}>{env.appName}</span>
+            <span className={navigation.brandCaption}>Contadores</span>
+          </div>
         </div>
         <WorkspaceNavigation workspace={workspace} checking={checking} />
       </aside>
@@ -105,10 +108,16 @@ export function WorkspaceLayout({
             </button>
             <div className={navigation.headerCopy}>
               <span className={navigation.headerTitle}>
-                {workspace?.name ?? 'Tu espacio de trabajo'}
+                {workspace?.name ?? env.appName}
               </span>
               <span className={navigation.headerSubtitle}>
-                {workspace ? 'Espacio activo' : env.appName}
+                {checking
+                  ? 'Verificando acceso…'
+                  : workspace
+                    ? 'Espacio activo'
+                    : pathname === '/account'
+                      ? 'Mi cuenta'
+                      : 'Espacios de trabajo'}
               </span>
             </div>
           </div>

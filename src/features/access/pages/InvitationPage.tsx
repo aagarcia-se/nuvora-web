@@ -34,7 +34,7 @@ export function InvitationPage() {
       mounted.current = false;
       queueMicrotask(() => {
         if (!mounted.current) {
-           clearPendingInvitationMemory();
+          clearPendingInvitationMemory();
         }
       });
     };
@@ -79,9 +79,9 @@ export function InvitationPage() {
           </p>
         </div>
         <p className={styles.hint}>
-           Si usas Google, el contexto se conserva solo durante unos minutos en
-           esta pestaña para volver aquí. Si cancelas o cambias de cuenta,
-           vuelve a abrir el enlace original.
+          Si usas Google, el contexto se conserva solo durante unos minutos en
+          esta pestaña para volver aquí. Si cancelas o cambias de cuenta, vuelve
+          a abrir el enlace original.
         </p>
         {registering ? (
           <RegisterPage onLogin={() => setRegistering(false)} />
@@ -122,10 +122,10 @@ function InvitationSession({
     void inspectRun((id, signal) => inspectInvitation(id, token, signal)).then(
       (result) => {
         if (!active) return;
-         if (result) {
-           setInspection(result);
-           if (result.status !== 'pending') clearInvitationToken();
-         }
+        if (result) {
+          setInspection(result);
+          if (result.status !== 'pending') clearInvitationToken();
+        }
         setLoaded(true);
       },
     );
@@ -234,11 +234,13 @@ function InvitationSession({
                   <AccessFeedback error={accept.error} />
                   <Button
                     type="button"
+                    loading={accept.pending}
+                    loadingLabel="Aceptando…"
                     disabled={accept.pending}
                     className="mt-4 w-full"
                     onClick={() => void acceptNow()}
                   >
-                    {accept.pending ? 'Aceptando…' : 'Aceptar invitación'}
+                    Aceptar invitación
                   </Button>
                 </>
               )}
@@ -251,7 +253,7 @@ function InvitationSession({
           type="button"
           variant="secondary"
           disabled={accept.pending}
-           onClick={() => void leaveInvitation()}
+          onClick={() => void leaveInvitation()}
         >
           Usar otra cuenta
         </Button>

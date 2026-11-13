@@ -1,5 +1,10 @@
 # Clientes y entidades — fase frontend de codex.md
 
+Actualización de UI/UX: [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Búsqueda desde el
+primer cliente, filtro local por acceso y resumen de resultados. El título visible
+es «Clientes»; su nombre accesible incluye el workspace. Editar se sitúa junto a
+la identidad en la ficha. Contratos, permisos y tratamiento de NIT conservados.
+
 ## Estado vigente de presentación
 
 Cartera y detalle separados por rutas (ver [ROUTING.md](ROUTING.md)). Detalle en `src/features/entities/pages/EntityDetailPage.tsx`: una superficie con cabecera limpia e iniciales, lista semántica de NIT/acceso/fechas, iconos SVG y separadores. Etiqueta/valor en columnas en escritorio y apilados en móvil. Sin cards por dato, badge de acceso ni borde decorativo. Edición conserva permisos, formulario y manejo explícito de NIT; altas siguen en diálogos. Tokens índigo/azul/verde según [PALETTE.md](PALETTE.md).

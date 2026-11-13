@@ -1,6 +1,30 @@
 import { expect, test } from '@playwright/test';
 import { setup, select, openClient, workspace, entity } from './access.fixture';
 
+test('Demo: búsqueda y filtro local de acceso se restablecen sin otra lectura', async ({
+  page,
+}) => {
+  const api = await setup(page);
+  await select(page);
+  const search = page.getByLabel('Buscar clientes por nombre');
+  await search.fill('sin coincidencias demo');
+  await expect(
+    page.getByRole('heading', { name: 'No encontramos ese cliente.' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Restablecer filtros' }).click();
+  await expect(search).toBeFocused();
+  await expect(search).toHaveValue('');
+  await page.getByLabel('Filtrar clientes por tu acceso').selectOption('view');
+  await expect(page.getByRole('link', { name: /^Ver cliente / })).toHaveCount(
+    0,
+  );
+  await page.getByRole('button', { name: 'Restablecer filtros' }).click();
+  await expect(
+    page.getByRole('link', { name: 'Ver cliente Cliente Demo, S. A.' }),
+  ).toBeVisible();
+  expect(api.reads()).toBe(1);
+});
+
 test('Demo: no consulta clientes sin espacio confirmado y carga lista contextual', async ({
   page,
 }) => {

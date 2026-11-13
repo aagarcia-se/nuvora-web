@@ -1,3 +1,14 @@
+# Rediseño de experiencia — 2026-11-12
+
+Ver [DESIGN-SYSTEM.md](DESIGN-SYSTEM.md). Compartir sigue visible de entrada;
+cerrar el panel desmonta los enlaces efímeros como antes. Historial y personas
+empiezan cerrados y consultan al desplegar. La etiqueta del selector de rol es
+«Permiso del enlace». Colores de estado mediante `data-state`, confirmaciones
+destructivas y botones con estado de carga estable. Contratos/link-only, memoria
+efímera, permisos y continuidad OAuth intactos. Casos Demo preparados, no ejecutados.
+
+---
+
 # Actualización vigente — identidad visible en accesos, 2026-11-12
 
 ## Identidad visible en membresías e invitaciones

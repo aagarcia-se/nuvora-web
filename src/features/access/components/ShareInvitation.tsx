@@ -120,10 +120,12 @@ export function ShareInvitation({
             <Button
               type="button"
               variant="secondary"
+              loading={sharing}
+              loadingLabel="Compartiendo…"
               disabled={sharing}
               onClick={() => void share()}
             >
-              {sharing ? 'Compartiendo…' : 'Compartir'}
+              Compartir
             </Button>
             <Button
               type="button"
@@ -146,14 +148,12 @@ export function ShareInvitation({
         <Button
           type="button"
           variant="secondary"
+          loading={action.pending}
+          loadingLabel="Generando…"
           disabled={action.pending || sharing}
           onClick={() => void generate()}
         >
-          {action.pending
-            ? 'Generando…'
-            : url
-              ? 'Reemplazar enlace anterior'
-              : 'Generar nuevo enlace'}
+          {url ? 'Reemplazar enlace anterior' : 'Generar nuevo enlace'}
         </Button>
       </details>
       {notice && (

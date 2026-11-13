@@ -15,7 +15,9 @@ export function ForgotPasswordPage() {
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (pending || !authConfigured) return;
-    const email = String(new FormData(event.currentTarget).get('email') || '').trim();
+    const email = String(
+      new FormData(event.currentTarget).get('email') || '',
+    ).trim();
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
     setEmailError(valid ? '' : 'Escribe un correo válido.');
     setError(null);
@@ -37,31 +39,56 @@ export function ForgotPasswordPage() {
 
   return (
     <>
-      <p className="mb-3 text-sm font-medium text-muted">Recupera el acceso</p>
-      <h1 className="text-3xl font-semibold tracking-tight">Olvidé mi contraseña</h1>
-      <p className="mb-8 mt-3 text-muted">
-        Te enviaremos instrucciones para crear una contraseña nueva.
-      </p>
+      <div className="auth-heading">
+        <p className="auth-eyebrow">Recupera el acceso</p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Olvidé mi contraseña
+        </h1>
+        <p className="auth-description">
+          Te enviaremos instrucciones para crear una contraseña nueva.
+        </p>
+      </div>
       {!authConfigured && (
-        <InlineAlert>El acceso aún no está configurado. Contacta al administrador.</InlineAlert>
+        <InlineAlert>
+          El acceso aún no está configurado. Contacta al administrador.
+        </InlineAlert>
       )}
       {sent ? (
         <div ref={summary} tabIndex={-1} className="space-y-5" role="status">
           <div className="success-alert">
             <p className="font-semibold">Revisa tu correo</p>
-            <p className="mt-1">Si existe una cuenta con ese correo, recibirás un enlace para continuar.</p>
+            <p className="mt-1">
+              Si existe una cuenta con ese correo, recibirás un enlace para
+              continuar.
+            </p>
           </div>
-          <p className="text-sm text-muted">El enlace puede vencer por seguridad. Revisa también tu carpeta de spam.</p>
-          <Link className="btn-secondary w-full" to="/login">Volver a iniciar sesión</Link>
+          <p className="text-sm text-muted">
+            El enlace puede vencer por seguridad. Revisa también tu carpeta de
+            spam.
+          </p>
+          <Link className="btn-secondary w-full" to="/login">
+            Volver a iniciar sesión
+          </Link>
         </div>
       ) : (
-        <form onSubmit={submit} noValidate className="mt-6 space-y-5" aria-busy={pending}>
+        <form
+          onSubmit={submit}
+          noValidate
+          className="auth-login-form"
+          aria-busy={pending}
+        >
           <div ref={summary} tabIndex={-1}>
             {error && <InlineAlert>{error}</InlineAlert>}
-            {emailError && <div role="alert" className="alert mt-3">{emailError}</div>}
+            {emailError && (
+              <div role="alert" className="alert mt-3">
+                {emailError}
+              </div>
+            )}
           </div>
           <div>
-            <label htmlFor="reset-email" className="field-label">Correo electrónico</label>
+            <label htmlFor="reset-email" className="field-label">
+              Correo electrónico
+            </label>
             <input
               id="reset-email"
               name="email"
@@ -76,12 +103,26 @@ export function ForgotPasswordPage() {
               aria-invalid={!!emailError}
               aria-describedby={emailError ? 'reset-email-error' : undefined}
             />
-            {emailError && <p id="reset-email-error" className="field-error">{emailError}</p>}
+            {emailError && (
+              <p id="reset-email-error" className="field-error">
+                {emailError}
+              </p>
+            )}
           </div>
-          <Button type="submit" className="w-full" disabled={pending || !authConfigured}>
-            {pending ? 'Enviando…' : 'Enviar enlace'}
+          <Button
+            type="submit"
+            className="w-full"
+            loading={pending}
+            loadingLabel="Enviando…"
+            disabled={pending || !authConfigured}
+          >
+            Enviar enlace
           </Button>
-          <p className="text-center text-sm"><Link className="underline" to="/login">Volver a iniciar sesión</Link></p>
+          <p className="auth-account-prompt">
+            <Link className="auth-link" to="/login">
+              Volver a iniciar sesión
+            </Link>
+          </p>
         </form>
       )}
     </>

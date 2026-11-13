@@ -1,5 +1,10 @@
 # Perfil y espacios de trabajo — entrega basada en codex.md
 
+Presentación vigente: [rediseño integral](DESIGN-SYSTEM.md). Listado en una
+superficie, búsqueda desde el primer espacio y resumen de resultados; perfil con
+identidad horizontal y atributos alineados. Contratos y descubrimiento de contexto
+sin cambios. Lint/build aprobados; revisión visual del nuevo diseño pendiente.
+
 ## Alcance y diseño
 
 La entrada inicial comparte un descubrimiento autenticado de entidades mediante `GET /api/v1/profile/entities`: solo workspaces conserva esta pantalla; solo entity entra al portal; ambos accesos requieren elección explícita; sin ninguno conserva «Crear espacio». Los errores 401/503 no se interpretan como lista vacía ni abren creación.

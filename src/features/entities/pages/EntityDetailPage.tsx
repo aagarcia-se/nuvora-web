@@ -49,14 +49,16 @@ export function EntityDetailPage({
           </p>
           <h1>{editingAllowed ? 'Editar cliente' : 'Detalle del cliente'}</h1>
           <p className={workspaceStyles.intro}>
-            Consulta la información disponible para tu cuenta.
+            {editingAllowed
+              ? 'Actualiza los datos. Solo se guardarán los cambios que realices.'
+              : 'Información del cliente y opciones de acceso en un mismo lugar.'}
           </p>
         </div>
         <Link
-          className="btn-secondary"
+          className={workspaceStyles.backLink}
           to={`/workspaces/${workspaceId}/clients`}
         >
-          Volver a clientes
+          <Icon name="arrow-right" /> Volver a clientes
         </Link>
       </header>
       {detail.isPending ? (
@@ -119,6 +121,19 @@ export function EntityDetailPage({
                       {entity.legal_name}
                     </h2>
                   </div>
+                  {canEdit && (
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setEditing(true);
+                        setMessage('');
+                        write.reset();
+                      }}
+                    >
+                      <Icon name="pencil" />
+                      Editar cliente
+                    </Button>
+                  )}
                 </div>
                 <dl className={styles.details}>
                   <div>
@@ -159,19 +174,6 @@ export function EntityDetailPage({
                     La información y la edición disponibles dependen de tus
                     permisos en este espacio.
                   </p>
-                  {canEdit && (
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        setEditing(true);
-                        setMessage('');
-                        write.reset();
-                      }}
-                    >
-                      <Icon name="pencil" />
-                      Editar cliente
-                    </Button>
-                  )}
                 </div>
               </div>
             )}

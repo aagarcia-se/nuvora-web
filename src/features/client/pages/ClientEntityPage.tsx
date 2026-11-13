@@ -28,7 +28,7 @@ export function ClientEntityPage() {
       </a>
       <header className={styles.topbar}>
         <div className={styles.brand}>
-          <Icon name="shield" />
+          <span className="brand-mark" aria-hidden="true" />
           <span>Espacio del cliente</span>
         </div>
         <WorkspaceAccount
@@ -90,7 +90,9 @@ function ClientEntityContent({
       </p>
       {(currentRole || acceptedRole) && (
         <p className={styles.role}>
-          {currentRole ? `Rol actual: ${currentRole}` : `Rol aceptado: ${acceptedRole}`}
+          {currentRole
+            ? `Rol actual: ${currentRole}`
+            : `Rol aceptado: ${acceptedRole}`}
         </p>
       )}
       {detail.isPending ? (
@@ -141,7 +143,11 @@ function ClientEntityContent({
                 Consulta autorizada
               </p>
               <h2>Acceso a la empresa</h2>
-              <p>{currentRole || acceptedRole || 'Acceso confirmado para tu cuenta'}</p>
+              <p>
+                {currentRole ||
+                  acceptedRole ||
+                  'Acceso confirmado para tu cuenta'}
+              </p>
             </div>
           </section>
           <section
@@ -151,11 +157,11 @@ function ClientEntityContent({
             <Icon name="file" />
             <div>
               <h2 id="client-documents-title">
-                Tus comprobantes, en un solo lugar
+                Este espacio seguirá creciendo
               </h2>
               <p>
-                La carga de XML, PDF, fotografías y el registro de gastos se
-                habilitarán en una siguiente fase.
+                Por ahora puedes consultar tu acceso. La carga de comprobantes y
+                el registro de gastos aún no están disponibles.
               </p>
             </div>
           </section>
@@ -166,7 +172,9 @@ function ClientEntityContent({
         <dl>
           {(currentRole || acceptedRole) && (
             <div>
-              <dt>{currentRole ? 'Rol actual' : 'Rol de la invitación aceptada'}</dt>
+              <dt>
+                {currentRole ? 'Rol actual' : 'Rol de la invitación aceptada'}
+              </dt>
               <dd>{currentRole || acceptedRole}</dd>
             </div>
           )}

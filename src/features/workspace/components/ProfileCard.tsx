@@ -34,13 +34,19 @@ export function ProfileCard({
           </div>
         ) : (
           <>
-            <WorkspaceAvatar
-              name={profile?.display_name || user?.email || 'N'}
-              url={profile?.avatar_url}
-              large
-            />
-            <h3 className={styles.profileName}>{name}</h3>
-            {user?.email && <p className={styles.profileEmail}>{user.email}</p>}
+            <div className={styles.profileIdentity}>
+              <WorkspaceAvatar
+                name={profile?.display_name || user?.email || 'N'}
+                url={profile?.avatar_url}
+                large
+              />
+              <div>
+                <h3 className={styles.profileName}>{name}</h3>
+                {user?.email && (
+                  <p className={styles.profileEmail}>{user.email}</p>
+                )}
+              </div>
+            </div>
             {Boolean(error) && workspaceStatus(error) === 404 && (
               <p role="status" className={styles.profileNote}>
                 {workspaceMessage(error, 'profile')}

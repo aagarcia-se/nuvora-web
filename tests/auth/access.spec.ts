@@ -53,7 +53,8 @@ async function admin(
               user:
                 options.profile === 'missing'
                   ? null
-                  : options.profile === 'null-fields' || options.profile === 'invalid-avatar'
+                  : options.profile === 'null-fields' ||
+                      options.profile === 'invalid-avatar'
                     ? { id: user.id, display_name: null, avatar_url: null }
                     : member.user,
               status: revoked ? 'revoked' : 'active',
@@ -61,7 +62,7 @@ async function admin(
             },
           ],
         },
-       });
+      });
     if (path === `${base}/invitations` && method === 'GET')
       return route.fulfill({
         json: {
@@ -71,20 +72,23 @@ async function admin(
               workspace_id: workspace.id,
               entity_id: entity.id,
               role: 'client_viewer',
-               status: invitationRevoked
-                 ? 'revoked'
-                 : (options.invitationStatus ?? 'pending'),
+              status: invitationRevoked
+                ? 'revoked'
+                : (options.invitationStatus ?? 'pending'),
               expires_at: expiresAt,
               created_at: user.created_at,
               accepted_at:
-                options.invitationStatus === 'accepted' ? user.created_at : null,
+                options.invitationStatus === 'accepted'
+                  ? user.created_at
+                  : null,
               accepted_by:
                 options.invitationStatus === 'accepted' ? user.id : null,
               accepted_by_profile:
                 options.invitationStatus === 'accepted'
                   ? options.profile === 'missing'
                     ? null
-                    : options.profile === 'null-fields' || options.profile === 'invalid-avatar'
+                    : options.profile === 'null-fields' ||
+                        options.profile === 'invalid-avatar'
                       ? { id: user.id, display_name: null, avatar_url: null }
                       : {
                           id: user.id,
@@ -145,6 +149,32 @@ async function admin(
 async function invite(page: Page) {
   await page.getByRole('button', { name: 'Crear enlace', exact: true }).click();
 }
+test('Demo: historial y personas solo se consultan al desplegarlos', async ({
+  page,
+}) => {
+  const reads: string[] = [];
+  page.on('request', (request) => {
+    const path = new URL(request.url()).pathname;
+    if (
+      request.method() === 'GET' &&
+      [base + '/invitations', base + '/memberships'].includes(path)
+    )
+      reads.push(path);
+  });
+  await admin(page);
+  expect(reads).toEqual([]);
+  await page.getByText('Historial de invitaciones', { exact: true }).click();
+  await expect(
+    page.getByText('Pendiente · aún no aceptada', { exact: true }),
+  ).toBeVisible();
+  expect(reads).toEqual([base + '/invitations']);
+  await page.getByText('Personas con acceso', { exact: true }).click();
+  await expect(
+    page.getByRole('button', { name: `Revocar acceso de ${user.id}` }),
+  ).toBeVisible();
+  expect(reads).toEqual([base + '/invitations', base + '/memberships']);
+});
+
 async function inspection(page: Page, status = 'pending', acceptStatus = 200) {
   await page.route('http://api.demo.test/api/v1/invitations/**', (route) => {
     if (route.request().method() === 'POST')
@@ -197,7 +227,9 @@ test('Demo: crea con solo rol y muestra enlace sin una segunda petición', async
 });
 test('Demo: rol explícito enviado al crear enlace', async ({ page }) => {
   const api = await admin(page);
-  await page.getByLabel('Acceso al cliente').selectOption('client_contributor');
+  await page
+    .getByLabel('Permiso del enlace')
+    .selectOption('client_contributor');
   await invite(page);
   await expect(page.getByLabel('Enlace de invitación')).toBeVisible();
   expect(api.writes).toEqual([{ role: 'client_contributor' }]);
@@ -258,22 +290,30 @@ test('Demo: aceptación muestra perfil visible y UUID secundario', async ({
   await admin(page, { invitationStatus: 'accepted' });
   await page.getByText('Historial de invitaciones', { exact: true }).click();
   await expect(page.getByText('Cliente Demo', { exact: true })).toBeVisible();
-  await expect(page.getByText(`Usuario: ${user.id}`, { exact: true })).toBeVisible();
+  await expect(
+    page.getByText(`Usuario: ${user.id}`, { exact: true }),
+  ).toBeVisible();
 });
 test('Demo: perfiles ausentes y campos nulos usan fallback seguro', async ({
   page,
 }) => {
   await admin(page, { profile: 'missing', invitationStatus: 'accepted' });
   await page.getByText('Personas con acceso', { exact: true }).click();
-  await expect(page.getByText('Usuario sin nombre', { exact: true })).toBeVisible();
-  await expect(page.getByText(`Usuario: ${user.id}`, { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Usuario sin nombre', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(`Usuario: ${user.id}`, { exact: true }),
+  ).toBeVisible();
 });
 test('Demo: avatar inválido ya normalizado a null conserva iniciales', async ({
   page,
 }) => {
   await admin(page, { profile: 'invalid-avatar' });
   await page.getByText('Personas con acceso', { exact: true }).click();
-  await expect(page.getByText('Usuario sin nombre', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('Usuario sin nombre', { exact: true }),
+  ).toBeVisible();
 });
 test('Demo: enlace rotado, copiar y WhatsApp sin envío automático', async ({
   page,

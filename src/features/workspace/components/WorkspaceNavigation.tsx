@@ -16,7 +16,7 @@ export function WorkspaceNavigation({
 }: Props) {
   return (
     <div className={styles.navigationBody}>
-      <p className={styles.label}>Espacio de trabajo</p>
+      <p className={styles.label}>Contexto de trabajo</p>
       <div className={styles.context}>
         <span className={styles.contextIcon} aria-hidden="true">
           {workspace ? initials(workspace.name) : <Icon name="layers" />}
@@ -24,10 +24,10 @@ export function WorkspaceNavigation({
         <div className={styles.contextCopy}>
           <p className={styles.contextName}>
             {workspace?.name ??
-              (checking ? 'Verificando acceso…' : 'Sin espacio activo')}
+              (checking ? 'Verificando acceso…' : 'Tus espacios')}
           </p>
           <p className={styles.contextHint}>
-            {workspace ? 'Espacio activo' : 'Elige dónde trabajar'}
+            {workspace ? 'Espacio activo' : 'Selecciona dónde continuar'}
           </p>
         </div>
       </div>

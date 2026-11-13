@@ -167,18 +167,20 @@ export function ResetPasswordPage() {
 
   return (
     <>
-      <p className="mb-3 text-sm font-medium text-muted">Casi terminamos</p>
-      <h1 className="text-3xl font-semibold tracking-tight">
-        Crea una contraseña nueva
-      </h1>
-      <p className="mb-8 mt-3 text-muted">
-        Usa entre 8 y 128 caracteres, mayúscula, minúscula, número y carácter
-        especial. No reutilices una contraseña que compartas con alguien.
-      </p>
+      <div className="auth-heading">
+        <p className="auth-eyebrow">Casi terminamos</p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          Crea una contraseña nueva
+        </h1>
+        <p className="auth-description">
+          Usa entre 8 y 128 caracteres, mayúscula, minúscula, número y carácter
+          especial. No reutilices una contraseña que compartas con alguien.
+        </p>
+      </div>
       <form
         onSubmit={submit}
         noValidate
-        className="space-y-5"
+        className="auth-login-form"
         aria-busy={pending}
       >
         <div ref={summary} tabIndex={-1}>
@@ -247,8 +249,14 @@ export function ResetPasswordPage() {
             </p>
           )}
         </div>
-        <Button type="submit" className="w-full" disabled={pending}>
-          {pending ? 'Actualizando…' : 'Actualizar contraseña'}
+        <Button
+          type="submit"
+          className="w-full"
+          loading={pending}
+          loadingLabel="Actualizando…"
+          disabled={pending}
+        >
+          Actualizar contraseña
         </Button>
         <Button
           type="button"

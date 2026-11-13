@@ -7,7 +7,7 @@
 .topbar,
 .content,
 .install {
-  max-width: 64rem;
+  max-width: 52rem;
   margin-inline: auto;
 }
 .topbar {
@@ -15,7 +15,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  min-height: 5rem;
+  min-height: 4.5rem;
   border-bottom: 1px solid rgb(var(--color-line));
 }
 .brand {
@@ -33,13 +33,13 @@
   margin-top: 1rem;
 }
 .content {
-  padding-block: clamp(2rem, 6vw, 4rem);
+  padding-block: clamp(2rem, 5vw, 3rem);
 }
 .content:focus {
   outline: none;
 }
 .content h1 {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-size: var(--text-title);
   font-weight: 650;
   line-height: 1.2;
   letter-spacing: -0.035em;
@@ -56,7 +56,7 @@
   margin-block: 1rem 2rem;
   color: rgb(var(--color-muted));
   font-size: 0.9375rem;
-  line-height: 1.8;
+  line-height: 1.65;
 }
 .state,
 .company,
@@ -65,7 +65,7 @@
   align-items: flex-start;
   gap: 1rem;
   padding: clamp(1.25rem, 3vw, 2rem);
-  border-radius: 1.25rem;
+  border-radius: var(--radius-surface);
   background: rgb(var(--color-surface));
 }
 .state > svg,
@@ -120,15 +120,17 @@
   height: 1rem;
 }
 .documents {
-  margin-top: 1.5rem;
+  margin-top: var(--space-6);
+  padding: 1.25rem 0;
+  border-radius: 0;
   background: transparent;
-  border: 1px dashed rgb(var(--color-line));
+  border-top: 1px solid rgb(var(--color-line));
 }
 .documents p {
   margin-bottom: 0;
 }
 .context {
-  margin-top: 1.5rem;
+  margin-top: var(--space-6);
   color: rgb(var(--color-muted));
   font-size: 0.8125rem;
   line-height: 1.8;
@@ -140,12 +142,15 @@
 }
 .context dl {
   display: grid;
-  gap: 0.75rem;
+  gap: var(--space-4);
   margin-block: 1rem;
 }
 .context dd {
   overflow-wrap: anywhere;
   color: rgb(var(--color-ink));
+}
+.context dt {
+  font-size: var(--text-caption);
 }
 @media (max-width: 479px) {
   .brand {

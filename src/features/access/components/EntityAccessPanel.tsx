@@ -47,17 +47,21 @@ export function EntityAccessPanel(props: Props) {
             <Icon name="shield" />
             Compartir acceso
           </h2>
-          <p>Invita a este cliente sin compartir tu despacho.</p>
+          <p>
+            Crea un enlace privado para este cliente. Tu despacho permanece
+            separado.
+          </p>
         </div>
-        <Button
+        <button
           type="button"
-          variant="secondary"
+          className={styles.toggle}
           aria-expanded={opened}
           aria-controls="client-access-content"
           onClick={() => setOpened((value) => !value)}
         >
           {opened ? 'Cerrar accesos' : 'Administrar accesos'}
-        </Button>
+          <Icon name="chevron-down" />
+        </button>
       </div>
       {opened && (
         <div id="client-access-content">
@@ -71,7 +75,7 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
   const { user } = useAuth();
   const client = useQueryClient();
   const [membersOpen, setMembersOpen] = useState(false);
-  const [invitationsOpen, setInvitationsOpen] = useState(true);
+  const [invitationsOpen, setInvitationsOpen] = useState(false);
   const members = useMemberships(context, membersOpen);
   const invitationHistory = useInvitations(context, invitationsOpen);
   const action = useAccessAction(context);
@@ -147,8 +151,12 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
       setNotice('Invitación revocada. El historial se conserva.');
       requestAnimationFrame(() => confirmation.current?.focus());
       if (user) {
-        await client.invalidateQueries({ queryKey: invitationKey(user.id, context) });
-        await client.invalidateQueries({ queryKey: membershipKey(user.id, context) });
+        await client.invalidateQueries({
+          queryKey: invitationKey(user.id, context),
+        });
+        await client.invalidateQueries({
+          queryKey: membershipKey(user.id, context),
+        });
       }
     }
   }
@@ -164,7 +172,7 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
         <div>
           <div>
             <label htmlFor="invite-role" className="field-label">
-              Compartir acceso
+              Permiso del enlace
             </label>
             <select
               id="invite-role"
@@ -181,8 +189,12 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
             </select>
           </div>
         </div>
-        <Button type="submit" disabled={action.pending}>
-          {action.pending ? 'Creando enlace…' : 'Crear enlace'}
+        <Button
+          type="submit"
+          loading={action.pending}
+          loadingLabel="Creando enlace…"
+        >
+          <Icon name="link" /> Crear enlace
         </Button>
       </form>
       <AccessFeedback error={!revoking ? action.error : null} />
@@ -231,7 +243,8 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
         </summary>
         <div id="invitation-history-content">
           <p className={styles.hint}>
-            Estados reales del servidor. No se muestran enlaces, tokens ni correos.
+            Consulta el estado y el vencimiento de cada invitación. Los enlaces
+            solo están disponibles al crearlos.
           </p>
           {invitationHistory.isPending ? (
             <p role="status">Cargando invitaciones…</p>
@@ -247,12 +260,16 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
               </Button>
             </>
           ) : invitationHistory.data.length === 0 ? (
-            <p className={styles.empty}>Aún no hay invitaciones para este cliente.</p>
+            <p className={styles.empty}>
+              Aún no hay invitaciones para este cliente.
+            </p>
           ) : (
             <ul className={styles.invitationList}>
               {invitationHistory.data.map((invitation) => {
                 const acceptedMember = invitation.acceptedBy
-                  ? members.data?.find((member) => member.userId === invitation.acceptedBy)
+                  ? members.data?.find(
+                      (member) => member.userId === invitation.acceptedBy,
+                    )
                   : undefined;
                 const statusLabel = invitationStatusLabel(
                   invitation,
@@ -263,12 +280,15 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
                     <div className={styles.memberCopy}>
                       <div className={styles.identityLine}>
                         {invitation.acceptedBy ? (
-                          <ProfileAvatar profile={invitation.acceptedByProfile} />
+                          <ProfileAvatar
+                            profile={invitation.acceptedByProfile}
+                          />
                         ) : null}
                         <div>
                           <strong>
                             {invitation.acceptedBy
-                              ? invitation.acceptedByProfile?.displayName?.trim() || 'Usuario sin nombre'
+                              ? invitation.acceptedByProfile?.displayName?.trim() ||
+                                'Usuario sin nombre'
                               : clientRoles[invitation.role]}
                           </strong>
                           {invitation.acceptedBy && (
@@ -278,17 +298,32 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
                           )}
                         </div>
                       </div>
-                      <span className={styles.statusLine}>
-                        <Icon name={invitation.status === 'accepted' ? 'check' : 'alert'} />
+                      <span
+                        className={styles.statusLine}
+                        data-state={
+                          acceptedMember?.status === 'revoked'
+                            ? 'revoked'
+                            : invitation.status
+                        }
+                      >
+                        <Icon
+                          name={
+                            invitation.status === 'accepted' ? 'check' : 'alert'
+                          }
+                        />
                         {statusLabel}
                       </span>
-                      {invitation.acceptedBy && <span>Rol: {clientRoles[invitation.role]}</span>}
+                      {invitation.acceptedBy && (
+                        <span>Rol: {clientRoles[invitation.role]}</span>
+                      )}
                       <span>
                         Creada: {displayDate(invitation.createdAt)} · Vence:{' '}
                         {displayDate(invitation.expiresAt)}
                       </span>
                       {invitation.revokedAt && (
-                        <span>Revocada: {displayDate(invitation.revokedAt)}</span>
+                        <span>
+                          Revocada: {displayDate(invitation.revokedAt)}
+                        </span>
                       )}
                     </div>
                     {invitation.status === 'pending' && (
@@ -319,9 +354,8 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
       >
         <summary aria-expanded={membersOpen}>Personas con acceso</summary>
         <p className={styles.hint}>
-          Incluye membresías aceptadas, activas y revocadas. Se muestra el nombre
-          visible cuando existe y el identificador queda como trazabilidad; las
-          invitaciones pendientes no representan una persona.
+          Personas que aceptaron el acceso y su estado actual. Las invitaciones
+          pendientes aparecen en el historial.
         </p>
         {members.isPending ? (
           <p role="status">Cargando membresías…</p>
@@ -348,12 +382,22 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
                   <div className={styles.identityLine}>
                     <ProfileAvatar profile={member.user} />
                     <div>
-                      <strong>{member.user?.displayName?.trim() || 'Usuario sin nombre'}</strong>
-                      <span className={styles.secondaryId}>Usuario: {member.userId}</span>
+                      <strong>
+                        {member.user?.displayName?.trim() ||
+                          'Usuario sin nombre'}
+                      </strong>
+                      <span className={styles.secondaryId}>
+                        Usuario: {member.userId}
+                      </span>
                     </div>
                   </div>
-                  <span className={styles.statusLine}>
-                    <Icon name={member.status === 'active' ? 'check' : 'alert'} />
+                  <span
+                    className={styles.statusLine}
+                    data-state={member.status}
+                  >
+                    <Icon
+                      name={member.status === 'active' ? 'check' : 'alert'}
+                    />
                     {clientRoles[member.role]} ·{' '}
                     {member.status === 'active'
                       ? member.joinedAt
@@ -423,10 +467,12 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
             <Button
               type="button"
               variant="danger"
+              loading={action.pending}
+              loadingLabel="Revocando…"
               disabled={action.pending}
               onClick={() => void revoke()}
             >
-              {action.pending ? 'Revocando…' : 'Confirmar revocación'}
+              Confirmar revocación
             </Button>
           </div>
         </EntityDialog>
@@ -441,7 +487,9 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
           onClose={() => {
             setRevokingInvitation(null);
             action.clearError();
-            requestAnimationFrame(() => revokeInvitationTrigger.current?.focus());
+            requestAnimationFrame(() =>
+              revokeInvitationTrigger.current?.focus(),
+            );
           }}
         >
           <p className={styles.context}>
@@ -464,10 +512,12 @@ function AccessContent({ context, workspaceName, entityName }: Props) {
             <Button
               type="button"
               variant="danger"
+              loading={action.pending}
+              loadingLabel="Revocando…"
               disabled={action.pending}
               onClick={() => void revokePendingInvitation()}
             >
-              {action.pending ? 'Revocando…' : 'Confirmar revocación'}
+              Confirmar revocación
             </Button>
           </div>
         </EntityDialog>
@@ -492,9 +542,15 @@ function invitationStatusLabel(
 
 function ProfileAvatar({ profile }: { profile: AccessProfile | null }) {
   const name = profile?.displayName?.trim() || 'Usuario sin nombre';
-  const initials = name === 'Usuario sin nombre'
-    ? 'US'
-    : name.split(/\s+/).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
+  const initials =
+    name === 'Usuario sin nombre'
+      ? 'US'
+      : name
+          .split(/\s+/)
+          .slice(0, 2)
+          .map((part) => part[0])
+          .join('')
+          .toUpperCase();
   return (
     <span className={styles.avatar} aria-hidden="true">
       {profile?.avatarUrl ? <img src={profile.avatarUrl} alt="" /> : initials}

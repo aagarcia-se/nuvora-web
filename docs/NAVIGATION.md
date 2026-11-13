@@ -1,5 +1,11 @@
 # Menú responsive — 2026-11-12
 
+Presentación actualizada en el [rediseño integral](DESIGN-SYSTEM.md): monograma
+y marca en el lateral, contexto confirmado en una superficie compacta y menor
+altura de cabecera. Panel móvil con entrada breve solo para puntero y sin
+movimiento reducido. Breakpoint, rutas, cierre, foco y cuenta en avatar intactos.
+Lint/build aprobados; revisión visual y Playwright pendientes.
+
 ## Alcance finalizado
 
 Lateral de escritorio desde 1024 px; botón y panel lateral modal en móvil/PWA. Espacios lleva al selector y Clientes a la cartera del workspace confirmado. En el detalle se mantiene Clientes activo. Cambiar espacio vuelve al selector, usando la limpieza/cancelación de contexto existente. La ausencia o error de autorización elimina el enlace Clientes y el nombre del espacio del menú.

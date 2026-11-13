@@ -218,13 +218,11 @@ export function EntityForm({
         </Button>
         <Button
           type="submit"
+          loading={pending}
+          loadingLabel="Guardando…"
           disabled={pending || !changed || errorStatus(error) === 401}
         >
-          {pending
-            ? 'Guardando…'
-            : entity
-              ? 'Guardar cambios'
-              : 'Crear cliente'}
+          {entity ? 'Guardar cambios' : 'Crear cliente'}
         </Button>
       </div>
     </form>

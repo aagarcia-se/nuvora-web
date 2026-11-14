@@ -82,7 +82,9 @@ export function PrivateShell() {
                 ? 'Personas y accesos'
                 : pathname.endsWith('/invitations')
                   ? 'Invitaciones'
-                  : 'Datos del cliente'}
+                  : pathname.endsWith('/documents')
+                    ? 'Comprobantes'
+                    : 'Datos del cliente'}
             </span>
           </>
         )}
@@ -135,7 +137,10 @@ export function ClientPage() {
   const { entityId = '', section } = useParams();
   if (
     !isUuid(entityId) ||
-    (section !== undefined && section !== 'people' && section !== 'invitations')
+    (section !== undefined &&
+      section !== 'people' &&
+      section !== 'invitations' &&
+      section !== 'documents')
   )
     return <InvalidResource />;
   return (

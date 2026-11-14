@@ -9,6 +9,7 @@ import { EntityFeedback } from '../components/EntityFeedback';
 import { EntityDraftGuard } from '../components/EntityDraftGuard';
 import { EntityHeader, type EntitySection } from '../components/EntityHeader';
 import { EntityDataSection } from '../components/EntityDataSection';
+import { EntityPurchaseDocuments } from './EntityPurchaseDocuments';
 import styles from '../entities.module.css';
 
 export function EntityDetailPage({
@@ -101,6 +102,14 @@ export function EntityDetailPage({
                   setMessage('Cambios guardados.');
                   requestAnimationFrame(() => heading.current?.focus());
                 }}
+              />
+            ) : section === 'documents' ? (
+              <EntityPurchaseDocuments
+                workspaceId={workspaceId}
+                entityId={entityId}
+                canReview={
+                  entity.permissions.canReview || entity.permissions.canManage
+                }
               />
             ) : !canManageAccess ? (
               <div className={styles.dataSection}>

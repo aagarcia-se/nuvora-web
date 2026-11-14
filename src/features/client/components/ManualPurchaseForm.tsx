@@ -12,6 +12,7 @@ import {
 } from '../types/purchaseDocument.types';
 import { formatPurchaseTotal } from '../utils/purchasePresentation';
 import { PurchaseDraftGuard } from './PurchaseDraftGuard';
+import { PurchaseObservation } from './PurchaseObservation';
 import styles from '../client.module.css';
 
 export function ManualPurchaseForm({
@@ -126,9 +127,16 @@ export function ManualPurchaseForm({
     <>
       <header className={styles.pageHeading}>
         <p className={styles.eyebrow}>Registro manual</p>
-        <h1>{editor.saved ? 'Continuar borrador' : 'Registrar factura'}</h1>
+        <h1>
+          {editor.saved?.status === 'needs_correction'
+            ? 'Corregir comprobante'
+            : editor.saved
+              ? 'Continuar borrador'
+              : 'Registrar factura'}
+        </h1>
         <p>Ingresa los datos del comprobante de compra.</p>
       </header>
+      {document && <PurchaseObservation document={document} />}
       <form
         ref={formRef}
         className={styles.purchaseForm}
@@ -419,7 +427,9 @@ export function ManualPurchaseForm({
               onClick={() => void editor.save(false)}
             >
               <Icon name="file" />
-              Guardar borrador
+              {editor.saved?.status === 'needs_correction'
+                ? 'Guardar corrección'
+                : 'Guardar borrador'}
             </Button>
             <Button
               type="submit"
@@ -429,7 +439,9 @@ export function ManualPurchaseForm({
             >
               {editor.sendNeedsCheck && !editor.dirty
                 ? 'Reintentar envío'
-                : 'Enviar a revisión'}
+                : editor.saved?.status === 'needs_correction'
+                  ? 'Enviar corrección a revisión'
+                  : 'Enviar a revisión'}
               <Icon name="arrow-right" />
             </Button>
           </div>

@@ -57,7 +57,17 @@ function parseDocument(
     )
   )
     throw invalid();
-  if (!['draft', 'pending_review'].includes(String(status))) throw invalid();
+  if (
+    ![
+      'draft',
+      'pending_review',
+      'needs_correction',
+      'approved',
+      'rejected',
+      'discarded',
+    ].includes(String(status))
+  )
+    throw invalid();
   const total = row.total;
   if (typeof total !== 'string' && typeof total !== 'number') throw invalid();
   return {
@@ -80,6 +90,9 @@ function parseDocument(
             throw invalid();
           })(),
     status: status as PurchaseDocumentStatus,
+    reviewObservation: nullableText(row.review_observation),
+    observedBy: nullableText(row.observed_by),
+    observedAt: nullableText(row.observed_at),
     createdAt: text(row.created_at),
     updatedAt: text(row.updated_at),
   };
@@ -174,6 +187,39 @@ export function submitPurchaseDocument(
     return parseDocument(data?.document, workspaceId, entityId, documentId);
   });
 }
+export function discardPurchaseDocument(
+  userId: string,
+  workspaceId: string,
+  entityId: string,
+  documentId: string,
+  signal: AbortSignal,
+) {
+  return authenticatedRequest(userId, signal, async (token) => {
+    const { data } = await httpClient.post<{ document: unknown }>(
+      `${endpoint(workspaceId, entityId, documentId)}/discard`,
+      {},
+      { signal, headers: bearerHeaders(token) },
+    );
+    return parseDocument(data?.document, workspaceId, entityId, documentId);
+  });
+}
+export function returnPurchaseDocumentToDraft(
+  userId: string,
+  workspaceId: string,
+  entityId: string,
+  documentId: string,
+  observation: string,
+  signal: AbortSignal,
+) {
+  return authenticatedRequest(userId, signal, async (token) => {
+    const { data } = await httpClient.post<{ document: unknown }>(
+      `${endpoint(workspaceId, entityId, documentId)}/return-to-draft`,
+      { observation },
+      { signal, headers: bearerHeaders(token) },
+    );
+    return parseDocument(data?.document, workspaceId, entityId, documentId);
+  });
+}
 export function purchaseDocumentMessage(
   error: unknown,
   operation: 'read' | 'write' = 'read',
@@ -186,7 +232,10 @@ export function purchaseDocumentMessage(
     case 404:
       return 'La empresa o el comprobante ya no está disponible para tu cuenta.';
     case 409:
-      return 'Este comprobante parece duplicado. Revisa los datos antes de intentarlo de nuevo.';
+      return 'El comprobante cambió de estado o existe un conflicto con sus datos. Actualiza su detalle antes de repetir la acción.';
+    case 400:
+    case 422:
+      return 'Revisa los datos indicados. No pudimos completar la acción con esta información.';
     case 503:
       return 'El servicio de compras no está disponible por el momento. Inténtalo más tarde.';
     case 0:

@@ -13,6 +13,7 @@ import {
   formatPurchaseDate,
   formatPurchaseTotal,
 } from '../utils/purchasePresentation';
+import { PurchaseStatus } from './PurchaseStatus';
 import styles from '../client.module.css';
 
 export function PurchaseDocumentRow({
@@ -66,23 +67,18 @@ export function PurchaseDocumentRow({
       <div className={styles.purchaseRowMain}>
         <div>
           <div className={styles.purchaseMeta}>
-            <span
-              className={
-                document.status === 'draft'
-                  ? styles.statusDraft
-                  : styles.statusReview
-              }
-            >
-              {document.status === 'draft'
-                ? 'Borrador'
-                : 'Pendiente de revisión'}
-            </span>
+            <PurchaseStatus status={document.status} />
             <span>{formatPurchaseDate(document.issueDate)}</span>
           </div>
           <h2>{document.issuerName}</h2>
           <p>
             {document.category} · {purchaseDocumentTypes[document.documentType]}
           </p>
+          {document.status === 'needs_correction' && (
+            <p className={styles.correctionHint}>
+              Consulta la observación del contador antes de corregir.
+            </p>
+          )}
         </div>
         <strong>{formatPurchaseTotal(document.total)}</strong>
       </div>
@@ -108,28 +104,31 @@ export function PurchaseDocumentRow({
           Ver detalle
           <Icon name="arrow-right" />
         </Link>
-        {canUpload && document.status === 'draft' && (
-          <>
+        {canUpload &&
+          ['draft', 'needs_correction'].includes(document.status) && (
             <Link
               className="btn-secondary"
               to={editPath}
-              aria-disabled={writer.isPending}
+              aria-disabled={writer.isPending || pending}
               onClick={(event) => {
-                if (writer.isPending) event.preventDefault();
+                if (writer.isPending || pending) event.preventDefault();
               }}
             >
-              Continuar borrador
+              {document.status === 'needs_correction'
+                ? 'Corregir comprobante'
+                : 'Continuar borrador'}
             </Link>
-            <Button
-              type="button"
-              loading={pending}
-              loadingLabel="Enviando…"
-              disabled={writer.isPending && !pending}
-              onClick={() => void send()}
-            >
-              Enviar a revisión
-            </Button>
-          </>
+          )}
+        {canUpload && document.status === 'draft' && (
+          <Button
+            type="button"
+            loading={pending}
+            loadingLabel="Enviando…"
+            disabled={writer.isPending && !pending}
+            onClick={() => void send()}
+          >
+            Enviar a revisión
+          </Button>
         )}
       </div>
       {error && (

@@ -5,6 +5,22 @@ captura manual: `can_upload` habilita formulario y edición de borradores;
 `client_viewer` queda en consulta. La UI no trata el permiso local como autoridad:
 cada ruta de compras vuelve a autorizar por Bearer y por workspace/entity.
 
+## Compras manuales: estados y acciones del cliente
+
+El frontend consume `draft`, `pending_review`, `needs_correction`, `approved`,
+`rejected` y `discarded`, junto con `review_observation`, `observed_by` y
+`observed_at`. `draft` es editable y descartable; `needs_correction` es editable
+y reenviable después de guardar; `pending_review`, `approved` y `rejected` son
+solo consulta. `discarded` queda en historial y fuera del flujo activo.
+
+El cliente HTTP implementa `POST .../:documentId/return-to-draft` y
+`POST .../:documentId/discard` con `AbortSignal`, aunque la UI cliente solo
+expone descarte para `draft`; la autorización definitiva siempre pertenece al
+API. El descarte usa `danger` rojo, confirmación accesible, icono y texto que
+aclara que no existe eliminación física. Listado y detalle se invalidan tras
+cada transición. No se ejecutó Playwright; lint/build de esta entrega fueron
+exitosos.
+
 Estado vigente en [CLIENT-ADMINISTRATION.md](CLIENT-ADMINISTRATION.md). Personas
 y accesos e Invitaciones son destinos separados del submenú del cliente y cargan
 al visitarlos. Sustituyen el panel/disclosures generales descritos más abajo.

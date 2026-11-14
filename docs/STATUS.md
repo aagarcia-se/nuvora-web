@@ -36,7 +36,7 @@ Esto no se registra como prueba visual o funcional del producto en navegador.
 | Enlaces sensibles           | Estado React efímero, URL controlada por resultado y limpieza al salir/cerrar                       | Fuera de Query/Mutation cache, logs y storage persistente; excepción OAuth descrita abajo                                 |
 | Entrada por tipo de acceso  | Descubrimiento mediante `/profile/entities` y workspaces; elección explícita si hay ambos accesos   | Sin accesos conserva el flujo de crear espacio; errores no se convierten en lista vacía                                   |
 | Cliente invitado            | Shell separado y consulta autorizada mediante `/profile/entities`                                   | No consulta el workspace general ni crea workspace_membership; integración real actual pendiente                          |
-| Compras manuales del portal | Lista, creación/edición de borradores y envío explícito a `pending_review`                          | Registro manual primero, listado separado, cuatro tipos y GTQ; capacidades del API; API/RLS e integración real pendientes |
+| Compras manuales del portal | Lista, detalle completo, creación/edición, corrección, descarte lógico y envío explícito a `pending_review` | Seis estados, observación del contador, acciones bloqueadas por estado y confirmación danger; API/RLS e integración real pendientes |
 | Sistema visual              | Paleta índigo/azul/slate, temas, escala común, controles y estados coherentes                       | Revisión visual actual y auditoría integral de accesibilidad pendientes                                                   |
 | PWA                         | Identidad, instalación, actualización y shell estático existentes conservados                       | La generación de build funciona; instalación, offline y actualización reales no se volvieron a validar                    |
 
@@ -129,6 +129,10 @@ contra los contratos existentes; la integración real sigue pendiente. XML/PDF,
 fotografías, extracción/IA, clasificación, aprobación, libros, períodos y exportaciones
 siguen pendientes. No se construyó seguimiento por colaborador para el contador.
 El NIT del receptor no se deriva de la entidad: ver el requisito pendiente en codex.md.
+
+La actualización del ciclo de vida modificó tipos/parser, API/hooks, detalle,
+listado/fila, editor, diálogo de descarte y estilos del portal cliente. `lint`
+y `build` terminaron con salida 0 en esta entrega; Playwright no se ejecutó.
 
 ## Mapa documental
 

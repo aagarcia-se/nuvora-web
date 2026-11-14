@@ -1,5 +1,9 @@
-import type { ButtonHTMLAttributes } from 'react';
-export function Button({
+import { forwardRef, type ButtonHTMLAttributes } from 'react';
+export const Button = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: 'primary' | 'secondary' | 'danger';
+  loading?: boolean;
+  loadingLabel?: string;
+}>(function Button({
   variant = 'primary',
   className = '',
   children,
@@ -7,14 +11,11 @@ export function Button({
   loadingLabel,
   disabled,
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'primary' | 'secondary' | 'danger';
-  loading?: boolean;
-  loadingLabel?: string;
-}) {
+}, ref) {
   return (
     <button
       className={`${variant === 'primary' ? 'btn-primary' : variant === 'danger' ? 'btn-danger' : 'btn-secondary'} ${className}`}
+      ref={ref}
       {...props}
       disabled={disabled || loading}
       aria-busy={loading || undefined}
@@ -29,4 +30,4 @@ export function Button({
       )}
     </button>
   );
-}
+});

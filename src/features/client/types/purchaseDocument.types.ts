@@ -6,7 +6,25 @@ export const purchaseDocumentTypes = {
 } as const;
 
 export type PurchaseDocumentType = keyof typeof purchaseDocumentTypes;
-export type PurchaseDocumentStatus = 'draft' | 'pending_review';
+export type PurchaseDocumentStatus =
+  | 'draft'
+  | 'pending_review'
+  | 'needs_correction'
+  | 'approved'
+  | 'rejected'
+  | 'discarded';
+
+export const purchaseDocumentStatusLabels: Record<
+  PurchaseDocumentStatus,
+  string
+> = {
+  draft: 'Borrador',
+  pending_review: 'Pendiente de revisión',
+  needs_correction: 'Requiere corrección',
+  approved: 'Aprobado',
+  rejected: 'Rechazado',
+  discarded: 'Descartado',
+};
 
 export type PurchaseDocument = {
   id: string;
@@ -23,6 +41,9 @@ export type PurchaseDocument = {
   total: string;
   currency: 'GTQ';
   status: PurchaseDocumentStatus;
+  reviewObservation: string | null;
+  observedBy: string | null;
+  observedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };

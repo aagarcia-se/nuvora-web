@@ -69,6 +69,23 @@ vacío, error, 401/403/404/409/503, reintento y doble envío tienen estados segu
 La integración real del API, RLS y revisión visual no se certifican por estos
 cambios.
 
+### Ciclo de vida implementado
+
+La web consume `draft`, `pending_review`, `needs_correction`, `approved`,
+`rejected` y `discarded`. El detalle conserva la captura completa en todos los
+estados. Corrección muestra `review_observation`, `observed_at` y
+`observed_by` cuando vienen del API; permite editar y reenviar. Pendiente,
+aprobado y rechazado no muestran acciones del cliente. Descartado se conserva
+como historial lógico, se excluye de acciones activas y no se presenta como
+eliminado.
+
+Se añadieron los POST `.../:documentId/return-to-draft` y
+`.../:documentId/discard` al cliente HTTP, ambos con cancelación. El portal del
+cliente solo ofrece `discard` para borradores y exige confirmación accesible:
+variante `danger` roja, icono, explicación de conservación histórica, Escape,
+foco inicial y restauración del foco al control que abrió el diálogo. Guardar,
+editar y enviar usan acciones no destructivas. No se ejecutó Playwright.
+
 ## Diseño de cliente y compartir
 
 UI/UX Pro Max aplicada. Búsqueda de sistema `client portal minimal dashboard`: Minimalism & Swiss Style pertinente para jerarquía/espacio; su propuesta de landing/colores/tipografías se descartó por no ajustarse a la app existente. Refinada a `minimalism whitespace typography --domain style`; consulta UX adicional confirmó feedback de acciones. Mantener índigo/azul/verde, tipografía existente y tokens; CSS local, sin gradientes, fuentes externas o animaciones.

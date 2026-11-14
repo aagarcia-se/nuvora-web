@@ -7,6 +7,10 @@ import { Icon } from '@/shared/ui/components/Icon';
 import { usePurchaseDocument } from '../api/usePurchaseDocuments';
 import { purchaseDocumentMessage } from '../api/purchaseDocumentsApi';
 import { purchaseDocumentTypes } from '../types/purchaseDocument.types';
+import { PurchaseStatus } from './PurchaseStatus';
+import { PurchaseObservation } from './PurchaseObservation';
+import { PurchaseLifecycleAction } from './PurchaseLifecycleAction';
+import type { usePurchaseDocuments } from '../api/usePurchaseDocuments';
 import {
   formatPurchaseDate,
   formatPurchaseTotal,
@@ -31,15 +35,22 @@ export function PurchaseDocumentDetail({
   canUpload,
   documentsPath,
   editPath,
+  writer,
+  canReview = false,
+  headingLevel = 1,
 }: {
   workspaceId: string;
   entityId: string;
   documentId: string;
   canUpload: boolean;
+  canReview?: boolean;
+  headingLevel?: 1 | 2;
   documentsPath: string;
   editPath: string;
+  writer: ReturnType<typeof usePurchaseDocuments>['mutate'];
 }) {
   const detail = usePurchaseDocument(workspaceId, entityId, documentId);
+  const Heading = headingLevel === 2 ? 'h2' : 'h1';
   const { logout } = useAuth();
   const id = useId();
   const heading = useRef<HTMLHeadingElement>(null);
@@ -83,20 +94,23 @@ export function PurchaseDocumentDetail({
             <header className={styles.listPageHeading}>
               <div className={styles.pageHeading}>
                 <p className={styles.eyebrow}>Consulta del comprobante</p>
-                <h1 ref={heading} tabIndex={-1}>
+                <Heading ref={heading} tabIndex={-1}>
                   Detalle de{' '}
                   {purchaseDocumentTypes[
                     document.documentType
                   ].toLocaleLowerCase('es')}
-                </h1>
+                </Heading>
                 <p>Todos los datos guardados de este comprobante.</p>
               </div>
-              {canUpload && document.status === 'draft' && (
-                <Link className="btn-primary" to={editPath}>
-                  <Icon name="pencil" />
-                  Editar borrador
-                </Link>
-              )}
+              {canUpload &&
+                ['draft', 'needs_correction'].includes(document.status) && (
+                  <Link className="btn-primary" to={editPath}>
+                    <Icon name="pencil" />
+                    {document.status === 'needs_correction'
+                      ? 'Corregir comprobante'
+                      : 'Editar borrador'}
+                  </Link>
+                )}
             </header>
             <article
               className={styles.invoiceDetail}
@@ -114,23 +128,20 @@ export function PurchaseDocumentDetail({
                     {formatPurchaseDate(document.issueDate)}
                   </p>
                 </div>
-                <span
-                  className={
-                    document.status === 'draft'
-                      ? styles.statusDraft
-                      : styles.statusReview
-                  }
-                >
-                  {document.status === 'draft'
-                    ? 'Borrador'
-                    : 'Pendiente de revisión'}
-                </span>
+                <PurchaseStatus status={document.status} />
               </header>
               <p className={styles.detailStatusNote}>
                 {document.status === 'draft'
                   ? 'Este comprobante está guardado como borrador; todavía no se ha enviado a revisión.'
-                  : 'Enviado a revisión. Este estado no significa que esté aprobado. Los datos se muestran en modo de consulta.'}
+                  : document.status === 'needs_correction'
+                    ? 'El contador solicitó una corrección. Revisa la observación, actualiza los datos y vuelve a enviarlo.'
+                    : document.status === 'pending_review'
+                      ? 'Enviado a revisión. Este estado no significa que esté aprobado. Los datos se muestran en modo de consulta.'
+                      : document.status === 'discarded'
+                        ? 'Este comprobante fue retirado del flujo, pero se conserva en el historial. No se eliminó físicamente.'
+                        : 'Este comprobante está bloqueado para acciones del cliente y se conserva para consulta e historial.'}
               </p>
+              <PurchaseObservation document={document} />
               <div className={styles.invoiceParties}>
                 <section aria-labelledby={`${id}-issuer`}>
                   <h2 id={`${id}-issuer`} className={styles.sectionTitle}>
@@ -219,6 +230,13 @@ export function PurchaseDocumentDetail({
               </details>
             </article>
             <footer className={styles.detailFooter}>
+              <PurchaseLifecycleAction
+                document={document}
+                writer={writer}
+                canUpload={canUpload}
+                canReview={canReview}
+                onRefresh={() => void detail.refetch()}
+              />
               <Link to={documentsPath} className="btn-secondary">
                 <span aria-hidden="true">←</span> Volver a comprobantes
               </Link>

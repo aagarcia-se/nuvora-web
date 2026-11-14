@@ -19,6 +19,8 @@ export function PurchaseDocumentList({
   filter,
   onFilterChange,
   returnPosition,
+  headingLevel = 1,
+  documentPath = `${registerPath}&document=`,
 }: {
   list: ReturnType<typeof usePurchaseDocuments>['list'];
   writer: ReturnType<typeof usePurchaseDocuments>['mutate'];
@@ -27,7 +29,10 @@ export function PurchaseDocumentList({
   filter: string;
   onFilterChange: (value: string) => void;
   returnPosition: RefObject<PurchaseListPosition | null>;
+  headingLevel?: 1 | 2;
+  documentPath?: string;
 }) {
+  const Heading = headingLevel === 2 ? 'h2' : 'h1';
   const collection = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!list.isSuccess || list.isFetching || !returnPosition.current) return;
@@ -49,17 +54,20 @@ export function PurchaseDocumentList({
   }, [list.isSuccess, list.isFetching, returnPosition]);
   const { logout } = useAuth();
   const items = list.data ?? [];
-  const filtered = items.filter(
-    (item) => filter === 'all' || item.status === filter,
+  const filtered = items.filter((item) =>
+    filter === 'all'
+      ? item.status !== 'discarded'
+      : filter === 'history' || item.status === filter,
   );
   return (
     <>
       <header className={styles.listPageHeading}>
         <div className={styles.pageHeading}>
-          <h1>Comprobantes</h1>
+          <Heading>Comprobantes</Heading>
           <p>
-            Consulta los registros disponibles para tu cuenta y continúa los
-            borradores que puedas editar.
+            {canUpload
+              ? 'Consulta los registros disponibles para tu cuenta y continúa los borradores que puedas editar.'
+              : 'Consulta los comprobantes, su estado y las observaciones disponibles para tu cuenta.'}
           </p>
         </div>
         {canUpload && (
@@ -82,9 +90,14 @@ export function PurchaseDocumentList({
             value={filter}
             onChange={(event) => onFilterChange(event.target.value)}
           >
-            <option value="all">Todos los estados</option>
+            <option value="all">Sin descartar</option>
+            <option value="history">Todos, incluido el historial</option>
             <option value="draft">Borradores</option>
             <option value="pending_review">Pendientes de revisión</option>
+            <option value="needs_correction">Requieren corrección</option>
+            <option value="approved">Aprobados</option>
+            <option value="rejected">Rechazados</option>
+            <option value="discarded">Historial: descartados</option>
           </select>
           <Button
             type="button"
@@ -127,12 +140,16 @@ export function PurchaseDocumentList({
             <h2>
               {items.length === 0
                 ? 'Todavía no hay comprobantes'
-                : 'No hay comprobantes con este estado'}
+                : filter === 'all'
+                  ? 'No hay comprobantes sin descartar'
+                  : 'No hay comprobantes con este estado'}
             </h2>
             <p>
               {items.length === 0
                 ? 'Aquí aparecerán los borradores y los comprobantes enviados a revisión.'
-                : 'Prueba con otro estado para encontrar tus comprobantes.'}
+                : filter === 'all'
+                  ? 'Los comprobantes descartados se conservan en el historial y puedes consultarlos.'
+                  : 'Prueba con otro estado para encontrar tus comprobantes.'}
             </p>
             {items.length === 0 && canUpload ? (
               <Link className="btn-primary" to={registerPath}>
@@ -142,9 +159,11 @@ export function PurchaseDocumentList({
               <Button
                 type="button"
                 variant="secondary"
-                onClick={() => onFilterChange('all')}
+                onClick={() =>
+                  onFilterChange(filter === 'all' ? 'history' : 'all')
+                }
               >
-                Ver todos
+                {filter === 'all' ? 'Ver historial' : 'Ver sin descartar'}
               </Button>
             ) : null}
           </div>
@@ -157,7 +176,7 @@ export function PurchaseDocumentList({
                 canUpload={canUpload}
                 writer={writer}
                 editPath={`${registerPath}&draft=${document.id}`}
-                detailPath={`${registerPath}&document=${document.id}`}
+                detailPath={`${documentPath}${document.id}`}
                 onOpenDetail={() => {
                   returnPosition.current = {
                     documentId: document.id,

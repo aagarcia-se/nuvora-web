@@ -79,6 +79,7 @@ export function PurchaseDocuments({
           canUpload={canUpload}
           documentsPath={documentsPath}
           editPath={`${basePath}&draft=${documentId}`}
+          writer={mutate}
         />
       ) : view === 'documents' || denied ? (
         <PurchaseDocumentList
@@ -152,10 +153,10 @@ function DraftEditor({
         </Button>
       </div>
     );
-  if (detail.data.status !== 'draft')
+  if (!['draft', 'needs_correction'].includes(detail.data.status))
     return (
       <div className={styles.state}>
-        <h1>Este comprobante ya está en revisión</h1>
+        <h1>Este comprobante no se puede editar</h1>
         <p>Los datos enviados no se pueden editar desde este formulario.</p>
         <Link
           className="btn-primary"

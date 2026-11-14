@@ -10,9 +10,16 @@ async function portal(
     readOnly?: boolean;
     acceptedBeforeFailure?: boolean;
     failSend?: boolean;
-    seedStatus?: 'draft' | 'pending_review';
+    seedStatus?:
+      | 'draft'
+      | 'pending_review'
+      | 'needs_correction'
+      | 'approved'
+      | 'rejected'
+      | 'discarded';
     detailStatus?: number;
     wrongContext?: boolean;
+    failDiscardAfterAccept?: boolean;
   } = {},
 ) {
   await setup(page);
@@ -34,9 +41,29 @@ async function portal(
         status: options.seedStatus,
         created_at: '2026-11-13T12:00:00Z',
         updated_at: '2026-11-13T13:00:00Z',
+        review_observation:
+          options.seedStatus === 'needs_correction'
+            ? 'Falta completar la descripción de la compra.'
+            : null,
+        observed_by:
+          options.seedStatus === 'needs_correction'
+            ? '77777777-7777-4777-8777-777777777777'
+            : null,
+        observed_at:
+          options.seedStatus === 'needs_correction'
+            ? '2026-11-13T14:00:00Z'
+            : null,
       }
     : undefined;
-  const calls = { creates: 0, submits: 0, lists: 0, checks: 0 };
+  const calls = {
+    creates: 0,
+    submits: 0,
+    lists: 0,
+    checks: 0,
+    discards: 0,
+    returns: 0,
+    patches: 0,
+  };
   await page.route('http://api.demo.test/api/v1/**', async (route) => {
     const url = new URL(route.request().url());
     const method = route.request().method();
@@ -64,6 +91,36 @@ async function portal(
         },
       });
     const base = `/api/v1/workspaces/${workspace.id}/entities/${entity.id}/purchase-documents`;
+    if (url.pathname === `${base}/${documentId}/discard` && method === 'POST') {
+      calls.discards++;
+      if (document) document.status = 'discarded';
+      if (options.failDiscardAfterAccept && calls.discards === 1)
+        return route.fulfill({
+          status: 503,
+          json: { error: 'DEMO_UNCERTAIN_DISCARD' },
+        });
+      return route.fulfill({ json: { document } });
+    }
+    if (
+      url.pathname === `${base}/${documentId}/return-to-draft` &&
+      method === 'POST'
+    ) {
+      calls.returns++;
+      if (document) {
+        document.status = 'needs_correction';
+        document.review_observation = route
+          .request()
+          .postDataJSON().observation;
+      }
+      return route.fulfill({ json: { document } });
+    }
+    if (url.pathname === `${base}/${documentId}` && method === 'PATCH') {
+      calls.patches++;
+      const input = route.request().postDataJSON();
+      if (document && input.description !== undefined)
+        document.description = input.description;
+      return route.fulfill({ json: { document } });
+    }
     if (url.pathname === base && method === 'GET') {
       calls.lists++;
       return route.fulfill({ json: { documents: document ? [document] : [] } });
@@ -120,6 +177,10 @@ async function portal(
           status: 503,
           json: { error: 'DEMO_UNCERTAIN_SEND' },
         });
+      return route.fulfill({ json: { document } });
+    }
+    if (url.pathname === `${base}/${documentId}/discard` && method === 'POST') {
+      if (document) document.status = 'discarded';
       return route.fulfill({ json: { document } });
     }
     return route.fallback();
@@ -309,4 +370,120 @@ test('Demo: respuesta de otra entidad no se presenta como factura autorizada', a
   await page.goto(`${path}&document=${documentId}`);
   await expect(page.getByRole('alert')).toBeVisible();
   await expect(page.getByRole('article')).toHaveCount(0);
+});
+
+test('Demo: descarte exige confirmar, conserva historial y no repite un POST ya aceptado', async ({
+  page,
+}) => {
+  const calls = await portal(page, {
+    seedStatus: 'draft',
+    failDiscardAfterAccept: true,
+  });
+  await page.goto(`${path}&document=${documentId}`);
+  await page
+    .getByRole('button', { name: 'Descartar comprobante', exact: true })
+    .click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('no se eliminará físicamente');
+  expect(calls.discards).toBe(0);
+  await dialog.getByRole('button', { name: 'Conservar borrador' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Descartar comprobante', exact: true }),
+  ).toBeFocused();
+  await page
+    .getByRole('button', { name: 'Descartar comprobante', exact: true })
+    .click();
+  await dialog
+    .getByRole('button', { name: 'Descartar comprobante', exact: true })
+    .click();
+  await expect(dialog.getByRole('alert')).toBeVisible();
+  await dialog
+    .getByRole('button', { name: 'Descartar comprobante', exact: true })
+    .click();
+  await expect(dialog).toHaveCount(0);
+  expect(calls.discards).toBe(1);
+  await page
+    .getByRole('link', { name: 'Volver a comprobantes' })
+    .first()
+    .click();
+  await expect(
+    page.getByRole('link', { name: 'Ver detalle de Proveedor Demo' }),
+  ).toHaveCount(0);
+  await page.getByLabel('Mostrar', { exact: true }).selectOption('discarded');
+  await expect(
+    page.getByRole('link', { name: 'Ver detalle de Proveedor Demo' }),
+  ).toBeVisible();
+});
+
+test('Demo: cliente corrige con observación visible y reenvía sin crear otra factura', async ({
+  page,
+}) => {
+  const calls = await portal(page, { seedStatus: 'needs_correction' });
+  await page.goto(`${path}&draft=${documentId}`);
+  await expect(
+    page.getByRole('heading', { name: 'Corregir comprobante', exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Falta completar la descripción de la compra.', {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await page
+    .getByLabel('Descripción de la compra', { exact: true })
+    .fill('Descripción corregida Demo');
+  await page
+    .getByRole('button', { name: 'Enviar corrección a revisión', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Comprobante enviado a revisión' }),
+  ).toBeVisible();
+  expect(calls.creates).toBe(0);
+  expect(calls.patches).toBe(1);
+  expect(calls.submits).toBe(1);
+});
+
+for (const status of [
+  'pending_review',
+  'approved',
+  'rejected',
+  'discarded',
+] as const)
+  test(`Demo: cliente no modifica ${status}`, async ({ page }) => {
+    await portal(page, { seedStatus: status });
+    await page.goto(`${path}&document=${documentId}`);
+    await expect(
+      page.getByRole('article', { name: 'Datos del comprobante' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('link', { name: 'Editar borrador' }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Descartar comprobante' }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Solicitar corrección' }),
+    ).toHaveCount(0);
+  });
+
+test('Demo: contador solicita corrección con observación obligatoria y estado revalidado', async ({
+  page,
+}) => {
+  const calls = await portal(page, { seedStatus: 'pending_review' });
+  await page.goto(
+    `/workspaces/${workspace.id}/clients/${entity.id}/documents?document=${documentId}`,
+  );
+  await page.getByRole('button', { name: 'Solicitar corrección' }).click();
+  const dialog = page.getByRole('dialog');
+  await dialog.getByRole('button', { name: 'Solicitar corrección' }).click();
+  await expect(dialog.getByLabel('Observación para el cliente')).toBeFocused();
+  expect(calls.returns).toBe(0);
+  await dialog
+    .getByLabel('Observación para el cliente')
+    .fill('Revisa la descripción del comprobante.');
+  await dialog.getByRole('button', { name: 'Solicitar corrección' }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole('article')).toContainText(
+    'Revisa la descripción del comprobante.',
+  );
+  expect(calls.returns).toBe(1);
 });

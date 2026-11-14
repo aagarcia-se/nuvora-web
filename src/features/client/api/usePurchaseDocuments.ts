@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/store/authStore';
 import { profileEntityKeys } from '@/features/access/hooks/useProfileEntities';
 import {
+  ApiRequestError,
   errorStatus,
   isRequestCanceled,
 } from '@/shared/api/authenticatedRequest';
@@ -13,6 +14,8 @@ import {
   listPurchaseDocuments,
   patchPurchaseDocument,
   submitPurchaseDocument,
+  discardPurchaseDocument,
+  returnPurchaseDocumentToDraft,
 } from './purchaseDocumentsApi';
 import type {
   PurchaseDocumentInput,
@@ -104,6 +107,8 @@ export function usePurchaseDocuments(
         | { kind: 'create'; input: PurchaseDocumentInput }
         | { kind: 'patch'; id: string; input: PurchaseDocumentPatch }
         | { kind: 'submit'; id: string }
+        | { kind: 'discard'; id: string }
+        | { kind: 'return-to-draft'; id: string; observation: string }
         | { kind: 'check'; id: string },
     ) => {
       const scope = client
@@ -139,33 +144,76 @@ export function usePurchaseDocuments(
                   operation.input,
                   request.signal,
                 )
-              : operation.kind === 'check'
-                ? await getPurchaseDocument(
+              : operation.kind === 'discard'
+                ? await discardPurchaseDocument(
                     userId,
                     workspaceId,
                     entityId,
                     operation.id,
                     request.signal,
                   )
-                : await submitPurchaseDocument(
-                    userId,
-                    workspaceId,
-                    entityId,
-                    operation.id,
-                    request.signal,
-                  );
+                : operation.kind === 'return-to-draft'
+                  ? await returnPurchaseDocumentToDraft(
+                      userId,
+                      workspaceId,
+                      entityId,
+                      operation.id,
+                      operation.observation,
+                      request.signal,
+                    )
+                  : operation.kind === 'check'
+                    ? await getPurchaseDocument(
+                        userId,
+                        workspaceId,
+                        entityId,
+                        operation.id,
+                        request.signal,
+                      )
+                    : await submitPurchaseDocument(
+                        userId,
+                        workspaceId,
+                        entityId,
+                        operation.id,
+                        request.signal,
+                      );
         if (!current()) throw new CanceledError();
+        const expected =
+          operation.kind === 'create'
+            ? ['draft']
+            : operation.kind === 'patch'
+              ? ['draft', 'needs_correction']
+              : operation.kind === 'submit'
+                ? ['pending_review']
+                : operation.kind === 'discard'
+                  ? ['discarded']
+                  : operation.kind === 'return-to-draft'
+                    ? ['needs_correction']
+                    : null;
+        if (expected && !expected.includes(document.status))
+          throw new ApiRequestError(502, 'INVALID_PURCHASE_TRANSITION');
         return document;
       } finally {
         if (controller.current === request) busy.current = false;
       }
     },
     onSuccess: (document, operation) => {
-      if (
-        active.current &&
-        (operation.kind !== 'check' || document.status === 'pending_review')
-      )
+      if (active.current) {
         void client.invalidateQueries({ queryKey: listKey });
+        if (operation.kind !== 'check') {
+          void client.invalidateQueries({
+            queryKey: purchaseDocumentKeys.detail(
+              userId,
+              workspaceId,
+              entityId,
+              document.id,
+            ),
+            // Do not unmount the editor between saving and submitting.
+            refetchType: ['create', 'patch', 'submit'].includes(operation.kind)
+              ? 'none'
+              : 'active',
+          });
+        }
+      }
     },
     onError: (error) => {
       if (active.current && [401, 403, 404].includes(errorStatus(error))) {

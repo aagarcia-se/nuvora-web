@@ -5,7 +5,7 @@ import { initials } from '@/features/workspace/utils/workspacePresentation';
 import workspaceStyles from '@/features/workspace/workspace.module.css';
 import styles from '../entities.module.css';
 
-export type EntitySection = 'data' | 'people' | 'invitations';
+export type EntitySection = 'data' | 'people' | 'invitations' | 'documents';
 
 export function EntityHeader({
   name,
@@ -24,6 +24,7 @@ export function EntityHeader({
 }) {
   const links = [
     { key: 'data', label: 'Datos del cliente', to: basePath },
+    { key: 'documents', label: 'Comprobantes', to: `${basePath}/documents` },
     ...(canManageAccess
       ? [
           {

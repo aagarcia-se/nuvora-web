@@ -103,13 +103,34 @@ export function usePurchaseEditor(
           return;
         }
       }
+      if (
+        document &&
+        !['draft', 'needs_correction'].includes(document.status)
+      ) {
+        setUnavailable(true);
+        setFeedback({
+          kind: 'error',
+          message:
+            'El comprobante cambió de estado y ya no se puede editar. Abre su detalle actualizado para continuar.',
+        });
+        return;
+      }
       if (!document || dirty) {
         step = 'save';
         setPhase('saving');
         const input = normalizePurchase(form);
+        const previous = normalizePurchase(baseline);
+        const patch = Object.fromEntries(
+          Object.entries(input).filter(
+            ([key, value]) =>
+              value !== previous[key as keyof PurchaseDocumentInput],
+          ),
+        );
+        if (form.issuerTaxId?.trim() === '' && previous.issuerTaxId)
+          patch.issuerTaxId = '';
         document = await writer.mutateAsync(
           document
-            ? { kind: 'patch', id: document.id, input }
+            ? { kind: 'patch', id: document.id, input: patch }
             : { kind: 'create', input },
         );
         if (!active.current) return;
@@ -118,7 +139,10 @@ export function usePurchaseEditor(
         setForm(snapshot);
         setBaseline(snapshot);
       }
-      if (sendReview && document.status === 'draft') {
+      if (
+        sendReview &&
+        ['draft', 'needs_correction'].includes(document.status)
+      ) {
         step = 'send';
         setPhase('sending');
         document = await writer.mutateAsync({
@@ -135,7 +159,9 @@ export function usePurchaseEditor(
         setFeedback({
           kind: 'success',
           message:
-            'Borrador guardado. Puedes continuar después o enviarlo a revisión.',
+            document.status === 'needs_correction'
+              ? 'Corrección guardada. Puedes continuar después o enviarla a revisión.'
+              : 'Borrador guardado. Puedes continuar después o enviarlo a revisión.',
         });
       }
       setSendNeedsCheck(false);

@@ -10,7 +10,9 @@ export function safeReturnPath(value: unknown): string {
     ).test(value)
   )
     return value;
-  return new RegExp(`^/workspaces/${uuid}/clients(?:/${uuid})?$`).test(value)
+  return new RegExp(
+    `^/workspaces/${uuid}/clients(?:/${uuid}(?:/documents(?:\\?document=${uuid})?)?)?$`,
+  ).test(value)
     ? value
     : '/';
 }

@@ -43,6 +43,28 @@ resultados reales y pendientes; no crear otro documento de continuidad del porta
 
 ## Portal de contadores
 
+### Última entrega — consulta y solicitud de corrección, 2026-11-13
+
+Integrados los contratos nuevos sin cambiar backend, SQL, entornos ni dependencias.
+La sección Comprobantes del cliente autorizado vive en
+/workspaces/:workspaceId/clients/:entityId/documents; su detalle usa
+?document=:documentId. El workspace y la entity se confirman por el API antes de
+montar consultas. Se reutilizan listado y detalle completos con rutas del contador,
+sin enviar al portal aislado ni ofrecer creación/edición del cliente en este panel.
+
+Solicitar corrección aparece solo en pending_review y con canReview o canManage
+de la entity confirmada. Abre un diálogo con observación obligatoria, comprueba
+el estado actual y consume POST return-to-draft con { observation }. La respuesta
+esperada es needs_correction. El API mantiene la autoridad sobre permisos y
+transiciones. Cliente uploader nunca recibe esta acción. No se implementaron
+aprobación, rechazo, libros ni borrado físico; approved y rejected se reconocen
+únicamente si los devuelve el servidor.
+
+Nuevo EntityPurchaseDocuments; integración en EntityDetailPage, EntityHeader y
+WorkspaceRoutes, con breadcrumb, submenú y retorno autenticado seguro. Filtros,
+foco y retorno al listado reutilizan la experiencia ya implementada. La jerarquía
+mantiene el nombre del cliente como h1 y la consulta como h2.
+
 Estado vigente: administración del despacho y sus clientes. Rutas / para espacios,
 /account para perfil de lectura y /workspaces/:workspaceId/clients para cartera.
 Menú lateral desde 1024 px y panel modal nativo en móvil; perfil, apariencia y
@@ -66,7 +88,7 @@ El propietario autorizó desarrollar la propuesta auditada de emil-design-eng.
 Se conserva la paleta, los tokens, la ficha por filas semánticas, las rutas previas,
 el transporte y los contratos actuales. UI/UX Pro Max se aplica desde su guía
 local ya leída; Python no está disponible y no se instaló. Sin nuevas dependencias,
-backend/SQL/env/Git, endpoints ni indicadores simulados. El portal del contador no incorpora captura o consulta de facturas; el portal de clientes sí incluye captura manual, como se detalla en su sección.
+backend/SQL/env/Git, endpoints ni indicadores simulados. El portal del contador incorpora consulta y solicitud de corrección; la captura/edición manual permanece en el portal de clientes. No incorpora aprobación, rechazo ni libros.
 
 ### Experiencia aplicada
 
@@ -169,10 +191,9 @@ No se agregó otro sidebar ni animación de navegación. Se conservan foco visib
 diálogos nativos, teclado, safe areas y el tratamiento de movimiento reducido.
 Los tres enlaces se adaptan en móvil sin exigir una segunda barra lateral.
 
-### Facturas y aportaciones posteriores
+### Comprobantes y aportaciones posteriores
 
-Cuando exista el contrato autorizado, Documentos podrá incorporarse al mismo
-submenú. Las facturas pertenecerán a la entity y el colaborador será su autor o
+Comprobantes ya está incorporado al submenú para consultar y solicitar correcciones; el seguimiento avanzado por colaborador continúa pendiente. Las facturas pertenecerán a la entity y el colaborador será su autor o
 cargador trazable; una persona no es un contenedor separado de facturas. Filtros
 por colaborador/período/estado y el vínculo desde una persona se desarrollarán
 solo con los contratos y permisos de esa fase. Revocar acceso no se presentará
@@ -193,7 +214,95 @@ el comportamiento real del bloqueo de navegación o la sesión en navegador.
 
 ## Portal de clientes
 
-### Última entrega — retorno visible y consulta compacta, 2026-11-13
+### Última entrega — ciclo de vida completo en UI, 2026-11-13
+
+Se continuó sobre los tipos, parser y transporte parciales encontrados al comenzar;
+no se reconstruyeron entidades ni endpoints. Integrados seis estados y las acciones
+discard y return-to-draft con sesión SDK, Bearer y AbortSignal existentes.
+
+| Antes                                            | Después                                                                                       | Motivo                                        |
+| ------------------------------------------------ | --------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Nuevos estados con una apariencia común          | Etiquetas textuales: neutro, revisión azul, corrección ámbar, aprobado verde y rechazado rojo | Distinguir estado sin depender solo del color |
+| Descarte junto a acciones frecuentes del listado | Sección separada en el detalle y confirmación danger                                          | Evitar retiradas accidentales y saturación    |
+| Observación solo parcial                         | Observación en detalle y formulario, con fecha e identificador del revisor cuando existen     | Corregir con contexto, sin inventar nombres   |
+| Descartados mezclados en la vista inicial        | Sin descartar por defecto; historial y todos disponibles por filtro                           | No confundir historial con pendientes         |
+| Reintento de transición potencialmente ambiguo   | GET del mismo ID antes de cada confirmación y validación del estado devuelto                  | No repetir un POST que el servidor ya aceptó  |
+
+Cliente con canUpload: draft editable/enviable/descartable; needs_correction
+muestra observación y permite guardar cambios y reenviar. pending_review,
+approved, rejected y discarded son consulta bloqueada. No hay acciones de
+aprobar, rechazar ni solicitar corrección en el portal cliente. La observación
+se muestra como texto seguro, conserva saltos de línea y ofrece metadatos en
+un disclosure; observed_by es identificador, nunca un nombre o correo supuesto.
+
+Descartar solo se ofrece en el detalle de draft, con contexto emisor/importe y
+confirmación explícita. Explica la conservación en historial. El diálogo tiene
+foco inicial en conservar/cancelar, Escape y restauración de foco al cerrar;
+si la transición retira el botón, el resultado accesible recibe foco. Los errores
+aparecen dentro del diálogo. Comprobación y escritura bloquean doble envío.
+No se usa DELETE ni se simula aprobación contable.
+
+Las acciones comprueban el estado del ID guardado antes del POST. Si ya está en
+el destino, actualizan la vista sin repetirlo. Un estado incompatible bloquea
+confirmación hasta cerrar y actualizar. Un fallo incierto permite reintento
+explícito precedido por GET; no hay reintentos automáticos ni garantía frontend
+de idempotencia frente a carreras del servidor. La observación escrita permanece
+si falla la operación; no es necesario volver a escribirla.
+
+PATCH envía campos modificados; guardar y enviar conservan el mismo ID. Se
+invalidan listado y detalle en transiciones. Para crear/editar/enviar, el detalle
+se marca obsoleto sin refetch activo que desmonte el editor entre los dos pasos;
+al abrirlo se revalida. Descarte/devolución revalidan el detalle activo. Se
+rechazan respuestas cuyo estado no corresponde a la acción. Consultas aisladas
+por usuario/workspace/entity/documento y cancelación/limpieza existentes conservadas.
+
+Componentes nuevos: PurchaseStatus, PurchaseObservation y PurchaseLifecycleAction.
+PurchaseDiscardDialog conserva confirmación y añade observación para el flujo del
+contador; PurchaseDocumentRow prioriza consulta/corrección y deja descarte en el
+detalle. Ajustados PurchaseDocumentDetail/List/Documents, ManualPurchaseForm,
+usePurchaseEditor, usePurchaseDocuments, mensajes API y CSS local. Paleta/tokens,
+temas, responsive, foco y botones existentes conservados. Se aplicó emil-design-eng;
+sin animaciones decorativas ni librerías nuevas.
+
+Casos Demo preparados en tests/auth/client-purchases.spec.ts: descarte confirmado,
+foco al cancelar, resultado incierto ya aceptado sin repetir POST, historial,
+corrección y reenvío sin duplicar, estados bloqueados y devolución del contador
+con observación obligatoria. NO ejecutados por restricción de Playwright.
+Lint final salida 0 sin errores/avisos y build final salida 0. Cifras actuales
+abajo. Visual, API/RLS reales y validación del ciclo con dos usuarios pendientes.
+
+### Antecedente parcial — ciclo de vida de compras manuales, 2026-11-13
+
+Implementado exclusivamente en `nuvora-web` el consumo de los seis estados del
+ciclo de vida: `draft`, `pending_review`, `needs_correction`, `approved`,
+`rejected` y `discarded`. El parser conserva `review_observation`, `observed_by`
+y `observed_at`. La API web añade `discard` y `return-to-draft` con
+`AbortSignal`; la UI del cliente solo ofrece descarte para `draft`, con
+confirmación explícita, variante danger roja, icono, texto de historial y
+restauración de foco. No hay borrado físico.
+
+`needs_correction` muestra la observación, fecha y actor cuando el API los
+devuelve, permite editar y guarda el cambio antes de reenviar. `pending_review`,
+`approved` y `rejected` son consulta bloqueada; `discarded` permanece visible en
+el listado/historial, pero no ofrece acciones ni se presenta como activo. Se
+invalidan listado y detalle tras transiciones y se mantienen claves por usuario,
+workspace y entity.
+
+Archivos principales: `purchaseDocument.types.ts`, `purchaseDocumentsApi.ts`,
+`usePurchaseDocuments.ts`, `PurchaseDocumentDetail.tsx`,
+`PurchaseDocumentRow.tsx`, `PurchaseDiscardDialog.tsx`,
+`ManualPurchaseForm.tsx`, `usePurchaseEditor.ts` y `client.module.css`.
+La interfaz usa tokens actuales, movimiento sutil bajo 300 ms y
+foco/teclado/Escape con `prefers-reduced-motion`; no se usó `ui-ux-pro-max` en
+esta entrega, por instrucción posterior, y se aplicó `emil-design-eng`.
+
+Verificación real: `npm run lint` salida 0 y `npm run build` salida 0. Build:
+CSS 75,10 kB (13,78 kB gzip), JS principal 801,86 kB (230,73 kB gzip), PWA
+21 entradas / 889,66 KiB; persiste el aviso de chunk superior a 500 kB.
+Playwright no ejecutado. Visual, integración real API/RLS y casos Demo siguen
+pendientes.
+
+### Entrega anterior — retorno visible y consulta compacta, 2026-11-13
 
 Tras el reporte del propietario de no encontrar cómo regresar, se ajustó la
 navegación del detalle con emil-design-eng. El detalle permanece como pantalla
@@ -386,17 +495,17 @@ contador quedan para contratos/fases posteriores. No se simularon resultados.
 
 ## Verificación y pendientes compartidos
 
-Última verificación de código: navegación de retorno y consulta compacta del portal de
-clientes, 2026-11-13. Lint/build ejecutados después de los cambios de presentación.
+Última verificación de código: integración del ciclo de vida en ambos portales,
+2026-11-13. Lint/build ejecutados después de los cambios de integración y UI.
 La actualización posterior de este archivo no repitió checks de código.
 
 | Comprobación  | Resultado registrado                                              |
 | ------------- | ----------------------------------------------------------------- |
 | npm run lint  | Salida 0, sin errores ni avisos                                   |
 | npm run build | Salida 0; TypeScript, Vite y generación PWA completos             |
-| CSS           | 74,47 kB; 13,68 kB gzip                                           |
-| JS principal  | 796,96 kB; 229,54 kB gzip                                         |
-| PWA           | 21 entradas; 884,25 KiB; generación no certifica instalación real |
+| CSS           | 76,23 kB; 13,94 kB gzip                                           |
+| JS principal  | 808,16 kB; 232,13 kB gzip                                         |
+| PWA           | 21 entradas; 896,92 KiB; generación no certifica instalación real |
 | Bundle        | Aviso de chunk superior a 500 kB pendiente                        |
 | Playwright    | NO ejecutado; test:auth y test:pwa no autorizados                 |
 | Visual        | Pendiente en móvil/escritorio, claro/oscuro, teclado y foco       |
@@ -408,7 +517,7 @@ tests/auth/client-purchases.spec.ts cubren entrada manual, carga diferida,
 reintento con/sin aceptación previa, validación, protección del borrador y lectura
 sin captura; suites de aceptación/cliente adaptadas. Preparados no significa aprobados.
 
-Pendientes del contador: documentos de la entity con autoría y filtros por
+Pendientes del contador: ampliar la consulta de documentos con autoría y filtros por
 colaborador/período/estado, aprobación y libros, sujetos a contratos autorizados.
 Pendientes del cliente: foto, galería/computadora, extracción/IA y XML/PDF;
 no se implementaron ni se simulan como disponibles. NIT del receptor sigue sin
@@ -636,6 +745,91 @@ debe mostrar el conflicto seguro del API, no reintentarse automáticamente.
 - `created_by`, `updated_by` y `submitted_by` son identificadores; no asumir que
   incluyen nombres o correos.
 - Errores del API siguen el formato `{ "error": "CODE", "message": "..." }`.
+
+## Ciclo de vida de compras manuales — contratos nuevos
+
+El backend ya tiene aplicada la migración manual `013_manual_purchase_document_lifecycle.sql`.
+El frontend debe consumir el ciclo de vida sin borrar físicamente documentos ni
+simular aprobación contable.
+
+### Estados
+
+```text
+draft             editable y descartable
+pending_review    enviado al contador; bloqueado para edición del cliente
+needs_correction  observado por el contador; permite corrección
+approved          reservado para aprobación; bloqueado
+rejected          rechazado; bloqueado y conservado en historial
+discarded         descartado lógicamente; no debe aparecer como pendiente
+```
+
+### Acciones nuevas
+
+```http
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/return-to-draft
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/discard
+```
+
+Las acciones devuelven:
+
+```json
+{ "document": { "...": "...", "status": "needs_correction" } }
+```
+
+El contrato vigente de envío sigue siendo:
+
+```http
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/submit-review
+```
+
+### Reglas de permisos y estados
+
+- Solo `draft` puede editarse o descartarse directamente.
+- `pending_review` no debe mostrar formulario de edición ni descarte al cliente.
+- `needs_correction` debe mostrar la observación del contador, permitir editar y
+  volver a enviar a revisión.
+- `approved` y `rejected` son estados bloqueados; no mostrar acciones de edición,
+  descarte o reenvío.
+- `discarded` se conserva para auditoría y no debe tratarse como documento activo.
+- El cliente uploader no aprueba, rechaza ni devuelve documentos a corrección.
+- El contador autorizado puede usar las acciones de revisión según sus permisos.
+- El API es la autoridad; ocultar botones no sustituye autorización.
+
+### UX/UI obligatoria para acciones destructivas
+
+- Descartar, cancelar o cualquier acción que retire un documento del flujo debe
+  usar variante visual `danger` roja, igual que revocar accesos.
+- Mostrar confirmación explícita antes de descartar.
+- El texto debe explicar que el documento no se elimina físicamente y que queda
+  en historial como `discarded`.
+- Usar `aria-label`, foco visible, soporte de teclado y restauración de foco al
+  cerrar el diálogo.
+- No depender únicamente del color: usar texto claro e icono semántico.
+- No usar rojo para guardar, editar, enviar a revisión o acciones informativas.
+- Las observaciones y errores deben tener estados accesibles y no confundirse
+  con acciones destructivas.
+
+### Implementación frontend pendiente
+
+El futuro trabajo debe:
+
+- Actualizar tipos y parsers para todos los estados.
+- Consumir `return-to-draft` y `discard` con transporte autenticado.
+- Mostrar el detalle completo de cada compra según su estado.
+- Mostrar `review_observation`, `observed_by` y `observed_at` cuando existan.
+- Separar visualmente acciones de edición, envío a revisión y descarte.
+- Invalidar listado/detalle después de cada transición.
+- Manejar 401, 403, 404, 409 y 503 con mensajes seguros y reintento explícito.
+- Mantener Query keys por usuario/workspace/entity y cancelar peticiones al
+  cambiar usuario, workspace o entity.
+- Añadir estados de carga, vacío, error y éxito sin doble envío.
+- Aplicar `ui-ux-pro-max` y `emil-design-eng`: diseño minimalista moderno,
+  microinteracciones sutiles, `prefers-reduced-motion`, responsive y dark mode.
+- Actualizar `codex.md`, `docs/CLIENT.md`, `docs/STATUS.md` y documentación
+  relevante con archivos modificados y resultados reales.
+
+No ejecutar Playwright sin autorización expresa. Ejecutar únicamente `npm run
+lint` y `npm run build` al finalizar.
 
 **Resumen histórico; el estado actual está al inicio de este mismo documento.** El propietario
 dio conformidad a la reorganización y solicitó consolidar la documentación. Esa

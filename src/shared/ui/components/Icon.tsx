@@ -3,6 +3,9 @@ export function Icon({
 }: {
   name:
     | 'file'
+    | 'camera'
+    | 'image'
+    | 'upload'
     | 'archive'
     | 'copy'
     | 'message'
@@ -45,6 +48,20 @@ export function Icon({
           <path d="M14 2v6h6M8 13h8m-8 4h6" />
         </>
       )}
+      {name === 'camera' && (
+        <>
+          <path d="M8 5l1.5-2h5L16 5h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
+          <circle cx="12" cy="12" r="4" />
+        </>
+      )}
+      {name === 'image' && (
+        <>
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8" cy="8" r="1.5" />
+          <path d="m21 15-5-5L5 21" />
+        </>
+      )}
+      {name === 'upload' && <path d="M12 16V3m-4 4 4-4 4 4M4 16v5h16v-5" />}
       {name === 'archive' && (
         <>
           <rect x="3" y="3" width="18" height="4" rx="1" />

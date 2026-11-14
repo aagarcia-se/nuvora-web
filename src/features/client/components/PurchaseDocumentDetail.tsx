@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/features/auth/store/authStore';
 import { errorStatus } from '@/shared/api/authenticatedRequest';
@@ -10,6 +10,7 @@ import { purchaseDocumentTypes } from '../types/purchaseDocument.types';
 import { PurchaseStatus } from './PurchaseStatus';
 import { PurchaseObservation } from './PurchaseObservation';
 import { PurchaseLifecycleAction } from './PurchaseLifecycleAction';
+import { PurchasePhoto, type PhotoActivity } from './PurchasePhoto';
 import type { usePurchaseDocuments } from '../api/usePurchaseDocuments';
 import {
   formatPurchaseDate,
@@ -38,6 +39,7 @@ export function PurchaseDocumentDetail({
   writer,
   canReview = false,
   canDecide = false,
+  canManagePhoto = false,
   headingLevel = 1,
 }: {
   workspaceId: string;
@@ -46,6 +48,7 @@ export function PurchaseDocumentDetail({
   canUpload: boolean;
   canReview?: boolean;
   canDecide?: boolean;
+  canManagePhoto?: boolean;
   headingLevel?: 1 | 2;
   documentsPath: string;
   editPath: string;
@@ -56,6 +59,10 @@ export function PurchaseDocumentDetail({
   const { logout } = useAuth();
   const id = useId();
   const heading = useRef<HTMLHeadingElement>(null);
+  const [photoActivity, setPhotoActivity] = useState<PhotoActivity>({
+    busy: false,
+    dirty: false,
+  });
   useEffect(() => {
     if (detail.isSuccess) heading.current?.focus({ preventScroll: true });
   }, [detail.isSuccess]);
@@ -245,13 +252,31 @@ export function PurchaseDocumentDetail({
                 </p>
               </details>
             </article>
+            <PurchasePhoto
+              workspaceId={workspaceId}
+              entityId={entityId}
+              documentId={document.id}
+              editable={
+                canManagePhoto &&
+                ['draft', 'needs_correction'].includes(document.status)
+              }
+              onActivity={setPhotoActivity}
+              disabled={writer.isPending}
+              guard
+            />
             <footer className={styles.detailFooter}>
               <PurchaseLifecycleAction
                 document={document}
                 writer={writer}
-                canUpload={canUpload}
-                canReview={canReview}
-                canDecide={canDecide}
+                canUpload={
+                  canUpload && !photoActivity.busy && !photoActivity.dirty
+                }
+                canReview={
+                  canReview && !photoActivity.busy && !photoActivity.dirty
+                }
+                canDecide={
+                  canDecide && !photoActivity.busy && !photoActivity.dirty
+                }
                 onRefresh={() => void detail.refetch()}
               />
               <Link to={documentsPath} className="btn-secondary">

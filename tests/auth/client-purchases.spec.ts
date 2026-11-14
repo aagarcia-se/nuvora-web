@@ -80,7 +80,7 @@ async function portal(
             {
               workspace_id: workspace.id,
               entity_id: entity.id,
-              role: 'client_viewer',
+              role: options.readOnly ? 'client_viewer' : 'client_contributor',
               entity: {
                 id: entity.id,
                 kind: 'tax_entity',
@@ -97,6 +97,8 @@ async function portal(
         },
       });
     const base = `/api/v1/workspaces/${workspace.id}/entities/${entity.id}/purchase-documents`;
+    if (url.pathname === `${base}/${documentId}/photo` && method === 'GET')
+      return route.fulfill({ json: { photo: null } });
     if (url.pathname === `${base}/${documentId}/approve` && method === 'POST') {
       calls.approves++;
       if (options.decisionStatus)
@@ -238,6 +240,294 @@ async function fillInvoice(page: Page) {
     .getByLabel('Descripción de la compra', { exact: true })
     .fill('Compra Demo');
 }
+
+// Private-photo contracts are synthetic; these cases remain NOT EXECUTED.
+const photoId = '88888888-8888-4888-8888-888888888888';
+const demoPhoto = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l9sAAAAASUVORK5CYII=',
+  'base64',
+);
+async function photos(
+  page: Page,
+  options: {
+    initial?: boolean;
+    uncertainConfirm?: boolean;
+    failConfirm?: boolean;
+    uncertainDelete?: boolean;
+  } = {},
+) {
+  let active = Boolean(options.initial);
+  let activeId = options.initial
+    ? '99999999-9999-4999-8999-999999999999'
+    : photoId;
+  const calls = {
+    uploads: 0,
+    confirms: 0,
+    deletes: 0,
+    binaryAuthorization: '',
+    metadata: 0,
+  };
+  const base = `http://api.demo.test/api/v1/workspaces/${workspace.id}/entities/${entity.id}/purchase-documents/${documentId}/photo`;
+  await page.route(`${base}**`, async (route) => {
+    const request = route.request();
+    if (request.method() === 'GET') {
+      calls.metadata++;
+      return route.fulfill({
+        json: {
+          photo: active
+            ? {
+                id: activeId,
+                mimeType: 'image/png',
+                byteSize: demoPhoto.length,
+                expiresIn: 300,
+                url: 'https://auth.demo.test/storage/v1/object/sign/demo.png?token=demo-only',
+              }
+            : null,
+        },
+      });
+    }
+    if (request.url().endsWith('/upload-url')) {
+      calls.uploads++;
+      return route.fulfill({
+        status: 201,
+        json: {
+          upload: {
+            fileId: photoId,
+            signedUrl:
+              'https://auth.demo.test/storage/v1/object/upload/sign/demo.png?token=demo-only',
+            expiresIn: 300,
+            mimeType: 'image/png',
+            maxBytes: 10 * 1024 * 1024,
+          },
+        },
+      });
+    }
+    if (request.url().endsWith('/confirm')) {
+      calls.confirms++;
+      active = !options.failConfirm;
+      if (active) activeId = photoId;
+      if (options.uncertainConfirm || options.failConfirm)
+        return route.fulfill({
+          status: 503,
+          json: { error: 'DEMO_PHOTO_CONFIRM_UNCERTAIN' },
+        });
+      return route.fulfill({ json: { photo: { id: photoId } } });
+    }
+    if (request.method() === 'DELETE') {
+      calls.deletes++;
+      active = false;
+      if (options.uncertainDelete)
+        return route.fulfill({
+          status: 503,
+          json: { error: 'DEMO_PHOTO_DELETE_UNCERTAIN' },
+        });
+      return route.fulfill({ json: { deleted: true } });
+    }
+    return route.fallback();
+  });
+  await page.route('https://auth.demo.test/storage/v1/**', async (route) => {
+    if (route.request().method() === 'PUT') {
+      calls.binaryAuthorization = route.request().headers().authorization ?? '';
+      return route.fulfill({ json: {} });
+    }
+    return route.fulfill({ contentType: 'image/png', body: demoPhoto });
+  });
+  return calls;
+}
+
+test('Demo foto: reemplazar requiere confirmación y valida archivos antes de escribir', async ({
+  page,
+}) => {
+  await portal(page, { seedStatus: 'needs_correction' });
+  const calls = await photos(page, { initial: true });
+  await page.goto(`${path}&draft=${documentId}`);
+  await expect(
+    page.getByRole('button', { name: 'Agregar foto', exact: true }),
+  ).toBeEnabled();
+  const picker = page.getByLabel('Elegir foto del comprobante', {
+    exact: true,
+  });
+  await picker.setInputFiles({
+    name: 'archivo.pdf',
+    mimeType: 'application/pdf',
+    buffer: Buffer.from('Demo'),
+  });
+  await expect(page.getByRole('alert')).toContainText('Elige una foto');
+  await picker.setInputFiles({
+    name: 'grande.png',
+    mimeType: 'image/png',
+    buffer: Buffer.alloc(10 * 1024 * 1024 + 1),
+  });
+  await expect(page.getByRole('alert')).toContainText('10 MiB');
+  expect(calls.uploads).toBe(0);
+  await picker.setInputFiles({
+    name: 'foto-demo.png',
+    mimeType: 'image/png',
+    buffer: demoPhoto,
+  });
+  const replace = page.getByRole('button', {
+    name: 'Reemplazar foto',
+    exact: true,
+  });
+  await replace.click();
+  await expect(page.getByRole('dialog')).toContainText('nueva foto');
+  expect(calls.uploads).toBe(0);
+  await page.keyboard.press('Escape');
+  await expect(replace).toBeFocused();
+  await replace.click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Reemplazar foto', exact: true })
+    .click();
+  await expect(
+    page.getByText('Foto adjunta y confirmada.', { exact: true }),
+  ).toBeVisible();
+  expect(calls.uploads).toBe(1);
+  expect(calls.confirms).toBe(1);
+});
+
+test('Demo foto: captura sin imagen sigue siendo opcional y no consulta almacenamiento', async ({
+  page,
+}) => {
+  const calls = await portal(page);
+  const photoCalls = await photos(page);
+  await fillInvoice(page);
+  await page
+    .getByRole('button', { name: 'Enviar a revisión', exact: true })
+    .click();
+  await expect(
+    page.getByRole('heading', { name: 'Comprobante enviado a revisión' }),
+  ).toBeVisible();
+  expect(calls.creates).toBe(1);
+  expect(photoCalls.metadata).toBe(0);
+  expect(photoCalls.uploads).toBe(0);
+});
+
+for (const uncertainConfirm of [false, true])
+  test(`Demo foto: adjunto confirmado y recuperación sin repetir POST, incierto=${uncertainConfirm}`, async ({
+    page,
+  }) => {
+    await portal(page, { seedStatus: 'draft' });
+    const calls = await photos(page, { uncertainConfirm });
+    await page.goto(`${path}&draft=${documentId}`);
+    await expect(
+      page.getByRole('button', { name: 'Agregar foto', exact: true }),
+    ).toBeEnabled();
+    await page
+      .getByLabel('Elegir foto del comprobante', { exact: true })
+      .setInputFiles({
+        name: 'foto-demo.png',
+        mimeType: 'image/png',
+        buffer: demoPhoto,
+      });
+    await expect(
+      page.getByRole('button', { name: 'Enviar a revisión', exact: true }),
+    ).toBeDisabled();
+    await page
+      .getByRole('button', { name: 'Adjuntar foto', exact: true })
+      .click();
+    if (uncertainConfirm) {
+      await expect(page.getByRole('alert')).toContainText('servicio de fotos');
+      await expect(
+        page.getByText('Foto adjunta y confirmada.', { exact: true }),
+      ).toHaveCount(0);
+      await page
+        .getByRole('button', { name: 'Comprobar estado de la foto' })
+        .click();
+    }
+    await expect(
+      page.getByText('Foto adjunta y confirmada.', { exact: true }),
+    ).toBeVisible();
+    expect(calls.confirms).toBe(1);
+    expect(calls.uploads).toBe(1);
+    expect(calls.binaryAuthorization).toBe('');
+    await expect(
+      page.getByRole('button', { name: 'Enviar a revisión', exact: true }),
+    ).toBeEnabled();
+  });
+
+test('Demo foto: confirmación fallida conserva selección y no anuncia adjunto activo', async ({
+  page,
+}) => {
+  await portal(page, { seedStatus: 'draft' });
+  const calls = await photos(page, { failConfirm: true });
+  await page.goto(`${path}&draft=${documentId}`);
+  await expect(
+    page.getByRole('button', { name: 'Agregar foto', exact: true }),
+  ).toBeEnabled();
+  await page
+    .getByLabel('Elegir foto del comprobante', { exact: true })
+    .setInputFiles({
+      name: 'foto-demo.png',
+      mimeType: 'image/png',
+      buffer: demoPhoto,
+    });
+  await page
+    .getByRole('button', { name: 'Adjuntar foto', exact: true })
+    .click();
+  await expect(
+    page.getByRole('button', { name: 'Comprobar estado de la foto' }),
+  ).toBeVisible();
+  await page
+    .getByRole('button', { name: 'Comprobar estado de la foto' })
+    .click();
+  await expect(
+    page.getByText('Seleccionada · Todavía no está adjunta'),
+  ).toBeVisible();
+  await expect(
+    page.getByText('Foto adjunta y confirmada.', { exact: true }),
+  ).toHaveCount(0);
+  expect(calls.confirms).toBe(1);
+});
+
+test('Demo foto: eliminar confirma, Escape restaura foco y respuesta incierta no repite DELETE', async ({
+  page,
+}) => {
+  await portal(page, { seedStatus: 'draft' });
+  const calls = await photos(page, { initial: true, uncertainDelete: true });
+  await page.goto(`${path}&document=${documentId}`);
+  const remove = page.getByRole('button', {
+    name: 'Eliminar foto',
+    exact: true,
+  });
+  await remove.click();
+  await page.keyboard.press('Escape');
+  await expect(remove).toBeFocused();
+  expect(calls.deletes).toBe(0);
+  await remove.click();
+  await page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Eliminar foto', exact: true })
+    .click();
+  await page
+    .getByRole('button', { name: 'Comprobar estado de la foto' })
+    .click();
+  await expect(
+    page.getByText('Este comprobante no tiene foto.', { exact: false }),
+  ).toBeVisible();
+  expect(calls.deletes).toBe(1);
+});
+
+for (const seedStatus of [
+  'pending_review',
+  'approved',
+  'rejected',
+  'discarded',
+] as const)
+  test(`Demo foto: ${seedStatus} solo permite consultar`, async ({ page }) => {
+    await portal(page, { seedStatus });
+    await photos(page, { initial: true });
+    await page.goto(`${path}&document=${documentId}`);
+    await expect(
+      page.getByRole('link', { name: 'Abrir foto adjunta en tamaño completo' }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Agregar foto', exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Eliminar foto', exact: true }),
+    ).toHaveCount(0);
+  });
 
 test('Demo: captura primero; lista bajo demanda y acceso secundario', async ({
   page,

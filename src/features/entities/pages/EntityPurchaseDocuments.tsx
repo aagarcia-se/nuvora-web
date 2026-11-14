@@ -108,6 +108,7 @@ export function EntityPurchaseDocuments({
           entityId={entityId}
           documentId={documentId}
           canUpload={false}
+          canManagePhoto={canManagePeriod}
           canReview={canReview}
           canDecide={canDecide}
           writer={mutate}

@@ -13,15 +13,22 @@ import {
 import { formatPurchaseTotal } from '../utils/purchasePresentation';
 import { PurchaseDraftGuard } from './PurchaseDraftGuard';
 import { PurchaseObservation } from './PurchaseObservation';
+import { PurchasePhoto, type PhotoActivity } from './PurchasePhoto';
 import styles from '../client.module.css';
 
 export function ManualPurchaseForm({
+  workspaceId,
+  entityId,
+  canManagePhoto,
   entityName,
   document,
   writer,
   documentsPath,
   registerPath,
 }: {
+  workspaceId: string;
+  entityId: string;
+  canManagePhoto: boolean;
   entityName: string;
   document?: PurchaseDocument;
   writer: ReturnType<typeof usePurchaseDocuments>['mutate'];
@@ -34,7 +41,11 @@ export function ManualPurchaseForm({
   const successHeading = useRef<HTMLHeadingElement>(null);
   const id = useId();
   const [receiverOpen, setReceiverOpen] = useState(false);
-  const pending = editor.phase !== 'idle';
+  const [photoActivity, setPhotoActivity] = useState<PhotoActivity>({
+    busy: false,
+    dirty: false,
+  });
+  const pending = editor.phase !== 'idle' || photoActivity.busy;
   const busyText =
     editor.phase === 'saving'
       ? 'Guardando…'
@@ -144,7 +155,13 @@ export function ManualPurchaseForm({
         aria-busy={pending}
         onSubmit={(event) => {
           event.preventDefault();
-          void editor.save(true);
+          if (
+            !pending &&
+            !photoActivity.dirty &&
+            !editor.recoveryRequired &&
+            !editor.unavailable
+          )
+            void editor.save(true);
         }}
       >
         <div className={styles.documentHeader}>
@@ -409,10 +426,55 @@ export function ManualPurchaseForm({
             )}
           </fieldset>
         </details>
+        {editor.saved ? (
+          <PurchasePhoto
+            key={editor.saved.id}
+            workspaceId={workspaceId}
+            entityId={entityId}
+            documentId={editor.saved.id}
+            editable={
+              canManagePhoto &&
+              !editor.unavailable &&
+              ['draft', 'needs_correction'].includes(editor.saved.status)
+            }
+            disabled={
+              editor.phase !== 'idle' ||
+              editor.recoveryRequired ||
+              editor.unavailable
+            }
+            onActivity={setPhotoActivity}
+          />
+        ) : canManagePhoto ? (
+          <section
+            className={styles.photoSection}
+            aria-labelledby={`${id}-photo`}
+          >
+            <h2 id={`${id}-photo`} className={styles.sectionTitle}>
+              <Icon name="image" /> Foto del comprobante{' '}
+              <span className={styles.photoOptional}>Opcional</span>
+            </h2>
+            <p className={styles.fieldHint}>
+              ¿Quieres adjuntar una foto? Completa los datos y guarda el
+              borrador. Después podrás elegir una imagen o tomarla con tu cámara
+              antes de enviarlo a revisión.
+            </p>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={
+                pending || editor.recoveryRequired || editor.unavailable
+              }
+              onClick={() => void editor.save(false)}
+            >
+              Guardar borrador para agregar foto
+            </Button>
+          </section>
+        ) : null}
         <footer className={styles.formFooter}>
           <p>
-            Guardar conserva un borrador. Enviar solicita la revisión de tu
-            comprobante.
+            {photoActivity.dirty
+              ? 'Adjunta la foto seleccionada o quita la selección antes de enviar. Si hubo un error, comprueba primero el estado de la foto.'
+              : 'Guardar conserva un borrador. Enviar solicita la revisión de tu comprobante.'}
           </p>
           <div className={styles.formActions}>
             <Button
@@ -435,7 +497,12 @@ export function ManualPurchaseForm({
               type="submit"
               loading={pending}
               loadingLabel={busyText}
-              disabled={editor.recoveryRequired || editor.unavailable}
+              disabled={
+                editor.recoveryRequired ||
+                editor.unavailable ||
+                photoActivity.dirty ||
+                photoActivity.busy
+              }
             >
               {editor.sendNeedsCheck && !editor.dirty
                 ? 'Reintentar envío'
@@ -448,7 +515,7 @@ export function ManualPurchaseForm({
         </footer>
       </form>
       <PurchaseDraftGuard
-        dirty={editor.dirty}
+        dirty={editor.dirty || photoActivity.dirty}
         pending={pending}
         onDiscard={editor.reset}
       />

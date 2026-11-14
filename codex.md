@@ -1,6 +1,6 @@
 # Codex — estado y continuidad de Nuvora Web
 
-Actualizado para las instrucciones de integración mensual del contador. **Este archivo es la fuente única para determinar qué
+Actualizado para la integración de fotos privadas opcionales de compras manuales. **Este archivo es la fuente única para determinar qué
 se implementó, qué se verificó y qué falta.** La documentación temática anterior
 queda como referencia histórica; no es necesario consultarla para continuar el
 trabajo. Los bloques de historial al final conservan decisiones y contratos,
@@ -43,7 +43,29 @@ resultados reales y pendientes; no crear otro documento de continuidad del porta
 
 ## Portal de contadores
 
-### Última entrega — acceso y permisos del resumen mensual del contador
+### Última entrega — foto privada del comprobante
+
+**Estado: implementado en frontend; revisión visual e integración real pendientes.**
+El detalle de Comprobantes reutiliza `PurchasePhoto`: consulta la foto autorizada,
+permite abrirla en tamaño completo y renovar la vista previa temporal. Gestionar
+requiere owner/admin del workspace confirmado y `canManage` de la entity, según
+el contrato de `authorizePurchaseDocumentAction(..., 'upload')` inspeccionado en
+modo lectura. No se deduce permiso desde ser revisor ni desde la selección local.
+Solo `draft` y `needs_correction` admiten carga, reemplazo o eliminación; los
+demás estados son de consulta. La autorización definitiva permanece en el API.
+
+Reemplazo y eliminación requieren confirmación mediante diálogo nativo, con
+Escape, foco inicial en Cancelar y retorno al control que abrió el diálogo o a
+la cabecera de fotos si ese control ya desapareció. El reemplazo conserva el
+historial remoto; eliminar no elimina los datos de la compra. Acciones sobre el
+comprobante se suspenden mientras se procesa una foto o queda una selección sin
+resolver. No se añadieron menús, rutas, permisos, OCR, IA ni procesamiento fiscal.
+
+Archivos de integración: `EntityPurchaseDocuments.tsx` y
+`PurchaseDocumentDetail.tsx`; transporte, estados y presentación se comparten
+con el portal de clientes descrito abajo. Se conserva el resumen mensual previo.
+
+### Entrega anterior — acceso y permisos del resumen mensual del contador
 
 **Estado: implementado en frontend; validación visual e integración real pendientes.**
 Se revisó la nueva instrucción del final del documento. El resumen ya estaba
@@ -370,9 +392,74 @@ el comportamiento real del bloqueo de navegación o la sesión en navegador.
 
 ## Portal de clientes
 
-**Continuidad de esta entrega:** el cliente entity-only conserva su portal aislado. No se añadieron enlaces, navegación ni controles del despacho a su interfaz; las mejoras de acceso y permisos son exclusivas del contador.
+### Última entrega — foto opcional en captura manual y detalle
 
-### Última entrega — claridad del resumen aprobado
+**Estado: implementado en frontend; no certificado con API/Storage/RLS reales ni
+con revisión visual.** Se utiliza únicamente `emil-design-eng` en esta entrega.
+
+| Antes | Después | Motivo |
+| --- | --- | --- |
+| Captura exclusivamente manual | Sección secundaria Foto del comprobante, marcada Opcional | Mantener los datos y el envío como tarea principal |
+| Sin respaldo visual consultable | Foto en formulario guardado y detalle; tamaño completo y actualización de enlace | Revisar el respaldo sin perder el contexto del comprobante |
+| Sin estados de adjunto | Selección local, progreso, confirmación, error y recuperación explícita | Distinguir una imagen elegida de una foto realmente activa |
+
+Para una compra nueva: completar datos → Guardar borrador para agregar foto →
+elegir desde galería/computadora o Tomar foto → revisar vista previa → Adjuntar
+foto → enviar a revisión. Se guarda primero porque los endpoints exigen un
+documentId existente; no se crean registros incompletos para reservar archivos.
+Sin foto se conserva el envío manual directo. El formulario mantiene un único
+guard de navegación que combina cambios de datos, selección de foto y operaciones
+pendientes; Enter tampoco envía mientras queda una selección sin resolver.
+
+`client_owner`/`client_contributor` y `canUpload` autorizados habilitan la gestión
+solo en borrador/corrección. El rol se toma del descubrimiento vigente del API,
+no del POST histórico de aceptación. `client_viewer` no puede gestionar fotos,
+incluso si una respuesta presenta canUpload sin un rol de captura compatible.
+Los permisos existentes del formulario manual no se redefinieron en esta fase.
+
+La selección muestra nombre, tipo, tamaño y miniatura local; acepta JPEG/PNG/WebP
+de hasta 10 MiB. La cámara es opcional y depende del dispositivo. Las extensiones
+enviadas se normalizan al MIME declarado (JPEG → jpg), según el schema real del
+API; la validación definitiva de contenido, tamaño, permisos y hash es remota.
+Confirmar y volver a consultar la metadata es obligatorio antes de anunciar
+Foto adjunta y confirmada. Un error conserva la selección y exige Comprobar
+estado de la foto. Si el servidor ya aceptó el fileId, se recupera el resultado
+sin repetir confirmación. En los demás casos el usuario puede iniciar otro
+intento explícito; no hay reintentos automáticos de escrituras. La eliminación
+también se verifica por consulta antes de cualquier nuevo intento. Se consulta
+la foto actual antes de escribir y se rechazan cambios conocidos de fileId;
+esto no garantiza exclusión mutua entre usuarios, responsabilidad del API.
+
+Query almacena únicamente id, MIME y tamaño bajo la clave
+purchase-photo/usuario/workspace/entity/documento, gcTime 0 y retry false.
+URLs firmadas quedan solo en memoria local, con caducidad y renovación explícita;
+no entran en Query/Mutation cache, claves, storage, cookies, logs ni tracking.
+No se conservan paths. Se valida origen configurado de Supabase, protocolo y
+prefijo de Storage. PUT binario usa un cliente Axios aislado, sin Bearer del API
+ni credenciales de cookies; los errores se normalizan sin exponer su configuración.
+Miniaturas blob se revocan al cambiar/limpiar selección y al desmontar. Las
+solicitudes se abortan al desmontar/cambiar contexto y se comprueba la identidad
+de la Query antes de aplicar respuestas, incluyendo limpieza de sesión.
+
+Metadata se invalida y consulta después de confirmar/reemplazar/eliminar.
+Errores 401/403/404/409/413/415/503 tienen mensajes seguros; 401 ofrece volver a
+iniciar sesión. Tokens actuales, oscuro, espaciado responsive e iconos SVG
+consistentes se conservan. No hay animaciones nuevas decorativas: feedback por
+estados y progreso nativo; se mantienen los estados de botones compartidos.
+
+Archivos: `api/purchasePhotoApi.ts`, `components/PurchasePhoto.tsx`,
+`ManualPurchaseForm.tsx`, `PurchaseDocumentDetail.tsx`, `PurchaseDocuments.tsx`,
+`pages/ClientEntityPage.tsx`, `client.module.css` e `Icon.tsx`. Casos Demo de fotos
+añadidos en `tests/auth/client-purchases.spec.ts`: compra sin imagen, validación
+de formato/tamaño, reemplazo confirmado, Escape/foco, PUT sin Authorization,
+confirmación incierta aceptada/no aceptada, eliminación incierta y estados
+bloqueados. **Preparados, NO ejecutados**; lint no sustituye estas pruebas.
+Resultados finales y límites compartidos se registran abajo. Este archivo sigue
+siendo la única continuidad; no se duplicó el estado en Markdown temáticos.
+
+**Continuidad compartida:** el cliente entity-only conserva su portal aislado. No se añadieron enlaces, navegación ni controles del despacho a su interfaz. La foto se reutiliza entre ambos portales con permisos independientes.
+
+### Entrega anterior — claridad del resumen aprobado
 
 El resumen mensual compartido ahora muestra Total de compras aprobadas y
 Comprobantes aprobados. Estado vacío: aún no hay compras aprobadas. La advertencia
@@ -836,7 +923,7 @@ contador quedan para contratos/fases posteriores. No se simularon resultados.
 
 ## Verificación y pendientes compartidos
 
-Última verificación de código: acceso y permisos del resumen mensual del contador,
+Última verificación de código: fotos privadas opcionales de compras manuales,
 2026-11-13. Lint/build ejecutados después de los cambios de integración y UI.
 La actualización posterior de este archivo no repitió checks de código.
 
@@ -844,9 +931,9 @@ La actualización posterior de este archivo no repitió checks de código.
 | ------------- | ----------------------------------------------------------------- |
 | npm run lint  | Salida 0, sin errores ni avisos                                   |
 | npm run build | Salida 0; TypeScript, Vite y generación PWA completos             |
-| CSS           | 83,41 kB; 15,02 kB gzip                                           |
-| JS principal  | 826,49 kB; 237,02 kB gzip                                         |
-| PWA           | 21 entradas; 921,83 KiB; generación no certifica instalación real |
+| CSS           | 84,79 kB; 15,27 kB gzip                                           |
+| JS principal  | 841,13 kB; 241,31 kB gzip                                         |
+| PWA           | 21 entradas; 937,47 KiB; generación no certifica instalación real |
 | Bundle        | Aviso de chunk superior a 500 kB pendiente                        |
 | Playwright    | NO ejecutado; test:auth y test:pwa no autorizados                 |
 | Visual        | Pendiente en móvil/escritorio, claro/oscuro, teclado y foco       |
@@ -860,8 +947,9 @@ sin captura; suites de aceptación/cliente adaptadas. Preparados no significa ap
 
 Pendientes del contador: ampliar la consulta de documentos con autoría y filtros por
 colaborador/período/estado y libros, sujetos a contratos autorizados. Mostrar el motivo de rechazo persistido depende de que el API lo proyecte.
-Pendientes del cliente: foto, galería/computadora, extracción/IA y XML/PDF;
-no se implementaron ni se simulan como disponibles. NIT del receptor sigue sin
+Pendientes del cliente: validación real de foto/cámara/galería/computadora,
+extracción/IA y XML/PDF; estos procesamientos no se implementaron ni se simulan
+como disponibles. NIT del receptor sigue sin
 derivación segura desde backend; no desenmascararlo ni declarar completado ese
 requisito. No comenzar esa integración solo por estar documentada.
 
@@ -2529,3 +2617,76 @@ El resumen contiene:
 
 Documentar archivos, resultados de `npm run lint` y `npm run build`, además de
 cualquier limitación real. No ejecutar Playwright sin autorización expresa.
+
+## Foto opcional de compras manuales — frontend implementado; validación pendiente
+
+**Estatus actualizado:** integración frontend realizada según las secciones
+vigentes de ambos portales. Lint/build y límites reales en Verificación y
+pendientes compartidos. Las instrucciones siguientes conservan el contrato de
+la entrega; no representan una fase pendiente de volver a implementar.
+
+El backend ya implementó fotos privadas opcionales asociadas a una compra. La
+integración frontend debe usar únicamente `emil-design-eng` para interacción,
+accesibilidad, microdetalles y pulido visual.
+
+### Endpoints
+
+```http
+POST   /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/photo/upload-url
+POST   /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/photo/confirm
+GET    /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/photo
+DELETE /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/photo
+```
+
+Solicitar URL con `{ mimeType, fileName, byteSize }`; después subir el binario
+con `PUT` a la `signedUrl` usando el `Content-Type` correspondiente y confirmar
+con `{ fileId, mimeType, byteSize, sha256? }`. La URL de subida dura 5 minutos.
+`GET photo` devuelve `photo: null` si no existe archivo o metadata más una URL
+de descarga firmada temporal. Nunca guardar URLs firmadas, paths ni tokens en
+Query keys, localStorage, cookies, logs, analytics o URLs de tracking.
+
+### Reglas de permisos y estados
+
+- La foto es opcional; la compra funciona normalmente sin imagen.
+- `client_owner`/`client_contributor` con `can_upload` pueden cargar, reemplazar
+  o eliminar en `draft` y `needs_correction`.
+- `client_viewer` no puede modificar archivos. El contador autorizado puede
+  consultar y gestionar según el contrato del API.
+- `pending_review`, `approved`, `rejected` y `discarded` bloquean cambios.
+- Una compra tiene un archivo activo; reemplazar conserva auditoría.
+- Tipos permitidos: JPEG, PNG y WebP. Tamaño máximo: 10 MiB.
+- El backend es la autoridad y valida MIME real, extensión, magic bytes, hash,
+  path y permisos. No implementar OCR, IA, PDF ni XML.
+
+### Flujo y UX
+
+```text
+Seleccionar/tomar foto opcional
+→ Validar tamaño y tipo para UX
+→ Solicitar upload-url
+→ PUT binario a signedUrl
+→ Confirmar archivo
+→ Consultar metadata/URL temporal
+```
+
+- Añadir `Agregar foto` al formulario/detalle, permitiendo cámara en móvil sin
+  hacerla obligatoria.
+- Mostrar vista previa local, nombre/tamaño/tipo, progreso, éxito, error,
+  reintento y reemplazo. Si falla la confirmación, no mostrarla como activa.
+- Confirmar eliminación/reemplazo; usar la variante `danger` solo para acciones
+  destructivas. Restaurar foco tras diálogos y soportar teclado/Escape.
+- Mantener tokens, dark mode, responsive y diseño minimalista. Las transiciones
+  deben ser específicas, sutiles, rápidas, interrumpibles y respetar
+  `prefers-reduced-motion`, siguiendo `emil-design-eng`.
+
+### Estado, caché y verificación
+
+- Aislar Query keys por usuario/workspace/entity/document e invalidar metadata
+  después de confirmar, reemplazar o eliminar.
+- Cancelar solicitudes al desmontar, cerrar sesión o cambiar de contexto.
+- No reintentar automáticamente confirmaciones o eliminaciones no idempotentes.
+- Mostrar de forma segura 401, 403, 404, 409, 413, 415 y 503.
+- Actualizar `docs/CLIENT.md` y `docs/STATUS.md` junto con este archivo, sin
+  modificar backend, SQL, entornos o dependencias.
+- Ejecutar únicamente `npm run lint` y `npm run build`; no ejecutar Playwright
+  sin autorización expresa.

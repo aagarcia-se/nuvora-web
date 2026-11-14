@@ -76,6 +76,10 @@ function ClientEntityContent({
         entityId={entityId}
         entityName={entity.legalName}
         canUpload={entity.permissions.canUpload}
+        canManagePhoto={
+          entity.permissions.canUpload &&
+          ['client_owner', 'client_contributor'].includes(entity.role)
+        }
       />
       <ClientAccessDetails
         entityName={entity.legalName}

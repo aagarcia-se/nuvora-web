@@ -24,11 +24,13 @@ export function PurchaseDocuments({
   entityId,
   entityName,
   canUpload,
+  canManagePhoto,
 }: {
   workspaceId: string;
   entityId: string;
   entityName: string;
   canUpload: boolean;
+  canManagePhoto: boolean;
 }) {
   const [search] = useSearchParams();
   const navigate = useNavigate();
@@ -103,6 +105,7 @@ export function PurchaseDocuments({
           entityId={entityId}
           documentId={documentId}
           canUpload={canUpload}
+          canManagePhoto={canManagePhoto}
           documentsPath={documentsPath}
           editPath={`${basePath}&draft=${documentId}`}
           writer={mutate}
@@ -120,6 +123,7 @@ export function PurchaseDocuments({
         />
       ) : draftId ? (
         <DraftEditor
+          canManagePhoto={canManagePhoto}
           key={draftId}
           workspaceId={workspaceId}
           entityId={entityId}
@@ -131,6 +135,9 @@ export function PurchaseDocuments({
         />
       ) : (
         <ManualPurchaseForm
+          canManagePhoto={canManagePhoto}
+          workspaceId={workspaceId}
+          entityId={entityId}
           entityName={entityName}
           writer={mutate}
           documentsPath={documentsPath}
@@ -147,7 +154,7 @@ function DraftEditor({
   ...props
 }: { workspaceId: string; entityId: string; documentId: string } & Omit<
   Parameters<typeof ManualPurchaseForm>[0],
-  'document'
+  'document' | 'workspaceId' | 'entityId'
 >) {
   const detail = usePurchaseDocument(workspaceId, entityId, documentId);
   const { logout } = useAuth();
@@ -196,5 +203,12 @@ function DraftEditor({
         </Link>
       </div>
     );
-  return <ManualPurchaseForm document={detail.data} {...props} />;
+  return (
+    <ManualPurchaseForm
+      workspaceId={workspaceId}
+      entityId={entityId}
+      document={detail.data}
+      {...props}
+    />
+  );
 }

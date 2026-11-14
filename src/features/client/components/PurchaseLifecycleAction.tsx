@@ -8,7 +8,10 @@ import {
 } from '@/shared/api/authenticatedRequest';
 import type { usePurchaseDocuments } from '../api/usePurchaseDocuments';
 import { purchaseDocumentMessage } from '../api/purchaseDocumentsApi';
-import type { PurchaseDocument } from '../types/purchaseDocument.types';
+import type {
+  PurchaseDocument,
+  PurchaseLifecycleActionKind,
+} from '../types/purchaseDocument.types';
 import { PurchaseDiscardDialog } from './PurchaseDiscardDialog';
 import styles from '../client.module.css';
 
@@ -17,21 +20,23 @@ export function PurchaseLifecycleAction({
   writer,
   canUpload,
   canReview,
+  canDecide,
   onRefresh,
 }: {
   document: PurchaseDocument;
   writer: ReturnType<typeof usePurchaseDocuments>['mutate'];
   canUpload: boolean;
   canReview: boolean;
+  canDecide: boolean;
   onRefresh: () => void;
 }) {
   const action =
-    canReview && document.status === 'pending_review'
+    (canReview || canDecide) && document.status === 'pending_review'
       ? 'return-to-draft'
       : 'discard';
   const eligible =
     action === 'return-to-draft' || (canUpload && document.status === 'draft');
-  const [opened, setOpened] = useState<'discard' | 'return-to-draft' | null>(
+  const [opened, setOpened] = useState<PurchaseLifecycleActionKind | null>(
     null,
   );
   const [phase, setPhase] = useState<'idle' | 'checking' | 'changing'>('idle');
@@ -53,6 +58,9 @@ export function PurchaseLifecycleAction({
   }, []);
   async function confirm(observation: string) {
     if (!opened || busy.current || writer.isPending || blocked) return;
+    if ((opened === 'approve' || opened === 'reject') && !canDecide) return;
+    if (opened === 'return-to-draft' && !canReview) return;
+    if (opened === 'discard' && !canUpload) return;
     busy.current = true;
     setError('');
     setPhase('checking');
@@ -63,7 +71,12 @@ export function PurchaseLifecycleAction({
         id: document.id,
       });
       if (!active.current) return;
-      const target = opened === 'discard' ? 'discarded' : 'needs_correction';
+      const target = {
+        discard: 'discarded',
+        'return-to-draft': 'needs_correction',
+        approve: 'approved',
+        reject: 'rejected',
+      }[opened];
       if (current.status !== target) {
         const expected = opened === 'discard' ? 'draft' : 'pending_review';
         if (current.status !== expected)
@@ -71,9 +84,13 @@ export function PurchaseLifecycleAction({
         setPhase('changing');
         wrote = true;
         const result = await writer.mutateAsync(
-          opened === 'discard'
-            ? { kind: 'discard', id: document.id }
-            : { kind: 'return-to-draft', id: document.id, observation },
+          opened === 'approve'
+            ? { kind: 'approve', id: document.id }
+            : opened === 'reject'
+              ? { kind: 'reject', id: document.id, reason: observation }
+              : opened === 'discard'
+                ? { kind: 'discard', id: document.id }
+                : { kind: 'return-to-draft', id: document.id, observation },
         );
         if (result.status !== target)
           throw new ApiRequestError(502, 'INVALID_PURCHASE_TRANSITION');
@@ -81,9 +98,13 @@ export function PurchaseLifecycleAction({
       if (!active.current) return;
       setOpened(null);
       setFeedback(
-        opened === 'discard'
-          ? 'El comprobante está descartado y se conserva en el historial.'
-          : 'El comprobante requiere corrección. El cliente puede revisar la observación y actualizar sus datos.',
+        opened === 'approve'
+          ? 'El comprobante está aprobado internamente en Nuvora. Esta decisión no implica validación SAT, pago ni registro automático en libros.'
+          : opened === 'reject'
+            ? 'El comprobante está rechazado y se conserva en el historial.'
+            : opened === 'discard'
+              ? 'El comprobante está descartado y se conserva en el historial.'
+              : 'El comprobante requiere corrección. El cliente puede revisar la observación y actualizar sus datos.',
       );
       onRefresh();
     } catch (cause) {
@@ -122,33 +143,66 @@ export function PurchaseLifecycleAction({
         >
           <div>
             <h2>
-              {action === 'discard'
-                ? 'Retirar del flujo'
-                : '¿Hay datos por corregir?'}
+              {action === 'discard' ? 'Retirar del flujo' : 'Revisión interna'}
             </h2>
             <p>
               {action === 'discard'
                 ? 'Descarta este borrador si ya no debe continuar. Sus datos se conservan en el historial.'
-                : 'Envía una observación clara para que el cliente pueda corregir el comprobante.'}
+                : 'Revisa los datos antes de decidir. Puedes solicitar una corrección si el cliente debe completar o ajustar la información.'}
             </p>
           </div>
-          <Button
-            type="button"
-            variant={action === 'discard' ? 'danger' : 'secondary'}
-            disabled={writer.isPending || phase !== 'idle'}
-            onClick={(event) => {
-              setTrigger(event.currentTarget);
-              setFeedback('');
-              setError('');
-              setBlocked(false);
-              setOpened(action);
-            }}
-          >
-            <Icon name={action === 'discard' ? 'alert' : 'message'} />
-            {action === 'discard'
-              ? 'Descartar comprobante'
-              : 'Solicitar corrección'}
-          </Button>
+          <div className={styles.reviewButtons}>
+            {canDecide && action === 'return-to-draft' && (
+              <Button
+                type="button"
+                disabled={writer.isPending || phase !== 'idle'}
+                onClick={(event) => {
+                  setTrigger(event.currentTarget);
+                  setFeedback('');
+                  setError('');
+                  setBlocked(false);
+                  setOpened('approve');
+                }}
+              >
+                <Icon name="check" />
+                Aprobar
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant={action === 'discard' ? 'danger' : 'secondary'}
+              disabled={writer.isPending || phase !== 'idle'}
+              onClick={(event) => {
+                setTrigger(event.currentTarget);
+                setFeedback('');
+                setError('');
+                setBlocked(false);
+                setOpened(action);
+              }}
+            >
+              <Icon name={action === 'discard' ? 'alert' : 'message'} />
+              {action === 'discard'
+                ? 'Descartar comprobante'
+                : 'Solicitar corrección'}
+            </Button>
+            {canDecide && action === 'return-to-draft' && (
+              <Button
+                type="button"
+                variant="danger"
+                disabled={writer.isPending || phase !== 'idle'}
+                onClick={(event) => {
+                  setTrigger(event.currentTarget);
+                  setFeedback('');
+                  setError('');
+                  setBlocked(false);
+                  setOpened('reject');
+                }}
+              >
+                <Icon name="close" />
+                Rechazar
+              </Button>
+            )}
+          </div>
         </section>
       )}
       {opened && (
@@ -160,9 +214,13 @@ export function PurchaseLifecycleAction({
           busyLabel={
             phase === 'checking'
               ? 'Comprobando…'
-              : opened === 'discard'
-                ? 'Descartando…'
-                : 'Enviando observación…'
+              : opened === 'approve'
+                ? 'Aprobando…'
+                : opened === 'reject'
+                  ? 'Rechazando…'
+                  : opened === 'discard'
+                    ? 'Descartando…'
+                    : 'Enviando observación…'
           }
           error={error}
           blocked={blocked}

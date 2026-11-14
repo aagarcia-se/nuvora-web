@@ -20,9 +20,12 @@ async function portal(
     detailStatus?: number;
     wrongContext?: boolean;
     failDiscardAfterAccept?: boolean;
+    failApproveAfterAccept?: boolean;
+    counterViewer?: boolean;
+    decisionStatus?: number;
   } = {},
 ) {
-  await setup(page);
+  await setup(page, { viewer: options.counterViewer });
   let document: Record<string, unknown> | undefined = options.seedStatus
     ? {
         id: documentId,
@@ -56,6 +59,9 @@ async function portal(
       }
     : undefined;
   const calls = {
+    approves: 0,
+    rejects: 0,
+    rejectionReason: '',
     creates: 0,
     submits: 0,
     lists: 0,
@@ -91,6 +97,40 @@ async function portal(
         },
       });
     const base = `/api/v1/workspaces/${workspace.id}/entities/${entity.id}/purchase-documents`;
+    if (url.pathname === `${base}/${documentId}/approve` && method === 'POST') {
+      calls.approves++;
+      if (options.decisionStatus)
+        return route.fulfill({
+          status: options.decisionStatus,
+          json: { error: 'DEMO_DECISION_ERROR' },
+        });
+      if (document) {
+        document.status = 'approved';
+        document.reviewed_by = '77777777-7777-4777-8777-777777777777';
+        document.reviewed_at = '2026-11-13T16:00:00Z';
+      }
+      if (options.failApproveAfterAccept && calls.approves === 1)
+        return route.fulfill({
+          status: 503,
+          json: { error: 'DEMO_UNCERTAIN_APPROVE' },
+        });
+      return route.fulfill({ json: { document } });
+    }
+    if (url.pathname === `${base}/${documentId}/reject` && method === 'POST') {
+      calls.rejects++;
+      if (options.decisionStatus)
+        return route.fulfill({
+          status: options.decisionStatus,
+          json: { error: 'DEMO_DECISION_ERROR' },
+        });
+      calls.rejectionReason = route.request().postDataJSON().reason;
+      if (document) {
+        document.status = 'rejected';
+        document.reviewed_at = '2026-11-13T16:00:00Z';
+      }
+      // Current backend returns no persistent rejection-reason field.
+      return route.fulfill({ json: { document } });
+    }
     if (url.pathname === `${base}/${documentId}/discard` && method === 'POST') {
       calls.discards++;
       if (document) document.status = 'discarded';
@@ -487,3 +527,102 @@ test('Demo: contador solicita corrección con observación obligatoria y estado 
   );
   expect(calls.returns).toBe(1);
 });
+
+const counterDocumentPath = `/workspaces/${workspace.id}/clients/${entity.id}/documents?document=${documentId}`;
+test('Demo: aprobación interna confirmada y reintento sin duplicar una decisión aceptada', async ({
+  page,
+}) => {
+  const calls = await portal(page, {
+    seedStatus: 'pending_review',
+    failApproveAfterAccept: true,
+  });
+  await page.goto(counterDocumentPath);
+  await page.getByRole('button', { name: 'Aprobar', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog).toContainText('No significa validación SAT');
+  await dialog.getByRole('button', { name: 'Cancelar' }).click();
+  await expect(
+    page.getByRole('button', { name: 'Aprobar', exact: true }),
+  ).toBeFocused();
+  expect(calls.approves).toBe(0);
+  await page.getByRole('button', { name: 'Aprobar', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Aprobar', exact: true }).click();
+  await expect(dialog.getByRole('alert')).toBeVisible();
+  await dialog.getByRole('button', { name: 'Aprobar', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole('article')).toContainText(
+    'Aprobada internamente',
+  );
+  expect(calls.approves).toBe(1);
+  await expect(
+    page.getByRole('button', { name: 'Rechazar', exact: true }),
+  ).toHaveCount(0);
+});
+
+test('Demo: rechazo valida razón recortada y conserva texto ante error de validación', async ({
+  page,
+}) => {
+  const calls = await portal(page, { seedStatus: 'pending_review' });
+  await page.goto(counterDocumentPath);
+  await page.getByRole('button', { name: 'Rechazar', exact: true }).click();
+  const dialog = page.getByRole('dialog');
+  const reason = dialog.getByLabel('Motivo del rechazo', { exact: true });
+  await reason.fill('   ');
+  await dialog.getByRole('button', { name: 'Rechazar', exact: true }).click();
+  expect(calls.rejects).toBe(0);
+  await expect(reason).toBeFocused();
+  await reason.fill('x'.repeat(2001));
+  await dialog.getByRole('button', { name: 'Rechazar', exact: true }).click();
+  expect(calls.rejects).toBe(0);
+  await reason.fill('  Información inconsistente Demo.  ');
+  await dialog.getByRole('button', { name: 'Rechazar', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  expect(calls.rejectionReason).toBe('Información inconsistente Demo.');
+  await expect(page.getByRole('article')).toContainText('Rechazada');
+  await expect(
+    page.getByText(
+      'El motivo del rechazo no está disponible en la información de este comprobante.',
+    ),
+  ).toBeVisible();
+});
+
+for (const counter of [false, true])
+  test(`Demo: decisiones no disponibles para ${counter ? 'workspace viewer' : 'cliente'}`, async ({
+    page,
+  }) => {
+    await portal(page, {
+      seedStatus: 'pending_review',
+      counterViewer: counter,
+    });
+    await page.goto(
+      counter ? counterDocumentPath : `${path}&document=${documentId}`,
+    );
+    await expect(page.getByRole('article')).toBeVisible();
+    await expect(
+      page.getByRole('button', { name: 'Aprobar', exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole('button', { name: 'Rechazar', exact: true }),
+    ).toHaveCount(0);
+  });
+
+for (const decisionStatus of [401, 403, 404, 409, 503])
+  test(`Demo: aprobación ${decisionStatus} no confirma éxito ni reintenta el POST`, async ({
+    page,
+  }) => {
+    const calls = await portal(page, {
+      seedStatus: 'pending_review',
+      decisionStatus,
+    });
+    await page.goto(counterDocumentPath);
+    await page.getByRole('button', { name: 'Aprobar', exact: true }).click();
+    await page
+      .getByRole('dialog')
+      .getByRole('button', { name: 'Aprobar', exact: true })
+      .click();
+    await expect(page.getByRole('alert').first()).toBeVisible();
+    expect(calls.approves).toBe(1);
+    await expect(page.getByRole('article')).not.toContainText(
+      'Aprobada internamente',
+    );
+  });

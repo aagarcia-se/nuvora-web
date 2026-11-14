@@ -43,7 +43,65 @@ resultados reales y pendientes; no crear otro documento de continuidad del porta
 
 ## Portal de contadores
 
-### Última entrega — consulta y solicitud de corrección, 2026-11-13
+### Última entrega — aprobación y rechazo internos, 2026-11-13
+
+Integrados POST approve y POST reject del contrato nuevo. Aprobar envía {};
+Rechazar envía { reason } recortado y exige entre 1 y 2000 caracteres. Solo la
+vista del contador con rol owner/admin del workspace confirmado y canReview o
+canManage de la entity ofrece estas decisiones para pending_review. Se añade
+canDecide separado de canReview, conservando la solicitud de corrección existente.
+El cliente nunca recibe canDecide ni botones para decidir.
+
+Revisión interna agrupa Aprobar principal, Solicitar corrección secundaria y
+Rechazar danger con iconos. Ambas decisiones muestran confirmación con emisor e
+importe. Rechazo requiere motivo con contador de caracteres, error asociado al
+campo y conservación del texto tras fallos. Aprobación explica que es interna:
+no valida SAT, paga, registra automáticamente libros ni declara impuestos.
+Cancelar recibe foco inicial; Escape y retorno al disparador conservados. Si
+el botón desaparece tras decidir, el resultado accesible recibe foco.
+
+Se comprueba el mismo ID antes del POST. Si ya tiene el estado de destino no se
+repite la decisión. Un estado incompatible o 409 bloquea confirmar hasta cerrar
+y actualizar. Sin reintentos automáticos, sin doble envío en comprobación/escritura;
+401/403/404/409/503 y fallos de red tienen feedback seguro. El API es la autoridad
+sobre concurrencia; la comprobación frontend no promete idempotencia del servidor.
+Se invalidan listado y detalle tras aprobar/rechazar, se valida el estado devuelto
+y se mantienen cancelación y aislamiento usuario/workspace/entity/documento.
+Approved y rejected son consulta sin edición, descarte, reenvío o devolución.
+
+### Límite confirmado — motivo del rechazo no proyectado por el API
+
+La documentación nueva requiere mostrar el motivo retornado. Se inspeccionaron
+solo en lectura purchase-document.service.ts y purchase-document.repository.ts
+locales del API para resolver el contrato: decideDocument guarda reason en el
+evento de auditoría, pero actualiza en el documento solo status, reviewed_by,
+reviewed_at y updated_by. La proyección del detalle/lista no contiene un campo
+para ese motivo. No existe en este contrato una lectura de auditoría para la UI.
+No se modificó backend/SQL ni se inventó un endpoint o rejection_reason.
+
+El frontend envía el motivo, conserva el texto si falla la solicitud y muestra
+«El motivo del rechazo no está disponible en la información de este comprobante»
+cuando el GET no lo aporta. Una review_observation anterior se identifica como
+observación anterior, nunca como razón del rechazo. Se incorporan reviewed_by y
+reviewed_at como identificador/fecha autorizados, sin inventar nombres.
+**Pendiente de coordinación:** confirmar y exponer en el API el campo de motivo
+persistido para poder mostrarlo también después de recargar. Se consultó al
+propietario; no se declara completada esta parte ni se conserva la razón fiscal
+en storage del navegador. No se certificó integración real ni comportamiento RLS.
+
+Archivos: purchaseDocumentsApi, usePurchaseDocuments, tipos PurchaseDocument,
+PurchaseLifecycleAction, PurchaseDiscardDialog, PurchaseObservation,
+PurchaseDocumentDetail, EntityDetailPage y EntityPurchaseDocuments. La aprobación
+espera approved y el rechazo rejected, según el servicio local; el ejemplo genérico
+de respuesta approved para ambas acciones en el contrato no cambia esa distinción.
+Casos Demo preparados en client-purchases.spec.ts para aprobación, cancelación,
+razón vacía/larga/recortada, decisión aceptada con respuesta incierta sin duplicar,
+exclusión de cliente y viewer, y errores 401/403/404/409/503. NO ejecutados.
+
+Badges de estado actualizados en listado y detalle mediante PurchaseStatus compartido;
+colores e iconos descritos en la última entrega de Portal de clientes.
+
+### Entrega anterior — consulta y solicitud de corrección, 2026-11-13
 
 Integrados los contratos nuevos sin cambiar backend, SQL, entornos ni dependencias.
 La sección Comprobantes del cliente autorizado vive en
@@ -88,7 +146,7 @@ El propietario autorizó desarrollar la propuesta auditada de emil-design-eng.
 Se conserva la paleta, los tokens, la ficha por filas semánticas, las rutas previas,
 el transporte y los contratos actuales. UI/UX Pro Max se aplica desde su guía
 local ya leída; Python no está disponible y no se instaló. Sin nuevas dependencias,
-backend/SQL/env/Git, endpoints ni indicadores simulados. El portal del contador incorpora consulta y solicitud de corrección; la captura/edición manual permanece en el portal de clientes. No incorpora aprobación, rechazo ni libros.
+backend/SQL/env/Git, endpoints ni indicadores simulados. El portal del contador incorpora consulta, solicitud de corrección y aprobación/rechazo internos según permisos; la captura/edición manual permanece en el portal de clientes. No incorpora libros.
 
 ### Experiencia aplicada
 
@@ -214,7 +272,111 @@ el comportamiento real del bloqueo de navegación o la sesión en navegador.
 
 ## Portal de clientes
 
-### Última entrega — ciclo de vida completo en UI, 2026-11-13
+### Última entrega — badges suaves con colores oficiales y Tailwind, 2026-11-13
+
+El propietario pidió reducir intensidad, usar corrección warning y pendiente info,
+y no añadir Bootstrap. No se instaló ni importó Bootstrap; package.json y lockfile
+no tienen esa dependencia. Solo se copiaron valores oficiales Bootstrap 5.3.8
+bg-subtle, text-emphasis y border-subtle a los tokens document-* existentes.
+PurchaseStatus aplica colores mediante utilidades estáticas Tailwind 3.4 con
+variables CSS; el CSS Module conserva únicamente la composición del badge.
+
+| Estado                | Variante Bootstrap | Fondo claro / texto |
+| --------------------- | ------------------ | ------------------- |
+| Borrador              | secondary subtle   | #E2E3E5 / #2B2F32   |
+| Pendiente de revisión | info subtle        | #CFF4FC / #055160   |
+| Requiere corrección   | warning subtle     | #FFF3CD / #664D03   |
+| Aprobada internamente | success subtle     | #D1E7DD / #0A3622   |
+| Rechazada             | danger subtle      | #F8D7DA / #58151C   |
+| Descartada            | dark subtle        | #CED4DA / #495057   |
+
+Fondos/textos/bordes oscuros también usan los valores oficiales por modo. Fuente:
+[CSS oficial Bootstrap 5.3.8](https://raw.githubusercontent.com/twbs/bootstrap/v5.3.8/dist/css/bootstrap.css).
+Sin cargar ese archivo en la aplicación. Iconos, etiquetas, tamaño, permisos y
+comportamiento conservados; sin animaciones nuevas. Esta decisión sustituye las
+paletas intensas anteriores y el naranja de corrección.
+
+Contraste sRGB calculado de los 12 pares: todos >=4,5:1, mínimo 5,47:1. No equivale
+a validación visual. Archivos: globals.css, PurchaseStatus.tsx y client.module.css.
+Lint salida 0; build final y cifras en sección compartida. NO Playwright; revisión
+visual pendiente. Se mantiene el límite documentado del motivo de rechazo del API.
+
+### Entrega anterior — paleta de badges inspirada en Bootstrap, 2026-11-13
+
+Por solicitud del propietario, los badges compartidos adoptan una paleta más
+reconocible de tipo Bootstrap, manteniendo el componente moderno con iconos,
+etiquetas, forma compacta y temas. No se instaló Bootstrap ni otra dependencia.
+Solo cambia globals.css mediante los tokens document-*; comportamiento, permisos,
+transiciones y resto de la paleta conservados. Aplicado a ambos portales.
+
+| Estado                | Color en claro           | Texto  |
+| --------------------- | ------------------------ | ------ |
+| Borrador              | Gris secondary #6C757D   | Blanco |
+| Pendiente de revisión | Amarillo warning #FFC107 | Oscuro |
+| Requiere corrección   | Naranja #FD7E14          | Oscuro |
+| Aprobada internamente | Verde success #198754    | Blanco |
+| Rechazada             | Rojo danger #DC3545      | Blanco |
+| Descartada            | Gris #495057             | Blanco |
+
+Tema oscuro con tonos adaptados y texto oscuro, sin invertir automáticamente los
+colores del modo claro. Contraste sRGB calculado: los 12 pares superan 4,5:1;
+mínimo 4,53:1. La cifra 6,57:1 del cierre anterior es histórica. Sin nuevas
+animaciones, cambios de iconos ni estilos de interacción para badges informativos.
+Lint salida 0 sin avisos y build salida 0. Playwright no ejecutado; revisión
+visual pendiente. El límite del motivo de rechazo persistido sigue vigente.
+
+### Entrega anterior — estados de revisión con contraste reforzado, 2026-11-13
+
+Los badges compartidos de ambos portales siguen el contrato nuevo. Cambia la
+presentación, no los estados del API. Tokens exclusivos de estado de documentos
+centralizados en globals.css, con pares fondo/texto por tema; sin hex en componentes.
+
+| Estado           | Texto visible         | Color e icono               |
+| ---------------- | --------------------- | --------------------------- |
+| draft            | Borrador              | Slate marcado y lápiz       |
+| pending_review   | Pendiente de revisión | Ámbar fuerte y reloj        |
+| needs_correction | Requiere corrección   | Naranja fuerte y alerta     |
+| approved         | Aprobada internamente | Verde fuerte y verificación |
+| rejected         | Rechazada             | Rojo fuerte y X             |
+| discarded        | Descartada            | Gris fuerte y archivo       |
+
+Contraste sRGB calculado para los 12 pares claro/oscuro: todos superan 4,5:1;
+mínimo 6,57:1. Cálculo estático, no revisión visual ni auditoría completa de
+accesibilidad. Se conservan texto visible, iconos decorativos, adaptación al ancho,
+temas y ausencia de animación en badges informativos. Sin gradientes ni dependencias.
+Esta paleta reemplaza el azul pendiente y el rojo descartado de la entrega anterior.
+
+El detalle informa aprobación interna y bloqueo de rechazo. Revisor/fecha son
+metadatos del API; el motivo de rechazo persistido sigue limitado por el contrato
+actual, descrito en Portal de contadores. El portal cliente no ofrece nuevas
+acciones de revisión y conserva captura, corrección, consulta e historial.
+
+### Entrega anterior — badges de estado con color e iconos, 2026-11-13
+
+PurchaseStatus ahora presenta badges compactos con fondo suave, borde, texto e
+icono SVG decorativo de la familia existente. Se reutilizan en listado/detalle
+de clientes y contadores, sin cambiar datos, permisos o transiciones.
+
+| Estado                | Color semántico   | Icono        |
+| --------------------- | ----------------- | ------------ |
+| Borrador              | Neutro slate      | Lápiz        |
+| Pendiente de revisión | Azul info         | Reloj        |
+| Requiere corrección   | Ámbar warning     | Alerta       |
+| Aprobado              | Verde success     | Verificación |
+| Rechazado             | Rojo danger       | X            |
+| Descartado            | Rojo danger suave | Archivo      |
+
+El icono de archivo distingue descarte conservado de rechazo; las etiquetas
+siguen visibles para no depender del color. Los badges son informativos, sin
+hover de botón ni animaciones. Tamaño tipográfico, icono y espaciado uniformes;
+etiquetas largas pueden adaptarse al ancho. Tokens existentes en claro/oscuro,
+sin hex dispersos ni nuevas dependencias. Archivo añadido a la familia Icon.
+Cambios: PurchaseStatus.tsx, client.module.css y shared/ui/components/Icon.tsx.
+
+Lint sin errores/avisos y build salida 0. Cifras finales en la sección compartida.
+Playwright no ejecutado; revisión visual y accesibilidad en navegador pendientes.
+
+### Entrega anterior — ciclo de vida completo en UI, 2026-11-13
 
 Se continuó sobre los tipos, parser y transporte parciales encontrados al comenzar;
 no se reconstruyeron entidades ni endpoints. Integrados seis estados y las acciones
@@ -495,7 +657,7 @@ contador quedan para contratos/fases posteriores. No se simularon resultados.
 
 ## Verificación y pendientes compartidos
 
-Última verificación de código: integración del ciclo de vida en ambos portales,
+Última verificación de código: badges suaves con utilidades Tailwind,
 2026-11-13. Lint/build ejecutados después de los cambios de integración y UI.
 La actualización posterior de este archivo no repitió checks de código.
 
@@ -503,9 +665,9 @@ La actualización posterior de este archivo no repitió checks de código.
 | ------------- | ----------------------------------------------------------------- |
 | npm run lint  | Salida 0, sin errores ni avisos                                   |
 | npm run build | Salida 0; TypeScript, Vite y generación PWA completos             |
-| CSS           | 76,23 kB; 13,94 kB gzip                                           |
-| JS principal  | 808,16 kB; 232,13 kB gzip                                         |
-| PWA           | 21 entradas; 896,92 KiB; generación no certifica instalación real |
+| CSS           | 78,89 kB; 14,44 kB gzip                                           |
+| JS principal  | 813,00 kB; 233,34 kB gzip                                         |
+| PWA           | 21 entradas; 904,24 KiB; generación no certifica instalación real |
 | Bundle        | Aviso de chunk superior a 500 kB pendiente                        |
 | Playwright    | NO ejecutado; test:auth y test:pwa no autorizados                 |
 | Visual        | Pendiente en móvil/escritorio, claro/oscuro, teclado y foco       |
@@ -518,7 +680,7 @@ reintento con/sin aceptación previa, validación, protección del borrador y le
 sin captura; suites de aceptación/cliente adaptadas. Preparados no significa aprobados.
 
 Pendientes del contador: ampliar la consulta de documentos con autoría y filtros por
-colaborador/período/estado, aprobación y libros, sujetos a contratos autorizados.
+colaborador/período/estado y libros, sujetos a contratos autorizados. Mostrar el motivo de rechazo persistido depende de que el API lo proyecte.
 Pendientes del cliente: foto, galería/computadora, extracción/IA y XML/PDF;
 no se implementaron ni se simulan como disponibles. NIT del receptor sigue sin
 derivación segura desde backend; no desenmascararlo ni declarar completado ese
@@ -830,6 +992,80 @@ El futuro trabajo debe:
 
 No ejecutar Playwright sin autorización expresa. Ejecutar únicamente `npm run
 lint` y `npm run build` al finalizar.
+
+## Aprobación y rechazo interno — actualización frontend pendiente
+
+El backend agregó estas acciones para documentos en estado `pending_review`:
+
+```http
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/approve
+POST /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-documents/:documentId/reject
+```
+
+Ambas responden:
+
+```json
+{ "document": { "...": "...", "status": "approved" } }
+```
+
+El rechazo requiere:
+
+```json
+{ "reason": "Explicación de la revisión" }
+```
+
+La razón debe tener entre 1 y 2000 caracteres después de recortar espacios.
+
+### Reglas de autorización
+
+- Solo el contador `owner/admin` con grant `can_review` o `can_manage` puede
+  aprobar o rechazar.
+- Solo un documento `pending_review` puede cambiar a `approved` o `rejected`.
+- El cliente nunca debe ver estas acciones como disponibles.
+- `approved` y `rejected` quedan bloqueados para editar, descartar, reenviar o
+  devolver a corrección.
+- La aprobación es interna de Nuvora; no significa validación SAT, pago,
+  incorporación automática a libros ni declaración fiscal.
+- El rechazo debe conservar y mostrar la razón devuelta por el API.
+- Las transiciones son auditadas y protegidas contra doble acción/concurrencia.
+
+### UI de revisión para el contador
+
+Implementar en la vista autorizada del contador:
+
+- Botón principal `Aprobar` para documentos `pending_review`.
+- Botón `Rechazar` como acción destructiva `danger`, con diálogo de
+  confirmación y campo obligatorio de razón.
+- Mostrar estado de carga, éxito, error, 401/403/404/409/503 y reintento.
+- Invalidar listado y detalle después de aprobar o rechazar.
+- No permitir doble envío mientras una acción está pendiente.
+- Restaurar el foco al botón que abrió el diálogo y soportar Escape/teclado.
+
+### Badges de estado
+
+Los badges existentes deben usar colores algo más fuertes y legibles, sin
+depender únicamente del color. Mantener tokens centralizados, dark mode y
+contraste accesible; no dispersar hexadecimales.
+
+```text
+draft             neutral marcado
+pending_review    ámbar fuerte + texto “Pendiente de revisión”
+needs_correction  naranja fuerte + texto “Requiere corrección”
+approved          verde fuerte + texto “Aprobada internamente”
+rejected          rojo fuerte + texto “Rechazada”
+discarded         gris fuerte + texto “Descartada”
+```
+
+Cada badge debe incluir texto visible, y cuando corresponda un icono semántico
+o `aria-label`; nunca comunicar el estado solo mediante color. Evitar fondos
+neón, gradientes o colores decorativos ambiguos. La apariencia debe seguir la
+skill `emil-design-eng`: jerarquía clara, microinteracciones breves y sutiles,
+transiciones específicas, `prefers-reduced-motion`, diseño minimalista y
+responsive.
+
+Documentar los archivos, resultados de lint/build y limitaciones en
+`codex.md`, `docs/CLIENT.md` y `docs/STATUS.md` cuando se implemente. No
+ejecutar Playwright sin autorización expresa.
 
 **Resumen histórico; el estado actual está al inicio de este mismo documento.** El propietario
 dio conformidad a la reorganización y solicitó consolidar la documentación. Esa

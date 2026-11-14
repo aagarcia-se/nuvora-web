@@ -12,10 +12,12 @@ export function EntityPurchaseDocuments({
   workspaceId,
   entityId,
   canReview,
+  canDecide,
 }: {
   workspaceId: string;
   entityId: string;
   canReview: boolean;
+  canDecide: boolean;
 }) {
   const [search] = useSearchParams();
   const documentId = search.get('document');
@@ -42,6 +44,7 @@ export function EntityPurchaseDocuments({
       documentId={documentId}
       canUpload={false}
       canReview={canReview}
+      canDecide={canDecide}
       writer={mutate}
       documentsPath={path}
       editPath={path}

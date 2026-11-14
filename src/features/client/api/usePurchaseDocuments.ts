@@ -16,6 +16,7 @@ import {
   submitPurchaseDocument,
   discardPurchaseDocument,
   returnPurchaseDocumentToDraft,
+  decidePurchaseDocument,
 } from './purchaseDocumentsApi';
 import type {
   PurchaseDocumentInput,
@@ -109,6 +110,8 @@ export function usePurchaseDocuments(
         | { kind: 'submit'; id: string }
         | { kind: 'discard'; id: string }
         | { kind: 'return-to-draft'; id: string; observation: string }
+        | { kind: 'approve'; id: string }
+        | { kind: 'reject'; id: string; reason: string }
         | { kind: 'check'; id: string },
     ) => {
       const scope = client
@@ -144,38 +147,48 @@ export function usePurchaseDocuments(
                   operation.input,
                   request.signal,
                 )
-              : operation.kind === 'discard'
-                ? await discardPurchaseDocument(
+              : operation.kind === 'approve' || operation.kind === 'reject'
+                ? await decidePurchaseDocument(
                     userId,
                     workspaceId,
                     entityId,
                     operation.id,
+                    operation.kind,
+                    operation.kind === 'reject' ? operation.reason : undefined,
                     request.signal,
                   )
-                : operation.kind === 'return-to-draft'
-                  ? await returnPurchaseDocumentToDraft(
+                : operation.kind === 'discard'
+                  ? await discardPurchaseDocument(
                       userId,
                       workspaceId,
                       entityId,
                       operation.id,
-                      operation.observation,
                       request.signal,
                     )
-                  : operation.kind === 'check'
-                    ? await getPurchaseDocument(
+                  : operation.kind === 'return-to-draft'
+                    ? await returnPurchaseDocumentToDraft(
                         userId,
                         workspaceId,
                         entityId,
                         operation.id,
+                        operation.observation,
                         request.signal,
                       )
-                    : await submitPurchaseDocument(
-                        userId,
-                        workspaceId,
-                        entityId,
-                        operation.id,
-                        request.signal,
-                      );
+                    : operation.kind === 'check'
+                      ? await getPurchaseDocument(
+                          userId,
+                          workspaceId,
+                          entityId,
+                          operation.id,
+                          request.signal,
+                        )
+                      : await submitPurchaseDocument(
+                          userId,
+                          workspaceId,
+                          entityId,
+                          operation.id,
+                          request.signal,
+                        );
         if (!current()) throw new CanceledError();
         const expected =
           operation.kind === 'create'
@@ -186,9 +199,13 @@ export function usePurchaseDocuments(
                 ? ['pending_review']
                 : operation.kind === 'discard'
                   ? ['discarded']
-                  : operation.kind === 'return-to-draft'
-                    ? ['needs_correction']
-                    : null;
+                  : operation.kind === 'approve'
+                    ? ['approved']
+                    : operation.kind === 'reject'
+                      ? ['rejected']
+                      : operation.kind === 'return-to-draft'
+                        ? ['needs_correction']
+                        : null;
         if (expected && !expected.includes(document.status))
           throw new ApiRequestError(502, 'INVALID_PURCHASE_TRANSITION');
         return document;

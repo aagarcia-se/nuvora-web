@@ -1,7 +1,10 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/shared/ui/components/Button';
 import { Icon } from '@/shared/ui/components/Icon';
-import type { PurchaseDocument } from '../types/purchaseDocument.types';
+import type {
+  PurchaseDocument,
+  PurchaseLifecycleActionKind,
+} from '../types/purchaseDocument.types';
 import { formatPurchaseTotal } from '../utils/purchasePresentation';
 import styles from '../client.module.css';
 
@@ -18,7 +21,7 @@ export function PurchaseDiscardDialog({
 }: {
   trigger: HTMLElement | null;
   document: PurchaseDocument;
-  action: 'discard' | 'return-to-draft';
+  action: PurchaseLifecycleActionKind;
   busy: boolean;
   busyLabel: string;
   error: string;
@@ -31,7 +34,20 @@ export function PurchaseDiscardDialog({
   const id = useId();
   const [observation, setObservation] = useState('');
   const [invalid, setInvalid] = useState(false);
-  const destructive = action === 'discard';
+  const destructive = action === 'discard' || action === 'reject';
+  const requiresText = action === 'return-to-draft' || action === 'reject';
+  const titles = {
+    discard: '¿Descartar este comprobante?',
+    'return-to-draft': 'Solicitar una corrección',
+    approve: '¿Aprobar internamente este comprobante?',
+    reject: 'Rechazar el comprobante',
+  };
+  const labels = {
+    discard: 'Descartar comprobante',
+    'return-to-draft': 'Solicitar corrección',
+    approve: 'Aprobar',
+    reject: 'Rechazar',
+  };
   useEffect(() => {
     const element = dialog.current;
     element?.showModal();
@@ -52,15 +68,21 @@ export function PurchaseDiscardDialog({
       }}
     >
       <h2 id={`${id}-title`} className={styles.sectionTitle}>
-        <Icon name={destructive ? 'alert' : 'message'} />
-        {destructive
-          ? '¿Descartar este comprobante?'
-          : 'Solicitar una corrección'}
+        <Icon
+          name={
+            action === 'approve' ? 'check' : destructive ? 'alert' : 'message'
+          }
+        />
+        {titles[action]}
       </h2>
       <p id={`${id}-description`}>
-        {destructive
-          ? 'Se retirará del flujo de trabajo, pero no se eliminará físicamente. Quedará conservado en el historial con el estado «Descartado».'
-          : 'Indica qué debe corregir el cliente. El comprobante quedará como «Requiere corrección» y podrá editarse y enviarse nuevamente.'}
+        {action === 'approve'
+          ? 'La aprobación es interna de Nuvora. No significa validación SAT, pago ni incorporación automática a libros o declaraciones fiscales. El comprobante quedará bloqueado para edición.'
+          : action === 'reject'
+            ? 'Explica por qué no procede este comprobante. Se conservará en el historial y quedará bloqueado para edición, reenvío y descarte. Para permitir que el cliente lo corrija, cancela y elige «Solicitar corrección».'
+            : action === 'discard'
+              ? 'Se retirará del flujo de trabajo, pero no se eliminará físicamente. Quedará conservado en el historial con el estado «Descartado».'
+              : 'Indica qué debe corregir el cliente. El comprobante quedará como «Requiere corrección» y podrá editarse y enviarse nuevamente.'}
       </p>
       <div className={styles.submissionSummary}>
         <span>{document.issuerName}</span>
@@ -70,7 +92,11 @@ export function PurchaseDiscardDialog({
         noValidate
         onSubmit={(event) => {
           event.preventDefault();
-          if (!destructive && !observation.trim()) {
+          if (
+            requiresText &&
+            (!observation.trim() ||
+              (action === 'reject' && observation.trim().length > 2000))
+          ) {
             setInvalid(true);
             input.current?.focus();
             return;
@@ -78,10 +104,12 @@ export function PurchaseDiscardDialog({
           if (!busy && !blocked) onConfirm(observation.trim());
         }}
       >
-        {!destructive && (
+        {requiresText && (
           <div className={styles.field}>
             <label htmlFor={`${id}-observation`}>
-              Observación para el cliente
+              {action === 'reject'
+                ? 'Motivo del rechazo'
+                : 'Observación para el cliente'}
             </label>
             <textarea
               ref={input}
@@ -95,12 +123,31 @@ export function PurchaseDiscardDialog({
                 setInvalid(false);
               }}
               aria-invalid={invalid}
-              aria-describedby={invalid ? `${id}-invalid` : undefined}
-              placeholder="Explica qué dato debe corregirse y cómo revisarlo."
+              aria-describedby={
+                [
+                  action === 'reject' ? `${id}-limit` : '',
+                  invalid ? `${id}-invalid` : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ') || undefined
+              }
+              placeholder={
+                action === 'reject'
+                  ? 'Explica el motivo para dejar constancia de la decisión.'
+                  : 'Explica qué dato debe corregirse y cómo revisarlo.'
+              }
             />
+            {action === 'reject' && (
+              <p id={`${id}-limit`} className={styles.fieldHint}>
+                Entre 1 y 2000 caracteres, sin contar espacios al inicio o al
+                final. {observation.trim().length}/2000
+              </p>
+            )}
             {invalid && (
               <p id={`${id}-invalid`} className={styles.fieldError}>
-                Escribe la observación antes de continuar.
+                {action === 'reject'
+                  ? 'Escribe un motivo de entre 1 y 2000 caracteres.'
+                  : 'Escribe la observación antes de continuar.'}
               </p>
             )}
           </div>
@@ -118,7 +165,7 @@ export function PurchaseDiscardDialog({
             disabled={busy}
             onClick={onCancel}
           >
-            {destructive ? 'Conservar borrador' : 'Cancelar'}
+            {action === 'discard' ? 'Conservar borrador' : 'Cancelar'}
           </Button>
           <Button
             type="submit"
@@ -127,8 +174,16 @@ export function PurchaseDiscardDialog({
             loadingLabel={busyLabel}
             disabled={blocked}
           >
-            <Icon name={destructive ? 'alert' : 'message'} />
-            {destructive ? 'Descartar comprobante' : 'Solicitar corrección'}
+            <Icon
+              name={
+                action === 'approve'
+                  ? 'check'
+                  : destructive
+                    ? 'alert'
+                    : 'message'
+              }
+            />
+            {labels[action]}
           </Button>
         </div>
       </form>

@@ -37,6 +37,7 @@ export function PurchaseDocumentDetail({
   editPath,
   writer,
   canReview = false,
+  canDecide = false,
   headingLevel = 1,
 }: {
   workspaceId: string;
@@ -44,6 +45,7 @@ export function PurchaseDocumentDetail({
   documentId: string;
   canUpload: boolean;
   canReview?: boolean;
+  canDecide?: boolean;
   headingLevel?: 1 | 2;
   documentsPath: string;
   editPath: string;
@@ -139,7 +141,9 @@ export function PurchaseDocumentDetail({
                       ? 'Enviado a revisión. Este estado no significa que esté aprobado. Los datos se muestran en modo de consulta.'
                       : document.status === 'discarded'
                         ? 'Este comprobante fue retirado del flujo, pero se conserva en el historial. No se eliminó físicamente.'
-                        : 'Este comprobante está bloqueado para acciones del cliente y se conserva para consulta e historial.'}
+                        : document.status === 'approved'
+                          ? 'Aprobada internamente en Nuvora. Esta decisión no significa validación SAT, pago ni incorporación automática a libros o declaraciones fiscales.'
+                          : 'Este comprobante fue rechazado y queda bloqueado para edición, reenvío y descarte. Se conserva para consulta e historial.'}
               </p>
               <PurchaseObservation document={document} />
               <div className={styles.invoiceParties}>
@@ -222,6 +226,18 @@ export function PurchaseDocumentDetail({
                     <dt>Última actualización</dt>
                     <dd>{timestamp(document.updatedAt)}</dd>
                   </div>
+                  {document.reviewedBy && (
+                    <div>
+                      <dt>Identificador de quien revisó</dt>
+                      <dd>{document.reviewedBy}</dd>
+                    </div>
+                  )}
+                  {document.reviewedAt && (
+                    <div>
+                      <dt>Fecha de revisión interna</dt>
+                      <dd>{timestamp(document.reviewedAt)}</dd>
+                    </div>
+                  )}
                 </dl>
                 <p>
                   Horarios de Guatemala. Datos capturados; no constituyen una
@@ -235,6 +251,7 @@ export function PurchaseDocumentDetail({
                 writer={writer}
                 canUpload={canUpload}
                 canReview={canReview}
+                canDecide={canDecide}
                 onRefresh={() => void detail.refetch()}
               />
               <Link to={documentsPath} className="btn-secondary">

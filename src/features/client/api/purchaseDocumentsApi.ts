@@ -93,6 +93,8 @@ function parseDocument(
     reviewObservation: nullableText(row.review_observation),
     observedBy: nullableText(row.observed_by),
     observedAt: nullableText(row.observed_at),
+    reviewedBy: nullableText(row.reviewed_by),
+    reviewedAt: nullableText(row.reviewed_at),
     createdAt: text(row.created_at),
     updatedAt: text(row.updated_at),
   };
@@ -215,6 +217,30 @@ export function returnPurchaseDocumentToDraft(
     const { data } = await httpClient.post<{ document: unknown }>(
       `${endpoint(workspaceId, entityId, documentId)}/return-to-draft`,
       { observation },
+      { signal, headers: bearerHeaders(token) },
+    );
+    return parseDocument(data?.document, workspaceId, entityId, documentId);
+  });
+}
+export function decidePurchaseDocument(
+  userId: string,
+  workspaceId: string,
+  entityId: string,
+  documentId: string,
+  decision: 'approve' | 'reject',
+  reason: string | undefined,
+  signal: AbortSignal,
+) {
+  const trimmed = reason?.trim() ?? '';
+  if (decision === 'reject' && (!trimmed || trimmed.length > 2000))
+    throw new ApiRequestError(
+      400,
+      'PURCHASE_DOCUMENT_REJECTION_REASON_REQUIRED',
+    );
+  return authenticatedRequest(userId, signal, async (token) => {
+    const { data } = await httpClient.post<{ document: unknown }>(
+      `${endpoint(workspaceId, entityId, documentId)}/${decision}`,
+      decision === 'reject' ? { reason: trimmed } : {},
       { signal, headers: bearerHeaders(token) },
     );
     return parseDocument(data?.document, workspaceId, entityId, documentId);

@@ -3,6 +3,7 @@ export function Icon({
 }: {
   name:
     | 'file'
+    | 'archive'
     | 'copy'
     | 'message'
     | 'link'
@@ -42,6 +43,12 @@ export function Icon({
         <>
           <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
           <path d="M14 2v6h6M8 13h8m-8 4h6" />
+        </>
+      )}
+      {name === 'archive' && (
+        <>
+          <rect x="3" y="3" width="18" height="4" rx="1" />
+          <path d="M5 7v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7M10 11h4" />
         </>
       )}
       {name === 'copy' && (

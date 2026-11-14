@@ -21,9 +21,9 @@ export const purchaseDocumentStatusLabels: Record<
   draft: 'Borrador',
   pending_review: 'Pendiente de revisión',
   needs_correction: 'Requiere corrección',
-  approved: 'Aprobado',
-  rejected: 'Rechazado',
-  discarded: 'Descartado',
+  approved: 'Aprobada internamente',
+  rejected: 'Rechazada',
+  discarded: 'Descartada',
 };
 
 export type PurchaseDocument = {
@@ -44,6 +44,8 @@ export type PurchaseDocument = {
   reviewObservation: string | null;
   observedBy: string | null;
   observedAt: string | null;
+  reviewedBy: string | null;
+  reviewedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -62,3 +64,5 @@ export type PurchaseDocumentInput = {
 };
 
 export type PurchaseDocumentPatch = Partial<PurchaseDocumentInput>;
+export type PurchaseLifecycleActionKind =
+  'discard' | 'return-to-draft' | 'approve' | 'reject';

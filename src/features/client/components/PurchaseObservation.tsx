@@ -9,46 +9,72 @@ export function PurchaseObservation({
   document: PurchaseDocument;
 }) {
   const id = useId();
-  if (!document.reviewObservation && document.status !== 'needs_correction')
+  if (
+    !document.reviewObservation &&
+    document.status !== 'needs_correction' &&
+    document.status !== 'rejected'
+  )
     return null;
   const date = document.observedAt ? new Date(document.observedAt) : null;
   return (
-    <section className={styles.observation} aria-labelledby={id}>
-      <h2 id={id} className={styles.sectionTitle}>
-        <Icon name="message" />
-        {document.status === 'needs_correction'
-          ? 'Corrección solicitada'
-          : 'Observación del contador'}
-      </h2>
-      <p className={styles.preservedText}>
-        {document.reviewObservation ||
-          'No se recibió el texto de la observación. Consulta con tu contador antes de corregir el comprobante.'}
-      </p>
-      {(document.observedBy || date) && (
-        <details className={styles.observationMeta}>
-          <summary>Información de la observación</summary>
-          <dl className={styles.detailFields}>
-            {document.observedBy && (
-              <div>
-                <dt>Identificador del revisor</dt>
-                <dd>{document.observedBy}</dd>
-              </div>
-            )}
-            {date && Number.isFinite(date.getTime()) && (
-              <div>
-                <dt>Fecha de la observación · Guatemala</dt>
-                <dd>
-                  {new Intl.DateTimeFormat('es-GT', {
-                    timeZone: 'America/Guatemala',
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  }).format(date)}
-                </dd>
-              </div>
-            )}
-          </dl>
-        </details>
+    <>
+      {document.status === 'rejected' && (
+        <section
+          className={styles.observation}
+          aria-labelledby={`${id}-rejection`}
+        >
+          <h2 id={`${id}-rejection`} className={styles.sectionTitle}>
+            <Icon name="message" />
+            Motivo del rechazo
+          </h2>
+          <p>
+            El motivo del rechazo no está disponible en la información de este
+            comprobante.
+          </p>
+        </section>
       )}
-    </section>
+      {(document.reviewObservation ||
+        document.status === 'needs_correction') && (
+        <section className={styles.observation} aria-labelledby={id}>
+          <h2 id={id} className={styles.sectionTitle}>
+            <Icon name="message" />
+            {document.status === 'needs_correction'
+              ? 'Corrección solicitada'
+              : document.status === 'rejected'
+                ? 'Observación anterior del contador'
+                : 'Observación del contador'}
+          </h2>
+          <p className={styles.preservedText}>
+            {document.reviewObservation ||
+              'No se recibió el texto de la observación. Consulta con tu contador antes de corregir el comprobante.'}
+          </p>
+          {(document.observedBy || date) && (
+            <details className={styles.observationMeta}>
+              <summary>Información de la observación</summary>
+              <dl className={styles.detailFields}>
+                {document.observedBy && (
+                  <div>
+                    <dt>Identificador del revisor</dt>
+                    <dd>{document.observedBy}</dd>
+                  </div>
+                )}
+                {date && Number.isFinite(date.getTime()) && (
+                  <div>
+                    <dt>Fecha de la observación · Guatemala</dt>
+                    <dd>
+                      {new Intl.DateTimeFormat('es-GT', {
+                        timeZone: 'America/Guatemala',
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      }).format(date)}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </details>
+          )}
+        </section>
+      )}
+    </>
   );
 }

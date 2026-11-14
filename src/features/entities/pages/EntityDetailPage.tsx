@@ -110,6 +110,10 @@ export function EntityDetailPage({
                 canReview={
                   entity.permissions.canReview || entity.permissions.canManage
                 }
+                canDecide={
+                  (workspaceRole === 'owner' || workspaceRole === 'admin') &&
+                  (entity.permissions.canReview || entity.permissions.canManage)
+                }
               />
             ) : !canManageAccess ? (
               <div className={styles.dataSection}>

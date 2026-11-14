@@ -14,6 +14,7 @@ export function EntityHeader({
   section,
   canManageAccess,
   headingRef,
+  summaryPath,
 }: {
   name: string;
   workspaceName: string;
@@ -21,6 +22,7 @@ export function EntityHeader({
   section: EntitySection;
   canManageAccess: boolean;
   headingRef: Ref<HTMLHeadingElement>;
+  summaryPath?: string;
 }) {
   const links = [
     { key: 'data', label: 'Datos del cliente', to: basePath },
@@ -56,12 +58,20 @@ export function EntityHeader({
             </h1>
           </div>
         </div>
-        <Link
-          className={workspaceStyles.backLink}
-          to={basePath.slice(0, basePath.lastIndexOf('/'))}
-        >
-          <Icon name="arrow-right" /> Volver a clientes
-        </Link>
+        <div className={styles.entityHeaderActions}>
+          {summaryPath && (
+            <Link to={summaryPath} className="btn-secondary">
+              <Icon name="calendar" />
+              Ver resumen mensual
+            </Link>
+          )}
+          <Link
+            className={workspaceStyles.backLink}
+            to={basePath.slice(0, basePath.lastIndexOf('/'))}
+          >
+            <Icon name="arrow-right" /> Volver a clientes
+          </Link>
+        </div>
       </header>
       <nav
         className={styles.entityNavigation}

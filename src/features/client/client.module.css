@@ -870,6 +870,16 @@
   }
 }
 @media (max-width: 639px) {
+  .clientNavigation {
+    gap: var(--space-3);
+  }
+  .clientNavigation a {
+    flex: 1 1 0;
+    min-width: 0;
+    justify-content: center;
+    text-align: center;
+    font-size: var(--text-small);
+  }
   .invoiceParties {
     grid-template-columns: minmax(0, 1fr);
   }

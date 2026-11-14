@@ -10,7 +10,23 @@ export function ClientLayout({ children }: PropsWithChildren) {
   const { user } = useAuth();
   const { pathname, search } = useLocation();
   const main = useRef<HTMLElement>(null);
+  const previousLocation = useRef<{ pathname: string; search: string } | null>(
+    null,
+  );
   useEffect(() => {
+    const previous = previousLocation.current;
+    previousLocation.current = { pathname, search };
+    const context = (query: string) => {
+      const params = new URLSearchParams(query);
+      params.delete('period');
+      return params.toString();
+    };
+    const monthOnly =
+      previous?.pathname === pathname &&
+      new URLSearchParams(search).get('view') === 'summary' &&
+      context(previous.search) === context(search);
+    if (monthOnly && document.activeElement?.matches('input[type="month"]'))
+      return;
     main.current?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }, [pathname, search]);

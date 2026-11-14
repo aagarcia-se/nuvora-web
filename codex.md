@@ -1,6 +1,6 @@
 # Codex — estado y continuidad de Nuvora Web
 
-Actualizado el 2026-11-13. **Este archivo es la fuente única para determinar qué
+Actualizado para las instrucciones de integración mensual del contador. **Este archivo es la fuente única para determinar qué
 se implementó, qué se verificó y qué falta.** La documentación temática anterior
 queda como referencia histórica; no es necesario consultarla para continuar el
 trabajo. Los bloques de historial al final conservan decisiones y contratos,
@@ -43,7 +43,105 @@ resultados reales y pendientes; no crear otro documento de continuidad del porta
 
 ## Portal de contadores
 
-### Última entrega — aprobación y rechazo internos, 2026-11-13
+### Última entrega — acceso y permisos del resumen mensual del contador
+
+**Estado: implementado en frontend; validación visual e integración real pendientes.**
+Se revisó la nueva instrucción del final del documento. El resumen ya estaba
+integrado dentro de Comprobantes, por lo que se reutilizó su componente, API,
+Query y formulario en lugar de duplicar la lógica o crear un balance alternativo.
+
+| Antes                                                          | Después                                                                      | Motivo                                                 |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Acceso mensual dentro de Comprobantes                          | Ver resumen mensual también en la cabecera de cada entity autorizada         | Hacer visible la consulta desde el detalle del cliente |
+| Ruta mensual podía llegar a consultar antes del rechazo remoto | Guard explícito owner/admin + canView o canManage antes de montar el resumen | Evitar consultas mensuales sin la capacidad requerida  |
+| Configuración restringida a canManage                          | Restricción conservada con permisos confirmados por API                      | Separar consulta de edición del monto                  |
+
+La cabecera mantiene workspace y nombre autorizado de la entity como contexto.
+El acceso rápido usa la ruta existente documents?view=summary&period=YYYY-MM,
+conservando el mes válido de la URL o usando el actual de Guatemala. Se oculta
+cuando ya se está en el resumen para evitar duplicar la acción. Las acciones de
+cabecera se adaptan a móvil mediante flex y wrap; no se agregaron secciones ni
+otro sidebar. Registros / Resumen mensual permanecen dentro de Comprobantes.
+
+Permisos: solo owner/admin del workspace confirmado y canView o canManage de la
+entity habilitan consultar. Solo owner/admin + canManage habilitan configurar.
+No se infiere canManage desde el nombre del rol. Un enlace mensual directo sin
+permiso muestra estado accesible y retorno al listado, sin montar el componente
+mensual ni ejecutar su GET/PUT. La autorización definitiva sigue en el API.
+Listado/detalle de comprobantes conservan sus contratos y capacidades anteriores.
+
+Se conservan selector de mes, monto inicial como string decimal, compras y conteo
+aprobados, disponible estimado, advertencia textual negativa y política Fetch
+no-store vía Axios. Sin cálculos monetarios nuevos, endpoints alternativos ni
+promesas de saldo bancario, caja, pago, SAT o cierre fiscal. El resumen compartido
+mantiene carga, vacío, errores, reintento, guardado confirmado y protección de
+borradores. La invalidación mensual tras transiciones ya implementada se conserva.
+
+Archivos: EntityDetailPage.tsx, EntityHeader.tsx, EntityPurchaseDocuments.tsx y
+entities.module.css. Casos Demo nuevos en purchase-periods.spec.ts: acceso desde
+cabecera con contexto visible, owner con canView sin canManage en consulta y
+viewer por enlace directo sin peticiones mensuales. NO ejecutados (Playwright
+continúa prohibido). Lint sin errores/avisos y build salida 0; cifras actualizadas
+en Verificación y pendientes compartidos. Sin Git/env/backend/SQL/dependencias.
+
+### Entrega anterior — resumen mensual de aprobados y caché HTTP
+
+Aplicada la corrección de contrato mensual documentada el 2026-11-14. El parser
+y tipo includedStatuses aceptan exactamente ['approved']; se conserva el valor
+validado devuelto por el API. No se esperan los cuatro estados antiguos y no se
+recalculan compras, disponible o conteo desde los registros del frontend.
+
+La consulta GET mensual usa el adaptador Fetch de la versión instalada de Axios
+con fetchOptions.cache = 'no-store'. Mantiene httpClient, base URL relativa,
+Bearer vía SDK, timeout, AbortSignal y normalización de errores. Se verificó el
+soporte en los tipos y adaptador locales de Axios; no se añadieron librerías,
+parámetros aleatorios de negocio ni headers CORS nuevos. La política evita leer
+y escribir caché HTTP del navegador para este resumen y la revalidación
+condicional que estaba provocando 304. No se acepta un 304 vacío como resumen
+ni se inventa un cuerpo; TanStack Query conserva su caché en memoria por contexto.
+PUT y otras rutas mantienen el transporte anterior.
+
+Archivos: purchasePeriodsApi.ts, PurchasePeriodSummary.tsx y los casos Demo de
+purchase-periods.spec.ts. Lint sin errores/avisos y build salida 0. Casos preparados
+para contrato aprobado, rechazo del payload antiguo y Request.cache no-store;
+NO ejecutados por restricción de Playwright. Verificación visual/HTTP real y
+API/RLS pendientes; compilación no certifica la solución del 304 en navegador.
+Sin backend/SQL, Git, entornos, dependencias ni Bootstrap.
+
+### Entrega anterior — resumen mensual y monto inicial, 2026-11-13
+
+Implementados GET purchase-periods/:period/summary y PUT purchase-periods/:period
+con los contratos existentes. Solo se usó emil-design-eng para esta entrega.
+La sección Comprobantes conserva su lugar en el submenú de la entidad y ahora
+contiene Registros / Resumen mensual; no se añadió otro menú lateral ni una
+quinta sección principal de administración.
+
+Ruta mensual: /workspaces/:workspaceId/clients/:entityId/documents?view=summary&period=YYYY-MM.
+Registros del mes: misma ruta sin view, con ?period=YYYY-MM. Detalle: ?document=UUID&period=YYYY-MM.
+Contexto confirmado por workspace/entity y retorno Auth con whitelist ampliada.
+La URL solo selecciona contexto; no autoriza. El mes inicial usa America/Guatemala.
+
+El contador owner/admin con entity.permissions.canManage puede configurar el
+monto inicial del mes mediante edición inline de un campo, sin modal. CanReview
+por sí solo no habilita configuración. Se confirmó en lectura del servicio local
+que manage requiere owner/admin y can_manage, y que PUT devuelve { summary }.
+No se modificó backend, SQL ni sus entornos.
+
+El formulario acepta cero y hasta 16 dígitos enteros con dos decimales, conserva
+strings y normaliza coma decimal para enviar { initialAmount, currency: 'GTQ' }.
+Guardar es explícito; Cancelar no envía PUT. Guardado con confirmación visible,
+foco de resultado, retorno al botón al cancelar y bloqueo de doble envío.
+Cambios sin guardar y escrituras pendientes se protegen con el guard existente
+al navegar, cambiar mes y recargar. EntityDraftGuard administrativo solo se monta
+en Datos del cliente para no registrar dos blockers al editar el monto mensual.
+
+Ante 409 o guardado incierto se bloquea repetir PUT hasta consultar el resumen.
+Comprobar monto guardado hace GET: si coincide, cierra edición sin repetir PUT;
+si difiere, conserva lo escrito y permite revisar antes de guardar. No hay
+reintentos automáticos de PUT. El API sigue siendo autoridad sobre concurrencia;
+no se añadieron versiones o contratos de bloqueo inexistentes.
+
+### Entrega anterior — aprobación y rechazo internos, 2026-11-13
 
 Integrados POST approve y POST reject del contrato nuevo. Aprobar envía {};
 Rechazar envía { reason } recortado y exige entre 1 y 2000 caracteres. Solo la
@@ -272,7 +370,88 @@ el comportamiento real del bloqueo de navegación o la sesión en navegador.
 
 ## Portal de clientes
 
-### Última entrega — badges suaves con colores oficiales y Tailwind, 2026-11-13
+**Continuidad de esta entrega:** el cliente entity-only conserva su portal aislado. No se añadieron enlaces, navegación ni controles del despacho a su interfaz; las mejoras de acceso y permisos son exclusivas del contador.
+
+### Última entrega — claridad del resumen aprobado
+
+El resumen mensual compartido ahora muestra Total de compras aprobadas y
+Comprobantes aprobados. Estado vacío: aún no hay compras aprobadas. La advertencia
+de disponible negativo se refiere al total aprobado. La explicación aclara que
+borradores, correcciones, pendientes de revisión, rechazados y descartados no se
+restan del monto inicial. El enlace al listado conserva el mes y permite consultar
+todos los estados; ese listado no se usa para calcular el resumen.
+
+Los importes y conteo provienen del API. No se incorporaron métricas de pendientes
+ni se resta nada en JavaScript. UI, permisos de edición del monto, guardado,
+recuperación, navegación y paleta suave conservados. Esta entrega sustituye las
+referencias a sumar cuatro estados del resumen mensual anterior; las secciones
+marcadas como anteriores quedan como antecedentes.
+
+### Entrega anterior — consulta mensual y navegación por período, 2026-11-13
+
+Cliente autorizado puede consultar Resumen mensual mediante
+/client/entities/:entityId?workspaceId=:workspaceId&view=summary&period=YYYY-MM.
+Registrar factura sigue primero; Comprobantes y Resumen mensual son destinos
+explícitos. El cliente no puede editar monto inicial, aunque sea uploader o tenga
+un nombre de rol similar al contador. CanManage mensual se pasa siempre false.
+
+| Antes                             | Después                                                    | Motivo                                             |
+| --------------------------------- | ---------------------------------------------------------- | -------------------------------------------------- |
+| Solo listado y captura            | Vista mensual separada dentro del contexto de comprobantes | Consultar cifras sin cargar la pantalla de captura |
+| Sin referencia mensual            | Monto inicial, compras, disponible y cantidad incluidos    | Entender el mes sin métricas inventadas            |
+| Compras sin contexto temporal     | Enlace a registros filtrados por fecha del mes             | Pasar del resumen al detalle conservando período   |
+| Disponible negativo poco evidente | Importe con signo y advertencia textual ámbar              | No depender solo del color                         |
+
+Diseño: selector nativo mes/año, una superficie con monto inicial y tres métricas,
+separadores discretos, cifras tabulares e iconos existentes. En móvil los importes
+pasan a una columna; navegación compacta adaptable. No se añadieron gráficos,
+gradientes ni animaciones decorativas. Se conservan tokens y badges suaves.
+El selector mantiene foco al cambiar mes con teclado; cambiar mes desmonta el
+contenido anterior sin mostrar datos del período previo.
+
+Los totales y la cuenta proceden exclusivamente del resumen del API. Se incluyen
+draft, needs_correction, pending_review y approved por issue_date; se excluyen
+rejected/discarded. No se calculan importes con float ni desde las filas cargadas.
+El formateador monetario conserva precisión con strings/BigInt y admite negativos.
+La UI explica que no es saldo bancario, caja, pagos, SAT ni registro automático en libros.
+
+Ver comprobantes del mes abre el listado con filtro local por issueDate, sobre
+los registros que entrega el contrato actual (sin inventar filtros/paginación API).
+El listado puede mostrar estados excluidos del cálculo, identificados por sus
+badges. Resumen explica qué estados suma; cantidad incluida no es total comercial
+de registros. La fecha del comprobante, no fecha de carga/pago, determina el mes.
+El período se conserva al consultar detalle y volver; sin período se mantiene la
+consulta general anterior.
+
+Estados: carga, cero comprobantes, error, servicio/red, sesión inválida y falta
+de permisos, sin convertir errores en cero ni mostrar totales anteriores tras un
+error. GET y PUT validan el período y la forma de la respuesta. Queries por
+usuario/workspace/entity/período, gcTime 0 y AbortSignal. Escritura verifica la
+identidad de la Query antes de actualizar caché para rechazar respuestas después
+de una limpieza o cambio de contexto. No se persisten importes en URL/storage/logs.
+
+La invalidación de compras ahora invalida el scope mensual tras crear, editar,
+enviar, descartar, aprobar, rechazar o devolver a corrección. Se invalidan todos
+los meses del contexto para cubrir cambios de fecha y el mes anterior. Resumen
+vuelve a consultar al abrirlo; no se sustituyen totales del servidor por cálculos
+optimistas. Cambios de permisos al guardar revalidan detalle de entity y resumen.
+
+Archivos nuevos en features/purchase-periods: api/purchasePeriodsApi.ts,
+api/usePurchasePeriod.ts, components/PurchasePeriodSummary.tsx y
+purchasePeriods.module.css. Integración en EntityPurchaseDocuments,
+EntityDetailPage, PurchaseDocuments, PurchaseDocumentList, ClientEntityPage,
+ClientLayout, returnPath, usePurchaseDocuments y purchasePresentation.
+Casos Demo en tests/auth/purchase-periods.spec.ts: lectura sin edición, negativo,
+mes vacío, protección del monto al cambiar mes, guardado decimal, comprobación
+tras resultado incierto y errores 401/403/404/409/503. Preparados, NO ejecutados.
+
+Lint final sin errores/avisos y build final salida 0. Sin Git/env/backend/SQL,
+dependencias nuevas ni Bootstrap. Visual, interacción real y API/RLS con dos
+usuarios pendientes; build no los certifica. Se actualiza solo este archivo como
+fuente de continuidad, conservando la consolidación pedida por el propietario.
+El límite del motivo de rechazo persistido no forma parte de esta entrega.
+
+### Entrega anterior — badges suaves con colores oficiales y Tailwind, 2026-11-13
 
 El propietario pidió reducir intensidad, usar corrección warning y pendiente info,
 y no añadir Bootstrap. No se instaló ni importó Bootstrap; package.json y lockfile
@@ -657,7 +836,7 @@ contador quedan para contratos/fases posteriores. No se simularon resultados.
 
 ## Verificación y pendientes compartidos
 
-Última verificación de código: badges suaves con utilidades Tailwind,
+Última verificación de código: acceso y permisos del resumen mensual del contador,
 2026-11-13. Lint/build ejecutados después de los cambios de integración y UI.
 La actualización posterior de este archivo no repitió checks de código.
 
@@ -665,9 +844,9 @@ La actualización posterior de este archivo no repitió checks de código.
 | ------------- | ----------------------------------------------------------------- |
 | npm run lint  | Salida 0, sin errores ni avisos                                   |
 | npm run build | Salida 0; TypeScript, Vite y generación PWA completos             |
-| CSS           | 78,89 kB; 14,44 kB gzip                                           |
-| JS principal  | 813,00 kB; 233,34 kB gzip                                         |
-| PWA           | 21 entradas; 904,24 KiB; generación no certifica instalación real |
+| CSS           | 83,41 kB; 15,02 kB gzip                                           |
+| JS principal  | 826,49 kB; 237,02 kB gzip                                         |
+| PWA           | 21 entradas; 921,83 KiB; generación no certifica instalación real |
 | Bundle        | Aviso de chunk superior a 500 kB pendiente                        |
 | Playwright    | NO ejecutado; test:auth y test:pwa no autorizados                 |
 | Visual        | Pendiente en móvil/escritorio, claro/oscuro, teclado y foco       |
@@ -2155,3 +2334,198 @@ npm run build
 ```
 
 No ejecutar Playwright sin autorización explícita.
+
+## Resumen mensual y monto inicial — contrato integrado en frontend, 2026-11-13
+
+El backend ya expone el resumen mensual de compras por entity. La siguiente
+implementación frontend debe usar únicamente la skill `emil-design-eng` para
+el pulido visual, interacción, accesibilidad y microdetalles.
+
+### Endpoints
+
+```http
+GET /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-periods/:period/summary
+PUT /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-periods/:period
+```
+
+`period` usa el formato `YYYY-MM`, por ejemplo `2026-11`.
+
+Para configurar el monto inicial:
+
+```json
+{
+  "initialAmount": "10000.00",
+  "currency": "GTQ"
+}
+```
+
+El resumen responde:
+
+```json
+{
+  "summary": {
+    "period": "2026-11",
+    "currency": "GTQ",
+    "initial_amount": "10000.00",
+    "purchases_total": "2350.00",
+    "remaining_amount": "7650.00",
+    "purchase_count": 4,
+    "included_statuses": ["approved"]
+  }
+}
+```
+
+### Fórmula y reglas
+
+```text
+remaining_amount = initial_amount - purchases_total
+```
+
+El total incluye únicamente compras `approved` de la misma workspace/entity cuyo
+`issue_date` pertenece al mes seleccionado. `draft`, `needs_correction`,
+`pending_review`, `rejected` y `discarded` no descuentan del monto disponible.
+
+El frontend no debe recalcular ni duplicar esta lógica; debe mostrar
+`purchases_total`, `remaining_amount`, `purchase_count` e `included_statuses`
+devueltos por el backend. Si se desea informar sobre pendientes, debe mostrarse
+como dato separado y no restarse del disponible.
+
+Es un resumen informativo de compras: no representa saldo bancario, caja, pagos,
+validación SAT ni incorporación automática a libros. Conservar importes como
+strings decimales; no usar `float`. `remaining_amount` puede ser negativo y
+debe mostrarse claramente.
+
+### Permisos
+
+- El contador autorizado puede consultar y configurar el monto inicial.
+- El cliente autorizado puede consultar el resumen de su entity.
+- El cliente no puede modificar el monto inicial.
+- No usar NIT, nombre ni monto como autorización.
+- Las claves de Query deben incluir usuario, workspace, entity y período.
+
+### UX/UI con `emil-design-eng`
+
+Implementar una sección mensual minimalista y responsive con:
+
+- Selector de mes/año accesible.
+- Monto inicial editable solo para el contador autorizado.
+- Total de compras, disponible estimado y cantidad de comprobantes.
+- Acceso para consultar las compras del período.
+- Estados vacío, carga, error, 401, 403, 404, 409 y 503 con reintento.
+- Advertencia textual si el disponible es negativo; no depender solo del color.
+- Tokens actuales, dark mode y sin gradientes, emojis, hex dispersos ni cards
+  decorativas excesivas.
+- Microinteracciones breves y útiles, transiciones específicas y respeto a
+  `prefers-reduced-motion`.
+
+### Estado y sincronización
+
+- Invalidar el resumen después de crear, editar, enviar, descartar, aprobar o
+  rechazar una compra del período.
+- Cancelar peticiones al cambiar usuario, workspace, entity o período.
+- No reintentar automáticamente el `PUT` del monto inicial.
+- Mostrar confirmación de guardado y evitar doble envío.
+- Documentar archivos, decisiones visuales y resultados en `codex.md`,
+  `docs/CLIENT.md` y `docs/STATUS.md`.
+
+No ejecutar Playwright sin autorización. Para esta tarea ejecutar solo
+`npm run lint` y `npm run build`.
+
+### Corrección de contrato mensual — 2026-11-14
+
+El backend fue actualizado y validado para descontar únicamente compras con
+estado `approved`. El endpoint de resumen responde correctamente con HTTP 200
+cuando no interviene la caché del navegador.
+
+El parser frontend debe aceptar exactamente:
+
+```json
+"included_statuses": ["approved"]
+```
+
+No debe esperar `draft`, `needs_correction` ni `pending_review` dentro de
+`included_statuses`. Esos estados no reducen `remaining_amount`.
+
+La interfaz puede mostrar compras pendientes como información separada, pero no
+debe restarlas del disponible ni recalcular el resumen con JavaScript. Debe usar
+`purchases_total`, `remaining_amount`, `purchase_count` e `included_statuses`
+devueltos por el API.
+
+Durante la integración local se observó que Express puede responder `304 Not
+Modified` por caché condicional. El frontend no debe convertir una respuesta
+cacheada válida en un error de negocio. Para el resumen autenticado, usar una
+política de no almacenamiento/revalidación compatible con el transporte actual
+o manejar correctamente la respuesta cacheada; la petición validada sin caché
+responde `200`.
+
+La corrección frontend debe actualizar tipos/parser, estados de carga/error y
+reintento sin modificar el backend ni ejecutar SQL remoto.
+
+## Integración del resumen mensual en el área del contador — frontend implementado
+
+Estado actualizado: instrucciones aplicadas. Cierre, archivos y evidencia real en la última entrega de Portal de contadores al inicio de este documento. La validación visual, los casos Demo y API/RLS siguen pendientes.
+
+El backend ya permite consultar el balance mensual desde el contexto autorizado
+del contador. La próxima implementación frontend debe reutilizar el contrato
+de resumen mensual y mostrarlo también en el detalle de cada entity dentro del
+área del despacho.
+
+### Contrato
+
+```http
+GET /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-periods/:period/summary
+```
+
+El contador puede consultar cuando sea `owner/admin` y tenga grant `can_view` o
+`can_manage`. Solo `owner/admin` con `can_manage` puede configurar el monto:
+
+```http
+PUT /api/v1/workspaces/:workspaceId/entities/:entityId/purchase-periods/:period
+```
+
+El resumen contiene:
+
+```json
+{
+  "period": "2026-11",
+  "currency": "GTQ",
+  "initial_amount": "10000.00",
+  "purchases_total": "2350.00",
+  "remaining_amount": "7650.00",
+  "purchase_count": 4,
+  "included_statuses": ["approved"]
+}
+```
+
+### Reglas para la vista del contador
+
+- Mostrar entity, período, monto inicial, compras aprobadas, disponible y
+  cantidad de comprobantes.
+- El contador puede cambiar de mes y consultar el período seleccionado.
+- Permitir editar el monto inicial solo si `canManage` está confirmado por el
+  API; no inferirlo del rol visual.
+- Guardar el monto como string decimal; no usar `float` ni recalcular el total
+  en el navegador.
+- Mostrar que el balance se basa únicamente en compras `approved`.
+- No presentar el disponible como saldo bancario, caja, pagos, validación SAT o
+  cierre fiscal.
+- Si el disponible es negativo, mostrar una advertencia textual clara y no
+  depender solamente del color.
+- Un cliente entity-only no debe ver la navegación ni controles del despacho;
+  conservar su portal aislado.
+
+### Integración UX/UI
+
+- Reutilizar el componente/resumen existente sin duplicar lógica de API.
+- Ubicarlo en el detalle de la entity del contador, con contexto visible de
+  workspace, entity y período.
+- Mantener diseño minimalista, responsive y dark mode.
+- Usar únicamente `emil-design-eng` para microinteracciones, foco, estados y
+  pulido visual.
+- Estados de carga, vacío, error, permisos, reintento y guardado confirmado.
+- Invalidar el resumen después de crear, editar, enviar, aprobar, rechazar o
+  descartar compras de ese período.
+- Claves de Query aisladas por usuario, workspace, entity y período.
+
+Documentar archivos, resultados de `npm run lint` y `npm run build`, además de
+cualquier limitación real. No ejecutar Playwright sin autorización expresa.

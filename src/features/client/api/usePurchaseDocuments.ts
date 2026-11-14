@@ -3,6 +3,7 @@ import { CanceledError } from 'axios';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth/store/authStore';
 import { profileEntityKeys } from '@/features/access/hooks/useProfileEntities';
+import { purchasePeriodKeys } from '@/features/purchase-periods/api/usePurchasePeriod';
 import {
   ApiRequestError,
   errorStatus,
@@ -215,6 +216,9 @@ export function usePurchaseDocuments(
     },
     onSuccess: (document, operation) => {
       if (active.current) {
+        void client.invalidateQueries({
+          queryKey: purchasePeriodKeys.scope(userId, workspaceId, entityId),
+        });
         void client.invalidateQueries({ queryKey: listKey });
         if (operation.kind !== 'check') {
           void client.invalidateQueries({

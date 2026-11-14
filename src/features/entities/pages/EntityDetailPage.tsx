@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { validPeriod } from '@/features/purchase-periods/api/purchasePeriodsApi';
+import { guatemalaDate } from '@/features/client/utils/purchasePresentation';
 import type { WorkspaceRole } from '@/features/workspace/types/workspace.types';
 import { EntityMembersPage } from '@/features/access/pages/EntityMembersPage';
 import { EntityInvitationsPage } from '@/features/access/pages/EntityInvitationsPage';
@@ -26,6 +28,7 @@ export function EntityDetailPage({
   section?: EntitySection;
 }) {
   const detail = useEntity(workspaceId, entityId);
+  const [search] = useSearchParams();
   const write = useEntityWrite(workspaceId);
   const [editing, setEditing] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -36,6 +39,14 @@ export function EntityDetailPage({
   const canManageAccess =
     canEdit && (workspaceRole === 'owner' || workspaceRole === 'admin');
   const basePath = `/workspaces/${workspaceId}/clients/${entityId}`;
+  const isCounter = workspaceRole === 'owner' || workspaceRole === 'admin';
+  const canViewPeriod =
+    isCounter &&
+    Boolean(entity?.permissions.canView || entity?.permissions.canManage);
+  const selectedPeriod = search.get('period') ?? '';
+  const summaryPeriod = validPeriod(selectedPeriod)
+    ? selectedPeriod
+    : guatemalaDate().slice(0, 7);
   function cancelEdit() {
     setEditing(false);
     setDirty(false);
@@ -71,6 +82,12 @@ export function EntityDetailPage({
               section={section}
               canManageAccess={canManageAccess}
               headingRef={heading}
+              summaryPath={
+                canViewPeriod &&
+                !(section === 'documents' && search.get('view') === 'summary')
+                  ? `${basePath}/documents?view=summary&period=${summaryPeriod}`
+                  : undefined
+              }
             />
             {section === 'data' ? (
               <EntityDataSection
@@ -114,6 +131,11 @@ export function EntityDetailPage({
                   (workspaceRole === 'owner' || workspaceRole === 'admin') &&
                   (entity.permissions.canReview || entity.permissions.canManage)
                 }
+                canManagePeriod={
+                  (workspaceRole === 'owner' || workspaceRole === 'admin') &&
+                  entity.permissions.canManage
+                }
+                canViewPeriod={canViewPeriod}
               />
             ) : !canManageAccess ? (
               <div className={styles.dataSection}>
@@ -142,7 +164,7 @@ export function EntityDetailPage({
                 active={section === 'invitations'}
               />
             )}
-            {canEdit && (
+            {canEdit && section === 'data' && (
               <EntityDraftGuard
                 dirty={editing && dirty}
                 pending={editing && write.isPending}

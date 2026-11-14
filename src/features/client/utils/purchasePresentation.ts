@@ -94,9 +94,10 @@ export function validatePurchase(input: PurchaseDocumentInput) {
   return errors;
 }
 export function formatPurchaseTotal(total: string) {
-  if (!/^\d+(\.\d{1,2})?$/.test(total)) return `${total} GTQ`;
-  const [integer, fraction = ''] = total.split('.');
-  return `Q ${new Intl.NumberFormat('es-GT').format(BigInt(integer))}.${fraction.padEnd(2, '0')}`;
+  if (!/^-?\d+(\.\d{1,2})?$/.test(total)) return `${total} GTQ`;
+  const negative = total.startsWith('-') && /[1-9]/.test(total);
+  const [integer, fraction = ''] = total.replace(/^-/, '').split('.');
+  return `${negative ? '−' : ''}Q ${new Intl.NumberFormat('es-GT').format(BigInt(integer))}.${fraction.padEnd(2, '0')}`;
 }
 export function formatPurchaseDate(value: string) {
   const date = new Date(`${value}T12:00:00Z`);

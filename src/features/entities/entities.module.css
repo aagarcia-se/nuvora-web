@@ -267,6 +267,13 @@
   border-bottom: 1px solid rgb(var(--color-line));
   margin-bottom: var(--space-6);
 }
+.entityHeaderActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+}
 .entityNavigation a {
   display: flex;
   align-items: center;
@@ -339,8 +346,9 @@
   .entityIdentity {
     align-items: flex-start;
   }
-  .entityHeader > a {
+  .entityHeaderActions {
     align-self: flex-start;
+    justify-content: flex-start;
   }
   .entityNavigation {
     gap: var(--space-2);

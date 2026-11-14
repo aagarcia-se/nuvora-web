@@ -1,6 +1,7 @@
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/features/auth/store/authStore';
 import { isUuid } from '@/shared/utils/identifiers';
+import { validPeriod } from '@/features/purchase-periods/api/purchasePeriodsApi';
 import { useClientEntity } from '../api/useClientEntity';
 import { ClientLayout } from '../components/ClientLayout';
 import { ClientEntityContext } from '../components/ClientEntityContext';
@@ -17,12 +18,14 @@ export function ClientEntityPage() {
   const draft = search.get('draft');
   const view = search.get('view');
   const document = search.get('document');
+  const period = search.get('period');
   const valid =
     isUuid(entityId) &&
     isUuid(workspaceId) &&
     (draft === null || isUuid(draft)) &&
     (document === null || isUuid(document)) &&
-    (view === null || view === 'documents') &&
+    (view === null || view === 'documents' || view === 'summary') &&
+    (period === null || validPeriod(period)) &&
     !(draft && view) &&
     !(document && (draft || view));
   return (

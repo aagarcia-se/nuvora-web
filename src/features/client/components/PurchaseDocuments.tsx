@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { PurchasePeriodSummary } from '@/features/purchase-periods/components/PurchasePeriodSummary';
+import { guatemalaDate } from '../utils/purchasePresentation';
 import { Button } from '@/shared/ui/components/Button';
 import { errorStatus } from '@/shared/api/authenticatedRequest';
 import { useAuth } from '@/features/auth/store/authStore';
@@ -29,13 +31,18 @@ export function PurchaseDocuments({
   canUpload: boolean;
 }) {
   const [search] = useSearchParams();
+  const navigate = useNavigate();
+  const period = search.get('period') ?? '';
+  const summaryPeriod = period || guatemalaDate().slice(0, 7);
   const [filter, setFilter] = useState('all');
   const returnPosition = useRef<PurchaseListPosition | null>(null);
   const documentId = search.get('document');
   const view =
-    canUpload && !documentId && search.get('view') !== 'documents'
-      ? 'register'
-      : 'documents';
+    search.get('view') === 'summary'
+      ? 'summary'
+      : canUpload && !documentId && search.get('view') !== 'documents'
+        ? 'register'
+        : 'documents';
   const draftId = search.get('draft');
   useEffect(() => {
     if (view === 'register') returnPosition.current = null;
@@ -46,7 +53,7 @@ export function PurchaseDocuments({
     view === 'documents' && !documentId,
   );
   const basePath = clientEntityPath(entityId, workspaceId);
-  const documentsPath = `${basePath}&view=documents`;
+  const documentsPath = `${basePath}&view=documents${period ? `&period=${period}` : ''}`;
   const denied =
     list.isError && [401, 403, 404].includes(errorStatus(list.error));
   return (
@@ -69,8 +76,27 @@ export function PurchaseDocuments({
         >
           Comprobantes
         </Link>
+        <Link
+          to={`${basePath}&view=summary&period=${summaryPeriod}`}
+          aria-current={view === 'summary' ? 'page' : undefined}
+        >
+          Resumen mensual
+        </Link>
       </nav>
-      {documentId ? (
+      {view === 'summary' ? (
+        <PurchasePeriodSummary
+          workspaceId={workspaceId}
+          entityId={entityId}
+          period={summaryPeriod}
+          canManage={false}
+          documentsPath={`${basePath}&view=documents&period=${summaryPeriod}`}
+          onPeriodChange={(next) =>
+            navigate(`${basePath}&view=summary&period=${next}`, {
+              replace: true,
+            })
+          }
+        />
+      ) : documentId ? (
         <PurchaseDocumentDetail
           key={documentId}
           workspaceId={workspaceId}
@@ -90,6 +116,7 @@ export function PurchaseDocuments({
           writer={mutate}
           registerPath={basePath}
           canUpload={canUpload && !denied}
+          period={period}
         />
       ) : draftId ? (
         <DraftEditor

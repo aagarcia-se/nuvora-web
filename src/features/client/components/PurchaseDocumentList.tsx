@@ -21,6 +21,7 @@ export function PurchaseDocumentList({
   returnPosition,
   headingLevel = 1,
   documentPath = `${registerPath}&document=`,
+  period = '',
 }: {
   list: ReturnType<typeof usePurchaseDocuments>['list'];
   writer: ReturnType<typeof usePurchaseDocuments>['mutate'];
@@ -31,6 +32,7 @@ export function PurchaseDocumentList({
   returnPosition: RefObject<PurchaseListPosition | null>;
   headingLevel?: 1 | 2;
   documentPath?: string;
+  period?: string;
 }) {
   const Heading = headingLevel === 2 ? 'h2' : 'h1';
   const collection = useRef<HTMLElement>(null);
@@ -53,7 +55,9 @@ export function PurchaseDocumentList({
     return () => cancelAnimationFrame(frame);
   }, [list.isSuccess, list.isFetching, returnPosition]);
   const { logout } = useAuth();
-  const items = list.data ?? [];
+  const items = (list.data ?? []).filter(
+    (item) => !period || item.issueDate.slice(0, 7) === period,
+  );
   const filtered = items.filter((item) =>
     filter === 'all'
       ? item.status !== 'discarded'
@@ -64,6 +68,9 @@ export function PurchaseDocumentList({
       <header className={styles.listPageHeading}>
         <div className={styles.pageHeading}>
           <Heading>Comprobantes</Heading>
+          {period && (
+            <p>Mes seleccionado: {period} · Según fecha del comprobante</p>
+          )}
           <p>
             {canUpload
               ? 'Consulta los registros disponibles para tu cuenta y continúa los borradores que puedas editar.'
@@ -175,8 +182,8 @@ export function PurchaseDocumentList({
                 document={document}
                 canUpload={canUpload}
                 writer={writer}
-                editPath={`${registerPath}&draft=${document.id}`}
-                detailPath={`${documentPath}${document.id}`}
+                editPath={`${registerPath}&draft=${document.id}${period ? `&period=${period}` : ''}`}
+                detailPath={`${documentPath}${document.id}${period ? `&period=${period}` : ''}`}
                 onOpenDetail={() => {
                   returnPosition.current = {
                     documentId: document.id,
